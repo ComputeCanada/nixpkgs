@@ -6432,6 +6432,8 @@ in
   libcxx = llvmPackages.libcxx;
   libcxxabi = llvmPackages.libcxxabi;
 
+  libstdcxx5 = callPackage ../development/libraries/libstdc++5 { };
+
   libsigrok = callPackage ../development/tools/libsigrok { };
   # old version:
   libsigrok-0-3-0 = libsigrok.override {
