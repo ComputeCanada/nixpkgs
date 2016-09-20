@@ -22,10 +22,14 @@ with stdenv.lib;
 
 let
   majorVersion = "2.7";
-  version = "${majorVersion}.13";
+  minorVersion = "13";
+  minorVersionSuffix = "";
+  pythonVersion = majorVersion;
+  version = "${majorVersion}.${minorVersion}${minorVersionSuffix}";
+  libPrefix = "python${majorVersion}";
 
   src = fetchurl {
-    url = "http://www.python.org/ftp/python/${version}/Python-${version}.tar.xz";
+    url = "https://www.python.org/ftp/python/${majorVersion}.${minorVersion}/Python-${version}.tar.xz";
     sha256 = "0cgpk3zk0fgpji59pb4zy9nzljr70qzgv1vpz5hq5xw2d2c47m9m";
   };
 
@@ -156,12 +160,12 @@ let
       '';
 
     passthru = rec {
+      inherit libPrefix;
       inherit zlibSupport;
       isPy2 = true;
       isPy27 = true;
       buildEnv = callPackage ../../wrapper.nix { python = self; };
       withPackages = import ../../with-packages.nix { inherit buildEnv; pythonPackages = python27Packages; };
-      libPrefix = "python${majorVersion}";
       executable = libPrefix;
       sitePackages = "lib/${libPrefix}/site-packages";
       interpreter = "${self}/bin/${executable}";
