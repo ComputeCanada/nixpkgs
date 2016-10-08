@@ -2052,7 +2052,7 @@ in
 
   horst = callPackage ../tools/networking/horst { };
 
-  host = callPackage ../tools/networking/host { };
+  host = bind.host;
 
   hping = callPackage ../tools/networking/hping { };
 
@@ -10378,6 +10378,7 @@ in
   sabnzbd = callPackage ../servers/sabnzbd { };
 
   bind = callPackage ../servers/dns/bind { };
+  dnsutils = bind.dnsutils;
 
   bird = callPackage ../servers/bird { };
   bird6 = bird.override { enableIPv6 = true; };
