@@ -131,6 +131,20 @@ let
     };
   };
 
+  luaposix = buildLuaPackage rec {
+    name = "luaposix-${version}";
+    version = "33.4.0";
+    buildInputs = [ perl ];
+    src = fetchzip {
+      url = "https://github.com/luaposix/luaposix/archive/release-v${version}.tar.gz";
+      sha256 = "0y531p54lx2yf243bcsyp6sv8fvbqidp20yry0xvb85p8zw9dlrq";
+    };
+    meta = {
+      homepage = "https://github.com/luaposix/luaposix";
+      hydraPlatforms = stdenv.lib.platforms.linux;
+    };
+  };
+
   lpty = buildLuaPackage rec {
     name = "lpty-${version}";
     version = "1.1.1";
