@@ -2451,6 +2451,11 @@ in
 
   limesurvey = callPackage ../servers/limesurvey { };
 
+  lmod = self.callPackage ../tools/misc/lmod {
+    inherit (luaPackages) luafilesystem;
+    inherit (luaPackages) luaposix;
+  };
+
   logcheck = callPackage ../tools/system/logcheck {
     inherit (perlPackages) mimeConstruct;
   };
