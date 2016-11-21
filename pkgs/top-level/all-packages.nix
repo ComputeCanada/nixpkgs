@@ -2874,6 +2874,8 @@ in
 
   oh-my-zsh = callPackage ../shells/oh-my-zsh { };
 
+  opa-psm2 = callPackage ../development/libraries/opa-psm2 { };
+
   opencryptoki = callPackage ../tools/security/opencryptoki { };
 
   opendbx = callPackage ../development/libraries/opendbx { };
