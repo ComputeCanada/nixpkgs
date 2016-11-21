@@ -22,6 +22,12 @@ let
           url = "http://downloads.openfabrics.org/mthca/${name}.tar.gz";
           sha256 = "cc8ea3091135d68233d53004e82b5b510009c821820494a3624e89e0bdfc855c";
       };
+      libipathverbs = rec {
+          version = "1.3";
+          name = "libipathverbs-${version}";
+          url = "http://downloads.openfabrics.org/libipathverbs/${name}.tar.gz";
+          sha256 = "1xwjfsfjnz1j6gdiic2raycvy849hnhz7x9p9njd1z0j1gm6js0l";
+      };
   };
 
 in stdenv.mkDerivation rec {
@@ -32,13 +38,14 @@ in stdenv.mkDerivation rec {
     ( fetchurl { inherit (verbs) url sha256 ; } )
     ( fetchurl { inherit (drivers.libmlx4) url sha256 ; } )
     ( fetchurl { inherit (drivers.libmthca) url sha256 ; } )
+    ( fetchurl { inherit (drivers.libipathverbs) url sha256 ; } )
   ];
 
   sourceRoot = name;
 
   # Install userspace drivers
   postInstall = ''
-    for dir in ${drivers.libmlx4.name} ${drivers.libmthca.name} ; do
+    for dir in ${drivers.libmlx4.name} ${drivers.libmthca.name} ${drivers.libipathverbs.name} ; do
       cd ../$dir
       export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -I$out/include"
       export NIX_LDFLAGS="-rpath $out/lib $NIX_LDFLAGS -L$out/lib"
