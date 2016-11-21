@@ -2121,6 +2121,8 @@ in
 
   inetutils = callPackage ../tools/networking/inetutils { };
 
+  infinipath-psm = callPackage ../development/libraries/infinipath-psm { };
+
   innoextract = callPackage ../tools/archivers/innoextract { };
 
   ioping = callPackage ../tools/system/ioping { };
