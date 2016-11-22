@@ -24657,6 +24657,32 @@ in modules // {
     };
   };
 
+  vsc-install = buildPythonPackage rec {
+    name = "vsc-install-${version}";
+    version = "0.10.17";
+    doCheck = false;
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/v/vsc-install/${name}.tar.gz";
+      md5 = "a7b8461bd592ee26d688a659f99167a9";
+    };
+    meta = {
+      description = "The vsc install";
+    };
+  };
+
+  vsc-base = buildPythonPackage rec {
+    name = "vsc-base-${version}";
+    version = "2.5.5";
+    propagatedBuildInputs = with self; [ vsc-install ];
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/v/vsc-base/${name}.tar.gz";
+      md5 = "de68a64cead111b169933354d47ac9b9";
+    };
+    meta = {
+      description = "The vsc base";
+    };
+  };
+
   virtual-display = buildPythonPackage rec {
     name = "PyVirtualDisplay-0.1.5";
 
