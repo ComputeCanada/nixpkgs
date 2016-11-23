@@ -2457,6 +2457,8 @@ in
     inherit (luaPackages) luafilesystem;
     inherit (luaPackages) luaposix;
   };
+  
+  lmutil = self.callPackage ../tools/misc/lmutil { };
 
   logcheck = callPackage ../tools/system/logcheck {
     inherit (perlPackages) mimeConstruct;
