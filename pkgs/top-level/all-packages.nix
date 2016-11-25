@@ -2914,7 +2914,7 @@ in
   openssh =
     callPackage ../tools/networking/openssh {
       hpnSupport = false;
-      withKerberos = false;
+      withKerberos = true;
       etcDir = "/etc/ssh";
       pam = if stdenv.isLinux then pam else null;
     };
