@@ -1,5 +1,5 @@
 { stdenv, fetchurl, pkgconfig
-, bzip2, curl, expat, libarchive, xz, zlib
+, bzip2, curl, expat, libarchive, xz, zlib, libuv
 , useNcurses ? false, ncurses, useQt4 ? false, qt4
 , wantPS ? false, ps ? null
 }:
@@ -10,8 +10,8 @@ assert wantPS -> (ps != null);
 
 let
   os = stdenv.lib.optionalString;
-  majorVersion = "3.6";
-  minorVersion = "3";
+  majorVersion = "3.7";
+  minorVersion = "1";
   version = "${majorVersion}.${minorVersion}";
 in
 
@@ -22,7 +22,8 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "${meta.homepage}files/v${majorVersion}/cmake-${version}.tar.gz";
-    sha256 = "7d73ee4fae572eb2d7cd3feb48971aea903bb30a20ea5ae8b4da826d8ccad5fe";
+    # from https://cmake.org/files/v3.7/cmake-3.7.1-SHA-256.txt
+    sha256 = "449a5bce64dbd4d5b9517ebd1a1248ed197add6ad27934478976fd5f1f9330e1";
   };
 
   patches =
@@ -37,7 +38,7 @@ stdenv.mkDerivation rec {
   setupHook = ./setup-hook.sh;
 
   buildInputs =
-    [ setupHook pkgconfig bzip2 curl expat libarchive xz zlib ]
+    [ setupHook pkgconfig bzip2 curl expat libarchive xz zlib libuv ]
     ++ optional useNcurses ncurses
     ++ optional useQt4 qt4;
 
