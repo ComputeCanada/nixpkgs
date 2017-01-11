@@ -38,6 +38,12 @@ in
 
 rec {
 
+  multithreaded_rsapubkey =
+    {
+      name = "multithreaded-rsapubkey-asn1.patch";
+      patch = ./multithreaded-rsapubkey-asn1.patch;
+    };
+
   bridge_stp_helper =
     { name = "bridge-stp-helper";
       patch = ./bridge-stp-helper.patch;
@@ -86,9 +92,9 @@ rec {
   };
 
   grsecurity_testing = grsecPatch
-    { kver   = "4.7.10";
-      grrev  = "201611011946";
-      sha256 = "0nva1007r4shlcxzflbxvd88yzvb98si2kjlgnhdqphyz1c0qhql";
+    { kver   = "4.8.15";
+      grrev  = "201612301949";
+      sha256 = "1083r30ipvdi3kjixlsp3f1mmf7848f2p32ds956caarvr4vkm3b";
     };
 
   # This patch relaxes grsec constraints on the location of usermode helpers,
@@ -146,6 +152,24 @@ rec {
         url = "https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git"
             + "/patch/drivers/lguest/x86/core.c?id=cdd77e87eae52";
         sha256 = "04xlx6al10cw039av6jkby7gx64zayj8m1k9iza40sw0fydcfqhc";
+      };
     };
-  };
+
+  packet_fix_race_condition_CVE_2016_8655 =
+    { name = "packet_fix_race_condition_CVE_2016_8655.patch";
+      patch = fetchpatch {
+        url = "https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/patch/?id=84ac7260236a49c79eede91617700174c2c19b0c";
+        sha256 = "19viqjjgq8j8jiz5yhgmzwhqvhwv175q645qdazd1k69d25nv2ki";
+      };
+    };
+
+  p9_caching_4_4 = rec
+    { name = "9p-caching.patch";
+      patch = fetchpatch {
+        inherit name;
+        url = https://github.com/edolstra/linux/commit/d522582553368b9564e2d88a8d7b1d469bf98c65.patch;
+        sha256 = "01h7461pdgavd6ghd6w9wg136hkaca0mrmmzhy6s3phksksimbc2";
+      };
+    };
+
 }

@@ -27,7 +27,6 @@ let
     ${cfg.stopScript}
   '';
 
-
   cfgFile = pkgs.writeText "sddm.conf" ''
     [General]
     HaltCommand=${pkgs.systemd}/bin/systemctl poweroff
@@ -46,8 +45,8 @@ let
     HideUsers=${concatStringsSep "," dmcfg.hiddenUsers}
     HideShells=/run/current-system/sw/bin/nologin
 
-    [XDisplay]
-    MinimumVT=${toString xcfg.tty}
+    [X11]
+    MinimumVT=${toString (if xcfg.tty != null then xcfg.tty else 7)}
     ServerPath=${xserverWrapper}
     XephyrPath=${pkgs.xorg.xorgserver.out}/bin/Xephyr
     SessionCommand=${dmcfg.session.script}
@@ -100,7 +99,7 @@ in
 
       theme = mkOption {
         type = types.str;
-        default = "maui";
+        default = "";
         description = ''
           Greeter theme to use.
         '';
@@ -254,5 +253,10 @@ in
 
     users.extraGroups.sddm.gid = config.ids.gids.sddm;
 
+    services.dbus.packages = [ sddm.unwrapped ];
+
+    # To enable user switching, allow sddm to allocate TTYs/displays dynamically.
+    services.xserver.tty = null;
+    services.xserver.display = null;
   };
 }
