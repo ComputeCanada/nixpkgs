@@ -32,7 +32,7 @@ index d3e76a7..cb307fa 100755
 -            os.path.join("~", ".local", "lib","python", sys.version[:3], "site-packages"),
 -            # System Python 2.7 on OSX Mountain Lion
 -            os.path.join("~", "Library", "Python", sys.version[:3], "lib", "python", "site-packages")))
-+    prefixes = ["/cvmfs/soft.computecanada.ca//nix/store", sys.prefix]
++    prefixes = ["/cvmfs/soft.computecanada.ca//nix", sys.prefix]
  
      if hasattr(sys, 'real_prefix'):
          prefixes.append(sys.real_prefix)
@@ -40,7 +40,7 @@ index d3e76a7..cb307fa 100755
              if src_prefix != os.sep: # sys.prefix == "/"
                  assert relpath[0] == os.sep
                  relpath = relpath[1:]
-+                if src_prefix == "/cvmfs/soft.computecanada.ca/nix/store":
++                if src_prefix == "/cvmfs/soft.computecanada.ca/nix":
 +                    relpath = "/".join(relpath.split("/")[1:])
              return join(dst_prefix, relpath)
      assert False, "Filename %s does not start with any of these prefixes: %s" % \
