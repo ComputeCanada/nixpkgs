@@ -3,7 +3,7 @@
 stdenv.mkDerivation rec {
   name = "Lmod-${version}";
 
-  version = "7.3.4";
+  version = "7.3.16";
   src = fetchurl {
     url = "http://github.com/TACC/Lmod/archive/${version}.tar.gz";
     sha256 = "1dag7gn0bz51jv8b1d7cm6rdysxz1x807i6w78kxynfnwfwazv63";
