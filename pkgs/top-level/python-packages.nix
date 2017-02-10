@@ -790,17 +790,18 @@ in modules // {
       license = with licenses; [ gpl3] ;
       maintainers = with maintainers; [ joamaki ];
       platforms = with platforms; linux ++ darwin;
+      broken = true;
     };
   };
 
   ansible2 = buildPythonPackage rec {
-    version = "2.2.0.0";
+    version = "2.2.1.0";
     name = "ansible-${version}";
     disabled = isPy3k;
 
     src = pkgs.fetchurl {
       url = "http://releases.ansible.com/ansible/${name}.tar.gz";
-      sha256 = "11l5814inr44ammp0sh304rqx2382fr629c0pbwf0k1rjg99iwfr";
+      sha256 = "0gz9i30pdmkchi936ijy873k8di6fmf3v5rv551hxyf0hjkjx8b3";
     };
 
     prePatch = ''
@@ -2720,11 +2721,11 @@ in modules // {
 
   boto = buildPythonPackage rec {
     name = "boto-${version}";
-    version = "2.41.0";
+    version = "2.45.0";
 
     src = pkgs.fetchurl {
       url = "https://github.com/boto/boto/archive/${version}.tar.gz";
-      sha256 = "1n33bfbkpijyy6awjq7a8lrw4hw2lmwv5l7j0am6d34gpa8my75l";
+      sha256 = "18z5nacnbdpw3pmzc56didhy4sfik8riap204px24350g9xlgz7i";
     };
 
     checkPhase = ''
@@ -3482,7 +3483,7 @@ in modules // {
       homepage = https://github.com/click-contrib/click-log/;
       description = "Logging integration for Click";
       license = licenses.mit;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -3501,7 +3502,7 @@ in modules // {
       homepage = https://github.com/click-contrib/click-threading/;
       description = "Multithreaded Click apps made easy";
       license = licenses.mit;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -6875,7 +6876,7 @@ in modules // {
       homepage = https://github.com/matlink/gplaycli;
       description = "Google Play Downloader via Command line";
       license = licenses.agpl3Plus;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -7707,7 +7708,7 @@ in modules // {
       homepage = https://github.com/cedadev/ndg_httpsclient/;
       description = "Provide enhanced HTTPS support for httplib and urllib2 using PyOpenSSL";
       license = licenses.bsd2;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -7886,7 +7887,7 @@ in modules // {
       description = "Tool for extracting information from PDF documents";
       homepage = http://euske.github.io/pdfminer/index.html;
       license = licenses.mit;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -9249,12 +9250,12 @@ in modules // {
 
   django_1_10 = buildPythonPackage rec {
     name = "Django-${version}";
-    version = "1.10.4";
+    version = "1.10.5";
     disabled = pythonOlder "2.7";
 
     src = pkgs.fetchurl {
       url = "http://www.djangoproject.com/m/releases/1.10/${name}.tar.gz";
-      sha256 = "0asw60i4r5cdxb2jp6r09pdrwxxp8mvwbkz7vnx15n0hwmig1xzz";
+      sha256 = "12szjsmnfhh2yr54sfynyjr8vl0q9gb6qak3ayqcifcinrs97f0d";
     };
 
     patches = [
@@ -10313,7 +10314,7 @@ in modules // {
     meta = {
       homepage = https://f-droid.org;
       description = "Server and tools for F-Droid, the Free Software repository system for Android";
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
       license = licenses.agpl3;
     };
   };
@@ -13925,7 +13926,7 @@ in modules // {
     meta = {
       homepage = https://github.com/aroig/mutag;
       license = licenses.gpl3;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -14028,7 +14029,7 @@ in modules // {
 
     meta = {
       description = "Python client library to the MediaWiki API";
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
       license = licenses.mit;
     };
   };
@@ -18314,9 +18315,18 @@ in modules // {
       sha256 = "0y2iw1dddcvi13xjh3l52z1mvnrbc41ik9k4nn7lwj8x5kimnk9n";
     };
 
+    patches = [
+      (pkgs.fetchpatch {
+        name = "CVE-2016-10127.patch";
+        url = "https://sources.debian.net/data/main/p/python-pysaml2/3.0.0-5/debian/patches/fix-xxe-in-xml-parsing.patch";
+        sha256 = "184lkwdayjqiahzsn4yp15parqpmphjsb1z7zwd636jvarxqgs2q";
+      })
+    ];
+
     propagatedBuildInputs = with self; [
       repoze_who paste cryptography pycrypto pyopenssl ipaddress six cffi idna
       enum34 pytz setuptools zope_interface dateutil requests2 pyasn1 webob decorator pycparser
+      defusedxml
     ];
     buildInputs = with self; [
       Mako pytest memcached pymongo mongodict pkgs.xmlsec
@@ -18399,7 +18409,7 @@ in modules // {
       description = "Module for reading vCard and vCalendar files";
       homepage = http://eventable.github.io/vobject/;
       license = licenses.asl20;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -18420,7 +18430,7 @@ in modules // {
       description = "Command-line interface carddav client";
       homepage = http://lostpackets.de/pycarddav;
       license = licenses.mit;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -19226,7 +19236,7 @@ in modules // {
       description = "Media Meta Data retrieval framework";
       homepage = http://sourceforge.net/projects/mmpython/;
       license = licenses.gpl2;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -19269,7 +19279,7 @@ in modules // {
       description = "Generic application framework, providing the foundation for other modules";
       homepage = https://github.com/freevo/kaa-base;
       license = licenses.lgpl21;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -19316,7 +19326,7 @@ in modules // {
       description = "Python library for parsing media metadata, which can extract metadata (e.g., such as id3 tags) from a wide range of media files";
       homepage = https://github.com/freevo/kaa-metadata;
       license = licenses.gpl2;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -22051,7 +22061,7 @@ in modules // {
       description = "A Parser Generator for Python";
       homepage = https://pypi.python.org/pypi/SimpleParse;
       platforms = platforms.all;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -23418,7 +23428,7 @@ in modules // {
       description = "Tool for automatic download/upload subtitles for videofiles using fast hashing";
       homepage = http://www.subdownloader.net;
       license = licenses.gpl3;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 
@@ -23554,7 +23564,7 @@ in modules // {
 
     meta = {
       description = " GTK3 & python based GUI for Syncthing ";
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
       platforms = pkgs.syncthing.meta.platforms;
       homepage = "https://github.com/syncthing/syncthing-gtk";
       license = licenses.gpl2;
@@ -26161,7 +26171,7 @@ in modules // {
       homepage = https://github.com/scs3jb/screenkey;
       description = "A screencast tool to show your keys";
       license = licenses.gpl3Plus;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
       platforms = platforms.linux;
     };
   };
@@ -27719,7 +27729,7 @@ in modules // {
       homepage = http://weboob.org;
       description = "Collection of applications and APIs to interact with websites without requiring the user to open a browser";
       license = licenses.agpl3;
-      maintainers = with maintainers; [ DamienCassou ];
+      maintainers = with maintainers; [ ];
     };
   };
 

@@ -377,6 +377,8 @@ in
 
   afl = callPackage ../tools/security/afl { };
 
+  agrep = callPackage ../tools/text/agrep { };
+
   aha = callPackage ../tools/text/aha { };
 
   ahcpd = callPackage ../tools/networking/ahcpd { };
@@ -1999,6 +2001,8 @@ in
   hal-flash = callPackage ../os-specific/linux/hal-flash { };
 
   halibut = callPackage ../tools/typesetting/halibut { };
+
+  hardinfo = callPackage ../tools/system/hardinfo { };
 
   hdapsd = callPackage ../os-specific/linux/hdapsd { };
 
@@ -7389,8 +7393,6 @@ in
     }
   );
 
-  libgit2_0_21 = callPackage ../development/libraries/git2/0.21.nix { };
-
   gle = callPackage ../development/libraries/gle { };
 
   glew = callPackage ../development/libraries/glew { };
@@ -7718,7 +7720,7 @@ in
 
   hwloc = callPackage ../development/libraries/hwloc {};
 
-  hydra = callPackage ../development/tools/misc/hydra {};
+  hydra = callPackage ../development/tools/misc/hydra { stdenv = overrideCC stdenv gcc6; };
 
   hydraAntLogger = callPackage ../development/libraries/java/hydra-ant-logger { };
 
@@ -9040,7 +9042,6 @@ in
         onlyHeaders = true;
       };
     })
-    openssl_1_0_1
     openssl_1_0_2
     openssl_1_1_0;
 
@@ -10390,6 +10391,7 @@ in
   jetty = callPackage ../servers/http/jetty { };
 
   knot-dns = callPackage ../servers/dns/knot-dns { };
+  knot-resolver = callPackage ../servers/dns/knot-resolver { };
 
   rdkafka = callPackage ../development/libraries/rdkafka { };
 
@@ -11229,7 +11231,6 @@ in
   linux_3_18 = callPackage ../os-specific/linux/kernel/linux-3.18.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
-        kernelPatches.packet_fix_race_condition_CVE_2016_8655
       ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
@@ -11241,7 +11242,6 @@ in
   linux_4_1 = callPackage ../os-specific/linux/kernel/linux-4.1.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
-        kernelPatches.packet_fix_race_condition_CVE_2016_8655
       ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
@@ -11254,7 +11254,6 @@ in
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
         kernelPatches.cpu-cgroup-v2."4.4"
-        kernelPatches.p9_caching_4_4
       ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
@@ -11269,6 +11268,22 @@ in
         # See pkgs/os-specific/linux/kernel/cpu-cgroup-v2-patches/README.md
         # when adding a new linux version
         # !!! 4.7 patch doesn't apply, 4.8 patch not up yet, will keep checking
+        # kernelPatches.cpu-cgroup-v2."4.7"
+        kernelPatches.modinst_arg_list_too_long
+      ]
+      ++ lib.optionals ((platform.kernelArch or null) == "mips")
+      [ kernelPatches.mips_fpureg_emu
+        kernelPatches.mips_fpu_sigill
+        kernelPatches.mips_ext3_n32
+      ];
+  };
+
+  linux_4_9 = callPackage ../os-specific/linux/kernel/linux-4.9.nix {
+    kernelPatches =
+      [ kernelPatches.bridge_stp_helper
+        # See pkgs/os-specific/linux/kernel/cpu-cgroup-v2-patches/README.md
+        # when adding a new linux version
+        # !!! 4.7 patch doesn't apply, 4.9 patch not up yet, will keep checking
         # kernelPatches.cpu-cgroup-v2."4.7"
         kernelPatches.modinst_arg_list_too_long
       ]
@@ -11434,7 +11449,7 @@ in
   linux = self.linuxPackages.kernel;
 
   # Update this when adding the newest kernel major version!
-  linuxPackages_latest = self.linuxPackages_4_8;
+  linuxPackages_latest = self.linuxPackages_4_9;
   linux_latest = self.linuxPackages_latest.kernel;
 
   # Build the kernel modules for the some of the kernels.
@@ -11448,6 +11463,7 @@ in
   linuxPackages_4_1 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_1 linuxPackages_4_1);
   linuxPackages_4_4 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_4 linuxPackages_4_4);
   linuxPackages_4_8 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_8 linuxPackages_4_8);
+  linuxPackages_4_9 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_9 linuxPackages_4_9);
 
   # Intentionally lacks recurseIntoAttrs, as -rc kernels will quite likely break out-of-tree modules and cause failed Hydra builds.
   linuxPackages_testing = self.linuxPackagesFor self.linux_testing linuxPackages_testing;
