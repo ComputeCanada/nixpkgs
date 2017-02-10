@@ -4,11 +4,11 @@
 
 stdenv.mkDerivation rec {
   name = "slurm-llnl-${version}";
-  version = "15-08-5-1";
+  version = "16-05-9-1";
 
   src = fetchurl {
     url = "https://github.com/SchedMD/slurm/archive/slurm-${version}.tar.gz";
-    sha256 = "05si1cn7zivggan25brsqfdw0ilvrlnhj96pwv16dh6vfkggzjr1";
+    sha256 = "fba18ca59b9e9d72f4e165c0e13fd65056002c578b1dae8862d64ee9a9f0a5ff";
   };
 
   outputs = [ "out" "dev" ];
