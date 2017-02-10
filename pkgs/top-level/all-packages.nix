@@ -2494,6 +2494,8 @@ in
 
   lshw = callPackage ../tools/system/lshw { };
 
+  lustre = callPackage ../os-specific/linux/lustre { };
+
   lxc = callPackage ../os-specific/linux/lxc { };
   lxd = callPackage ../tools/admin/lxd { };
 
