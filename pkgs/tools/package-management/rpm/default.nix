@@ -5,7 +5,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "http://ftp.rpm.org/releases/rpm-4.13.x/rpm-4.13.0.tar.bz2";
-    sha256 = "6d11aba46a28c6cc29ea691d37754bb190c64a0575f40a7f59f30a6316177525";
+    sha256 = "221166b61584721a8ca979d7d8576078a5dadaf09a44208f69cc1b353240ba1b";
   };
 
   buildInputs = [ cpio zlib bzip2 file libarchive nspr nss db xz python lua pkgconfig autoreconfHook ];
