@@ -70,6 +70,7 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
       "--enable-jemalloc"
       "--disable-gconf"
       "--enable-default-toolkit=cairo-gtk2"
+      "--with-google-api-keyfile=ga"
     ]
     ++ lib.optional enableGTK3 "--enable-default-toolkit=cairo-gtk3"
     ++ (if debugBuild then [ "--enable-debug" "--enable-profiling" ]
@@ -85,6 +86,11 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
       configureScript="$(realpath ./configure)"
       mkdir ../objdir
       cd ../objdir
+
+      # Google API key used by Chromium and Firefox.
+      # Note: These are for NixOS/nixpkgs use ONLY. For your own distribution,
+      # please get your own set of keys.
+      echo "AIzaSyDGi15Zwl11UNe6Y-5XW_upsfyw31qwZPI" >ga
     '';
 
   preInstall =
@@ -140,14 +146,14 @@ in {
 
   firefox-unwrapped = common {
     pname = "firefox";
-    version = "50.1.0";
-    sha512 = "2jwpk3aymkcq9f4xhzc31sb1c90vy3dvyqq2hvw97vk9dw7rgvv2cki10ns5cshbc4k57yd3j8nm7ppy2kw6na6771mj6sbijdjw39p";
+    version = "51.0.1";
+    sha512 = "556e31b717c0640ef5e181e00b9d2a6ea0ace7c16ae04333d0f2e9e120d0ab9efe82a4ca314ef43594c080523edf37953e65dbf694c7428be0a024f3719d8312";
   };
 
   firefox-esr-unwrapped = common {
     pname = "firefox-esr";
-    version = "45.6.0esr";
-    sha512 = "086ci461hmz6kdn0ly9dlc723gc117si4a11a1c51gh79hczhahdaxg5s4r3k59rb43gpwxrlvm4wx1aka36bsihnh8a4caxnp72v5r";
+    version = "45.7.0esr";
+    sha512 = "6424101b6958191ce654d0619950dfbf98d4aa6bdd979306a2df8d6d30d3fecf1ab44638061a2b4fb1af85fe972f5ff49400e8eeda30cdcb9087c4b110b97a7d";
   };
 
 }

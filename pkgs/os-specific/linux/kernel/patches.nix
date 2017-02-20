@@ -18,18 +18,21 @@ let
       };
     };
 
-  grsecPatch = { grbranch ? "test", grver ? "3.1", kver, grrev, sha256 }: rec {
+  grsecPatch = { grbranch ? "test", grver ? "3.1", kver, grrev, sha512 }: rec {
     name = "grsecurity-${grver}-${kver}-${grrev}";
 
     # Pass these along to allow the caller to determine compatibility
     inherit grver kver grrev;
 
     patch = fetchurl {
-      # When updating versions/hashes, ALWAYS use the official version; we use
-      # this mirror only because upstream removes sources files immediately upon
-      # releasing a new version ...
-      url = "https://raw.githubusercontent.com/slashbeast/grsecurity-scrape/master/${grbranch}/${name}.patch";
-      inherit sha256;
+      urls = [
+        "https://grsecurity.net/${grbranch}/${name}.patch"
+        # When updating versions/hashes, ALWAYS use the official
+        # version; we use this mirror only because upstream removes
+        # source files immediately upon releasing a new version ...
+        "https://raw.githubusercontent.com/slashbeast/grsecurity-scrape/master/${grbranch}/${kver}/${name}.patch"
+      ];
+      inherit sha512;
     };
 
     features.grsecurity = true;
@@ -92,9 +95,9 @@ rec {
   };
 
   grsecurity_testing = grsecPatch
-    { kver   = "4.8.15";
-      grrev  = "201612301949";
-      sha256 = "1083r30ipvdi3kjixlsp3f1mmf7848f2p32ds956caarvr4vkm3b";
+    { kver   = "4.9.8";
+      grrev  = "201702071801";
+      sha512 = "05hxn9jzkywd15iqjd7lykj0f9czw0kq1rs7krxnrk4lhr4k4ahbhq4330mw4pwcvln4ys25dw7mbljn9zvymb7b1kc3m301rrbgj5f";
     };
 
   # This patch relaxes grsec constraints on the location of usermode helpers,
@@ -162,14 +165,4 @@ rec {
         sha256 = "19viqjjgq8j8jiz5yhgmzwhqvhwv175q645qdazd1k69d25nv2ki";
       };
     };
-
-  p9_caching_4_4 = rec
-    { name = "9p-caching.patch";
-      patch = fetchpatch {
-        inherit name;
-        url = https://github.com/edolstra/linux/commit/d522582553368b9564e2d88a8d7b1d469bf98c65.patch;
-        sha256 = "01h7461pdgavd6ghd6w9wg136hkaca0mrmmzhy6s3phksksimbc2";
-      };
-    };
-
 }
