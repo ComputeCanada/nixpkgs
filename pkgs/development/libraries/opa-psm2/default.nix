@@ -5,7 +5,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "https://github.com/01org/opa-psm2/archive/PSM2_10.2-42.tar.gz";
-    sha256 = "039445a973d3f222a70122d6099aa5ae7a912d92ddcb123110da5dd85f39a5d9";
+    sha256 = "1hkvir82m5257q6dv85825h3v2azy8bdl7aarn9lrkawk8c8lg4w";
   };
 
   configurePhase = "sed -i 's|/usr|/|' Makefile";
