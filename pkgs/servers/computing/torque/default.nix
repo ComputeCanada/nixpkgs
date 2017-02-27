@@ -31,6 +31,8 @@ stdenv.mkDerivation rec {
      echo patching $f...
      sed -i $f -e '/PBS_MKDIRS/d'
    done
+
+   sed -i 's/ $hardcode_libdir_flag//' ./configure
   '';
 
   postInstall = ''
