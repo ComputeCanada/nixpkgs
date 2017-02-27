@@ -24710,11 +24710,11 @@ in modules // {
 
   vsc-base = buildPythonPackage rec {
     name = "vsc-base-${version}";
-    version = "2.5.5";
+    version = "2.5.7";
     propagatedBuildInputs = with self; [ vsc-install ];
     src = pkgs.fetchurl {
       url = "mirror://pypi/v/vsc-base/${name}.tar.gz";
-      md5 = "de68a64cead111b169933354d47ac9b9";
+      md5 = "bcd1626c5be8b5e38b9060e7f42cecdb";
     };
     meta = {
       description = "The vsc base";
