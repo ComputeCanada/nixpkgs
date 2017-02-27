@@ -24711,6 +24711,7 @@ in modules // {
   vsc-base = buildPythonPackage rec {
     name = "vsc-base-${version}";
     version = "2.5.7";
+    doCheck = false;
     propagatedBuildInputs = with self; [ vsc-install ];
     src = pkgs.fetchurl {
       url = "mirror://pypi/v/vsc-base/${name}.tar.gz";
