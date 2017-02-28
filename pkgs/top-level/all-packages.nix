@@ -4905,6 +4905,8 @@ in
     fpc = fpc;
   };
 
+  ld-wrapper = callPackage ../build-support/ld-wrapper {};
+
   lessc = callPackage ../development/compilers/lessc { };
 
   liquibase = callPackage ../development/tools/database/liquibase { };
