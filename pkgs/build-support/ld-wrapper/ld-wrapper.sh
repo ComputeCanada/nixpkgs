@@ -134,6 +134,14 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
             # its directory to the rpath.
             path="$(dirname "$p")";
             addToRPath "${path}"
+        else
+	    for suffix in 1 i n; do
+		if [ "$p" = crt$suffix.o -a ! -f "$p" ]; then
+		    params[$n]=$NIXUSER_PROFILE/lib/$p
+		elif [ "$p" = /usr/lib64/crt$suffix.o ]; then
+		    params[$n]=$NIXUSER_PROFILE/lib/crt$suffix.o
+		fi
+	    done
         fi
         n=$((n + 1))
     done
