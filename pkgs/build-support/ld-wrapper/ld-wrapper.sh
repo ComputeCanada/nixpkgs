@@ -37,7 +37,24 @@ if [ -z "$NIX_CC_WRAPPER_FLAGS_SET" ]; then
     source @out@/nix-support/add-flags.sh
 fi
 
+# Filter out rpaths that refer to the store.
 expandResponseParams "$@"
+if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFIGFILES" ]; then
+    NIX_STORE=${NIXUSER_PROFILE%/var/nix/profiles/*}/store
+    rest=()
+    n=0
+    while [ $n -lt ${#params[*]} ]; do
+        p=${params[n]}
+        p2=${params[$((n+1))]}
+        if [ "$p" = -rpath ] && [ "${p2:0:${#NIX_STORE}}" == "$NIX_STORE" ]; then
+            n=$((n + 1))
+        else
+            rest=("${rest[@]}" "$p")
+        fi
+        n=$((n + 1))
+    done
+    params=("${rest[@]}")
+fi
 
 LD=@prog@
 source @out@/nix-support/add-hardening.sh
