@@ -26,6 +26,7 @@ stdenv.mkDerivation rec {
   ];
 
   postInstall = ''
+    sed -i -e "s/set mouse=a/\"set mouse=a/g" $out/share/vim/vim74/defaults.vim
     ln -s $out/bin/vim $out/bin/vi
     mkdir -p $out/share/vim
     cp "${vimrc}" $out/share/vim/vimrc
