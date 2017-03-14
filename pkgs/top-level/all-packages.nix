@@ -2696,6 +2696,8 @@ in
 
   munge = callPackage ../tools/security/munge { };
 
+  mxm = callPackage ../development/libraries/mxm { };
+
   mysql2pgsql = callPackage ../tools/misc/mysql2pgsql { };
 
   mysqltuner = callPackage ../tools/misc/mysqltuner { };
