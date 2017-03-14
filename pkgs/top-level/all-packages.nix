@@ -2410,6 +2410,8 @@ in
 
   libevhtp = callPackage ../development/libraries/libevhtp { };
 
+  libfabric = callPackage ../development/libraries/libfabric { };
+
   libircclient = callPackage ../development/libraries/libircclient { };
 
   liboauth = callPackage ../development/libraries/liboauth { };
