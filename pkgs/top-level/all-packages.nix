@@ -3191,6 +3191,8 @@ in
 
   popfile = callPackage ../tools/text/popfile { };
 
+  portals4 = callPackage ../development/libraries/portals4 { };
+
   postscript-lexmark = callPackage ../misc/drivers/postscript-lexmark { };
 
   povray = callPackage ../tools/graphics/povray {
