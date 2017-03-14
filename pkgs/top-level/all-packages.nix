@@ -2243,6 +2243,8 @@ in
 
   klick = callPackage ../applications/audio/klick { };
 
+  knem = callPackage ../development/libraries/knem { };
+
   knockknock = callPackage ../tools/security/knockknock { };
 
   kpcli = callPackage ../tools/security/kpcli { };
