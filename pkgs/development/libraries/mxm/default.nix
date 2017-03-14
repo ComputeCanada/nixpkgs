@@ -40,7 +40,7 @@ stdenv.mkDerivation rec {
   dontStrip = true;
 
   meta = with stdenv.lib; {
-    homepage = www.mellanox.com/products/mxm/;
+    homepage = https://www.mellanox.com/products/mxm/;
     license = licenses.unfree;
     platforms = platforms.unix;
   };
