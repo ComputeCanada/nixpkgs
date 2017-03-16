@@ -2452,6 +2452,8 @@ in
 
   libibverbs = callPackage ../development/libraries/libibverbs { };
 
+  libscif = callPackage ../development/libraries/libscif { };
+
   libxcomp = callPackage ../development/libraries/libxcomp { };
 
   libx86emu = callPackage ../development/libraries/libx86emu { };
