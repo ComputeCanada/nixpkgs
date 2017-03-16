@@ -1,0 +1,427 @@
+diff -urN libscif-3.8.1.orig/gen-symver-map libscif-3.8.1/gen-symver-map
+--- libscif-3.8.1.orig/gen-symver-map	1970-01-01 00:00:00.000000000 +0000
++++ libscif-3.8.1/gen-symver-map	2017-03-15 20:10:16.669707434 +0000
+@@ -0,0 +1,113 @@
++#!/usr/bin/env python
++#
++# Copyright 2013 Intel Corporation.
++#
++# Automatically generates a version script from macro annotations in
++# the code. The parser is simplistic; don't get too creative.
++#
++# See example.c for a demonstration of the various macros.
++
++import sys, re, ConfigParser
++from subprocess import Popen, PIPE
++
++def parsecfg(fn):
++    global VERNAME, VERDEPS
++    c = ConfigParser.RawConfigParser()
++    c.read(fn)
++
++    VERNAME, = c.sections()  # there may be only one
++
++    # list of ['major.minor', [dependencies]]
++    # the first will have 'local *;' added
++    VERDEPS = []
++    for ver, deps in sorted(c.items(VERNAME)):
++        deps = sorted(deps.split()) if deps else []
++        VERDEPS.append([ver, deps])
++
++FINDSYMS = re.compile(r"""
++(?P<define>\#\s*define)?
++\s*(?P<macro>(compatible|default|only)_version)\s*\(
++\s*(?P<symbol>[^,)]+)\s*,
++\s*(?P<major>[^,)]+)\s*,
++\s*(?P<minor>[^,)]+)
++\s*\)
++""", re.VERBOSE)
++
++def findsyms(symtab, text):
++    # symtab = {'symbol': {'macro': [(major, minor), ...]}}
++    for m in FINDSYMS.finditer(text):
++        if m.group('define'):
++            continue  # skip over the macro's #define
++        sym = symtab.setdefault(m.group('symbol'), {})
++        typ = sym.setdefault(m.group('macro'), [])
++        ver = '%s.%s' % m.group('major', 'minor')
++        typ.append(ver)
++
++def symmap(symtab):
++    vermap = dict((v, []) for v, ds in VERDEPS)
++    for sym in symtab:
++        try:
++            c = symtab[sym].get('compatible_version', [])
++            d = symtab[sym].get('default_version', [])
++            o = symtab[sym].get('only_version', [])
++            if o:  # use either only_version...
++                assert len(o) == 1  # exactly once per symbol
++                assert not c and not d  # without also using the other macros
++                v = o
++            else:  # ...or default_version
++                assert len(d) == 1  # exactly once per symbol
++                assert c  # plus at least one compatible_version
++                assert len(c + d) == len(set(c + d))  # no duplicate versions
++                v = c + d
++            for version in v:
++                assert version in vermap  # must be in VERDEPS
++                vermap[version].append(sym)
++        except AssertionError:
++            print >>sys.stderr, 'CURRENT SYMBOL:', sym
++            print >>sys.stderr, 'VERSIONS:', o + d + c
++            raise
++    return vermap
++
++def printmap(f, vermap, fns):
++    def tag(version):
++        return '%s_%s' % (VERNAME, version)
++    print >>f, '/* Version script generated from %s */' % fns
++    for i, (version, deps) in enumerate(VERDEPS):
++        print >>f
++        print >>f, '%s {' % tag(version)
++        if vermap[version]:
++            print >>f, 'global:'
++        for symbol in sorted(vermap[version]):
++            print >>f, '\t%s;' % symbol
++        if i == 0:
++            print >>f, 'local:'
++            print >>f, '\t*;'
++        deps = [tag(d) for d in deps]
++        print >>f, '}%s;' % (' ' + ' '.join(deps) if deps else '')
++
++def main(argv):
++    i = argv.index('--')
++    (fn_i, fn_o), argv = argv[:i], argv[i+1:]
++    i = argv.index('--')
++    argv, cmd = argv[:i], argv[i+1:]
++
++    # parse the configuration file
++    parsecfg(fn_i)
++
++    # parse each file on the command line
++    symtab = {}
++    for fn in argv:
++        p = Popen(cmd + ['-DGENMAP_PARSING_PASS', '-E', fn], stdout=PIPE)
++        findsyms(symtab, p.communicate()[0])
++
++    # compute the version map and apply sanity checks
++    vermap = symmap(symtab)
++
++    # print the computed version map
++    with open(fn_o, 'w') as f:
++        printmap(f, vermap, ' '.join([fn_i] + argv))
++
++    return 0
++
++if __name__ == '__main__':
++    sys.exit(main(sys.argv[1:]))
+diff -urN libscif-3.8.1.orig/Makefile libscif-3.8.1/Makefile
+--- libscif-3.8.1.orig/Makefile	2016-05-20 17:45:59.000000000 +0000
++++ libscif-3.8.1/Makefile	2017-03-15 20:10:46.975416336 +0000
+@@ -79,7 +79,7 @@
+ all: $(libscif_dev) docs
+ 
+ libscif.map: libscif.cfg scif_api.c
+-	gen-symver-map $< $@ -- $(filter-out $<, $^) -- $(CC) $(ALL_CFLAGS)
++	python gen-symver-map $< $@ -- $(filter-out $<, $^) -- $(CC) $(ALL_CFLAGS)
+ 
+ $(libscif_dev): scif_api.c libscif.map
+ 	$(CC) $(ALL_CFLAGS) -fpic -shared $< $(MPSS_METADATA_BRAND) -o $@ \
+diff -urN libscif-3.8.1.orig/mpss-metadata.c libscif-3.8.1/mpss-metadata.c
+--- libscif-3.8.1.orig/mpss-metadata.c	1970-01-01 00:00:00.000000000 +0000
++++ libscif-3.8.1/mpss-metadata.c	2017-03-15 20:10:59.628294799 +0000
+@@ -0,0 +1,24 @@
++#ifdef __GNUC__
++#define SPECIFIERS static const __attribute__ ((used, section(".mpss-metadata")))
++#else
++#pragma section(".mpss-md", read)
++#define SPECIFIERS static __declspec(allocate(".mpss-md"))
++#endif
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++/* include the metadata in the program binary */
++SPECIFIERS char ____mpss_metadata[] =
++	"MPSS_METADATA:\n"
++	"commit\t" MPSS_COMMIT "\n"
++	"version\t" MPSS_VERSION "\n"
++	"buildno\t" MPSS_BUILDNO "\n"
++	"builton\t" MPSS_BUILTON "\n"
++	"builtby\t" MPSS_BUILTBY "\n"
++	;
++
++#ifdef __cplusplus
++}
++#endif
+diff -urN libscif-3.8.1.orig/mpss-metadata.mk libscif-3.8.1/mpss-metadata.mk
+--- libscif-3.8.1.orig/mpss-metadata.mk	1970-01-01 00:00:00.000000000 +0000
++++ libscif-3.8.1/mpss-metadata.mk	2017-03-15 20:10:00.576862012 +0000
+@@ -0,0 +1,33 @@
++# Un-exported variables are internal implementation. API variables are put
++# into the environment so that they survive recursive make; the variable
++# MPSS_METADATA_PREFIX is _also_ API, but it's input-only of course.
++
++mpss_metadata_c__ := $(dir $(lastword $(MAKEFILE_LIST)))mpss-metadata.c
++dot_mpss_metadata__ = $(MPSS_METADATA_PREFIX).mpss-metadata
++
++MPSS_COMMIT ?= $(or $(shell sed -ne '2 p' $(dot_mpss_metadata__) 2>/dev/null), \
++	$(error MPSS_COMMIT undefined, check MPSS_METADATA_PREFIX))
++MPSS_VERSION ?= $(or $(shell sed -ne '1 p' $(dot_mpss_metadata__) 2>/dev/null), \
++	$(error MPSS_VERSION undefined, check MPSS_METADATA_PREFIX))
++MPSS_BUILDNO ?= 0
++
++# avoid repeated shell invocations
++export MPSS_COMMIT := $(MPSS_COMMIT)
++export MPSS_VERSION := $(MPSS_VERSION)
++export MPSS_BUILDNO := $(MPSS_BUILDNO)
++export MPSS_BUILTBY := $(shell echo "`whoami`@`uname -n`")
++export MPSS_BUILTON := $(shell date +'%F %T %z')
++
++# to be mixed into $(CFLAGS)
++export MPSS_METADATA_CFLAGS := \
++	-DMPSS_COMMIT=\"'$(strip $(MPSS_COMMIT))'\" \
++	-DMPSS_VERSION=\"'$(strip $(MPSS_VERSION))'\" \
++	-DMPSS_BUILDNO=\"'$(strip $(MPSS_BUILDNO))'\" \
++	-DMPSS_BUILTBY=\"'$(strip $(MPSS_BUILTBY))'\" \
++	-DMPSS_BUILTON=\"'$(strip $(MPSS_BUILTON))'\"
++
++# deprecated: for compatibility with the previous version
++export MPSS_METADATA_C := $(mpss_metadata_c__)
++
++# 'brand' as in 'cattle'
++export MPSS_METADATA_BRAND := $(MPSS_METADATA_CFLAGS) $(mpss_metadata_c__)
+diff -urN libscif-3.8.1.orig/scif_ioctl.h libscif-3.8.1/scif_ioctl.h
+--- libscif-3.8.1.orig/scif_ioctl.h	1970-01-01 00:00:00.000000000 +0000
++++ libscif-3.8.1/scif_ioctl.h	2017-03-15 20:11:09.452200440 +0000
+@@ -0,0 +1,229 @@
++/*
++ * Copyright 2010-2013 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License, version 2,
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software Foundation,
++ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * Disclaimer: The codes contained in these modules may be specific to
++ * the Intel Software Development Platform codenamed Knights Ferry,
++ * and the Intel product codenamed Knights Corner, and are not backward
++ * compatible with other Intel products. Additionally, Intel will NOT
++ * support the codes or instruction set in future products.
++ *
++ * Intel offers no warranty of any kind regarding the code. This code is
++ * licensed on an "AS IS" basis and Intel is not obligated to provide
++ * any support, assistance, installation, training, or other services
++ * of any kind. Intel is also not obligated to provide any updates,
++ * enhancements or extensions. Intel specifically disclaims any warranty
++ * of merchantability, non-infringement, fitness for any particular
++ * purpose, and any other warranty.
++ *
++ * Further, Intel disclaims all liability of any kind, including but
++ * not limited to liability for infringement of any proprietary rights,
++ * relating to the use of the code, even if Intel is notified of the
++ * possibility of such liability. Except as expressly stated in an Intel
++ * license agreement provided with this code and agreed upon with Intel,
++ * no license, express or implied, by estoppel or otherwise, to any
++ * intellectual property rights is granted herein.
++ */
++
++/*
++ * -----------------------------------------
++ * SCIF IOCTL interface information
++ * -----------------------------------------
++ */
++#if defined(_WIN32) && !defined(_WIN64)
++#define ptr64_t __ptr64
++#else
++#define ptr64_t
++#endif
++
++/**
++ * The purpose of SCIF_VERSION is to check for compatibility between host and
++ * card SCIF modules and also between SCIF driver and libscif. This version
++ * should be incremented whenever a change is made to SCIF that affects the
++ * interface between SCIF driver and libscif or between the card and host SCIF
++ * driver components.
++ */
++#define SCIF_VERSION		1
++
++/**
++ * struct scifioctl_connect:
++ *
++ * \param self			used to read back the assigned portID
++ * \param peer			destination node and port to connect to
++ *
++ * This structure is used for CONNECT IOCTL.
++ */
++struct scifioctl_connect {
++	struct scif_portID	self;
++	struct scif_portID	peer;
++};
++
++
++/**
++ * struct scifioctl_accept:
++ *
++ * \param flags			flags
++ * \param peer			global id of peer endpoint
++ * \param newepd		new connected endpoint descriptor
++ *
++ * This structure is used for SCIF_ACCEPTREQ IOCTL.
++ */
++struct scifioctl_accept {
++	int			flags;
++	struct scif_portID	peer;
++	void			* ptr64_t endpt;
++};
++
++/**
++ * struct scifioctl_msg:
++ *
++ * \param msg			message buffer address
++ * \param len			message length
++ * \param flags			flags
++ * \param out_len		Number of bytes sent/received.
++ *
++ * This structure is used for SCIF_SEND/SCIF_RECV IOCTL.
++ */
++struct scifioctl_msg {
++	void		* ptr64_t msg;
++	int		len;
++	int		flags;
++	int		out_len;
++};
++
++/**
++ * struct scifioctl_reg:
++ *
++ * \param addr starting virtual address
++ * \param len			length of range
++ * \param offset		offset of window
++ * \param prot			read/write protection
++ * \param flags			flags
++ * \param out_len		offset returned.
++ *
++ * This structure is used for SCIF_REG IOCTL.
++ */
++struct scifioctl_reg {
++	void		* ptr64_t addr;
++	uint64_t	len;
++	off_t		offset;
++	int		prot;
++	int		flags;
++	off_t		out_offset;
++};
++
++/**
++ * struct scifioctl_unreg:
++ *
++ * \param offset		start of range to unregister
++ * \param len			length of range to unregister
++ *
++ * This structure is used for SCIF_UNREG IOCTL.
++ */
++struct scifioctl_unreg {
++	off_t		offset;
++	uint64_t	len;
++};
++
++/**
++ * struct scifioctl_copy:
++ *
++ * \param loffset	offset in local registered address space to/from
++which to copy
++ * \param len		length of range to copy
++ * \param roffset	offset in remote registered address space to/from
++which to copy
++ * \param addr		user virtual address to/from which to copy
++ * \param flags		flags
++ *
++ * This structure is used for SCIF_READFROM, SCIF_WRITETO, SCIF_VREADFROM
++and
++ * SCIF_VREADFROM IOCTL's.
++ */
++struct scifioctl_copy {
++	off_t		loffset;
++	uint64_t	len;
++	off_t		roffset;
++	uint8_t		* ptr64_t addr;
++	int		flags;
++};
++
++/**
++ * struct scifioctl_fence_mark:
++ *
++ * \param flags		flags
++ * \param mark		Fence handle returned by reference.
++ *
++ * This structure is used from SCIF_FENCE_MARK IOCTL.
++ */
++struct scifioctl_fence_mark {
++	int             flags;
++	int             *mark;
++};
++
++/**
++ * struct scifioctl_fence_signal:
++ *
++ * \param loff		local offset
++ * \param lval		local value to write to loffset
++ * \param roff		remote offset
++ * \param rval		remote value to write to roffset
++ * \param flags		flags
++ *
++ * This structure is used for SCIF_FENCE_SIGNAL IOCTL.
++ */
++struct scifioctl_fence_signal {
++	off_t loff;
++	uint64_t lval;
++	off_t roff;
++	uint64_t rval;
++	int flags;
++};
++
++/**
++ * struct scifioctl_nodeIDs:
++ *
++ * \param nodes		pointer to an array of nodeIDs
++ * \param len		length of array
++ * \param self		ID of the current node
++ *
++ * This structure is used for the SCIF_GET_NODEIDS ioctl
++ */
++struct scifioctl_nodeIDs {
++	uint16_t * ptr64_t nodes;
++	int	 len;
++	uint16_t * ptr64_t self;
++};
++
++
++#define SCIF_BIND		_IOWR('s', 1, int *)
++#define SCIF_LISTEN		_IOW('s', 2, int)
++#define SCIF_CONNECT		_IOWR('s', 3, struct scifioctl_connect *)
++#define SCIF_ACCEPTREQ		_IOWR('s', 4, struct scifioctl_accept *)
++#define SCIF_ACCEPTREG		_IOWR('s', 5, void *)
++#define SCIF_SEND		_IOWR('s', 6, struct scifioctl_msg *)
++#define SCIF_RECV		_IOWR('s', 7, struct scifioctl_msg *)
++#define SCIF_REG		_IOWR('s', 8, struct scifioctl_reg *)
++#define SCIF_UNREG		_IOWR('s', 9, struct scifioctl_unreg *)
++#define SCIF_READFROM		_IOWR('s', 10, struct scifioctl_copy *)
++#define SCIF_WRITETO		_IOWR('s', 11, struct scifioctl_copy *)
++#define SCIF_VREADFROM		_IOWR('s', 12, struct scifioctl_copy *)
++#define SCIF_VWRITETO		_IOWR('s', 13, struct scifioctl_copy *)
++#define SCIF_GET_NODEIDS	_IOWR('s', 14, struct scifioctl_nodeIDs *)
++#define SCIF_FENCE_MARK		_IOWR('s', 15, struct scifioctl_fence_mark *)
++#define SCIF_FENCE_WAIT		_IOWR('s', 16, int)
++#define SCIF_FENCE_SIGNAL	_IOWR('s', 17, struct scifioctl_fence_signal *)
++
++#define SCIF_GET_VERSION	_IO('s', 23)
