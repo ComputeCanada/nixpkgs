@@ -1543,6 +1543,8 @@ in
 
   fatsort = callPackage ../tools/filesystems/fatsort { };
 
+  fca = callPackage ../development/libraries/fca { };
+
   fcitx = callPackage ../tools/inputmethods/fcitx {
     plugins = [];
   };
