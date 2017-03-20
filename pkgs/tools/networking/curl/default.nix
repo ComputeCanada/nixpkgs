@@ -25,7 +25,7 @@ stdenv.mkDerivation rec {
     sha256 = "008833dd9w4l2277q9r0bsq1vqmm0fr7qqyzvqlw5d47xy5mld5j";
   };
 
-  patches = [ ];
+  patches = [ ./nix-ssl-cert-file.patch ];
 
   outputs = [ "bin" "dev" "out" "man" "devdoc" ];
 
