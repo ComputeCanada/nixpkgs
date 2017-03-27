@@ -1486,6 +1486,8 @@ in
     callPackage ../servers/search/elasticsearch/plugins.nix { }
   );
 
+  embree = callPackage ../tools/graphics/embree { };
+
   emem = callPackage ../applications/misc/emem { };
 
   emv = callPackage ../tools/misc/emv { };
