@@ -1486,6 +1486,8 @@ in
     callPackage ../servers/search/elasticsearch/plugins.nix { }
   );
 
+  embree = callPackage ../tools/graphics/embree { };
+
   emem = callPackage ../applications/misc/emem { };
 
   emv = callPackage ../tools/misc/emv { };
@@ -1542,6 +1544,8 @@ in
   };
 
   fatsort = callPackage ../tools/filesystems/fatsort { };
+
+  fca = callPackage ../development/libraries/fca { };
 
   fcitx = callPackage ../tools/inputmethods/fcitx {
     plugins = [];
@@ -2243,6 +2247,8 @@ in
 
   klick = callPackage ../applications/audio/klick { };
 
+  knem = callPackage ../development/libraries/knem { };
+
   knockknock = callPackage ../tools/security/knockknock { };
 
   kpcli = callPackage ../tools/security/kpcli { };
@@ -2410,6 +2416,8 @@ in
 
   libevhtp = callPackage ../development/libraries/libevhtp { };
 
+  libfabric = callPackage ../development/libraries/libfabric { };
+
   libircclient = callPackage ../development/libraries/libircclient { };
 
   liboauth = callPackage ../development/libraries/liboauth { };
@@ -2447,6 +2455,8 @@ in
   libiberty_static = callPackage ../development/libraries/libiberty { staticBuild = true; };
 
   libibverbs = callPackage ../development/libraries/libibverbs { };
+
+  libscif = callPackage ../development/libraries/libscif { };
 
   libxcomp = callPackage ../development/libraries/libxcomp { };
 
@@ -2695,6 +2705,8 @@ in
   });
 
   munge = callPackage ../tools/security/munge { };
+
+  mxm = callPackage ../development/libraries/mxm { };
 
   mysql2pgsql = callPackage ../tools/misc/mysql2pgsql { };
 
@@ -3184,6 +3196,8 @@ in
   ponysay = callPackage ../tools/misc/ponysay { };
 
   popfile = callPackage ../tools/text/popfile { };
+
+  portals4 = callPackage ../development/libraries/portals4 { };
 
   postscript-lexmark = callPackage ../misc/drivers/postscript-lexmark { };
 
