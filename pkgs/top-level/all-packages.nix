@@ -2970,6 +2970,8 @@ in
 
   olsrd = callPackage ../tools/networking/olsrd { };
 
+  ospray = callPackage ../tools/graphics/ospray { };
+
   ossec = callPackage ../tools/security/ossec {};
 
   ostree = callPackage ../tools/misc/ostree { };
