@@ -27,7 +27,7 @@ stdenv.mkDerivation rec {
     buildInputs = [ cmake ispc tbb freeglut 
                     mesa libpng libXmu libXi imagemagick ];
 
-
+    postInstall = "substituteInPlace $out/lib/cmake/embree-2.15.0/embree-config.cmake --replace $out/ ''";
 
 }
 
