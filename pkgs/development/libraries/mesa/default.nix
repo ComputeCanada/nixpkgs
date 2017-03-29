@@ -4,7 +4,7 @@
 , llvmPackages, libffi, libomxil-bellagio
 , libelf, python
 , grsecEnabled ? false
-, enableTextureFloats ? true # Texture floats are patented, see docs/patents.txt
+, enableTextureFloats ? false # Texture floats are patented, see docs/patents.txt
 }:
 
 
@@ -73,6 +73,7 @@ stdenv.mkDerivation {
     "--enable-gles2"
     "--enable-glx"
     "--enable-glx-tls"
+    "--disable-osmesa"
     "--enable-gallium-osmesa" # used by wine
     "--enable-gallium-llvm"
     "--disable-egl"
