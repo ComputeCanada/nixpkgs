@@ -114,6 +114,10 @@ stdenv.mkDerivation {
   postInstall = ''
     mkdir -p $drivers/lib
 
+    for i in $out/lib/*.la; do
+      substituteInPlace $i --replace "-lLLVM-3.9.0 " ""
+    done
+
     # move gallium-related stuff to $drivers, so $out doesn't depend on LLVM
     mv -t "$drivers/lib/"    \
       $out/lib/libXvMC*      \
