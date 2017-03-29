@@ -28,6 +28,7 @@ else
 let
   version = "17.0.2";
   branch  = head (splitString "." version);
+  driverLink = "/run/opengl-driver" + optionalString stdenv.isi686 "-32";
 in
 
 stdenv.mkDerivation {
@@ -141,7 +142,7 @@ stdenv.mkDerivation {
     done
   '';
 
-  passthru = { inherit libdrm version; };
+  passthru = { inherit libdrm version driverLink; };
 
   meta = with stdenv.lib; {
     description = "An open source implementation of OpenGL";
