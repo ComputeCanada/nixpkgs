@@ -26,7 +26,7 @@ if ! lists.elem stdenv.system platforms.mesaPlatforms then
 else
 
 let
-  version = "12.0.6";
+  version = "17.0.2";
   branch  = head (splitString "." version);
 in
 
@@ -39,7 +39,7 @@ stdenv.mkDerivation {
       "ftp://ftp.freedesktop.org/pub/mesa/older-versions/${branch}.x/${version}/mesa-${version}.tar.xz"
       "https://launchpad.net/mesa/trunk/${version}/+download/mesa-${version}.tar.xz"
     ];
-    sha256 = "7d6da9744c1022a4c2ab6ad01a206984d00443fb691568011d01b3dd97e36448";
+    sha256 = "f8f191f909e01e65de38d5bdea5fb057f21649a3aed20948be02348e77a689d4";
   };
 
   prePatch = "patchShebangs .";
