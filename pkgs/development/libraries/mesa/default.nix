@@ -51,11 +51,7 @@ stdenv.mkDerivation {
   patches = [
     ./glx_ro_text_segm.patch # fix for grsecurity/PaX
     ./symlink-drivers.patch
-  ] ++ optional stdenv.isLinux
-      (substituteAll {
-        src = ./dlopen-absolute-paths.diff;
-        libudev = systemd.lib;
-      });
+  ];
 
   outputs = [ "out" "dev" "drivers" "osmesa" ];
 
@@ -64,7 +60,7 @@ stdenv.mkDerivation {
     "--sysconfdir=/etc"
     "--localstatedir=/var"
     (optionalString (stdenv.system != "armv7l-linux")
-      "--with-gallium-drivers=svga,i915,ilo,r300,r600,nouveau,freedreno,swrast,swr")
+      "--with-gallium-drivers=svga,i915,ilo,r300,r600,nouveau,swrast,swr")
 
     (enableFeature enableTextureFloats "texture-float")
     (enableFeature grsecEnabled "glx-rts")
