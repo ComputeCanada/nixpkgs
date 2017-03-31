@@ -1,8 +1,8 @@
 { stdenv, fetchurl, fetchpatch
 , pkgconfig, intltool, autoreconfHook, substituteAll
 , file, expat, libdrm, xorg, wayland, systemd
-, llvmPackages, libffi, libomxil-bellagio
-, libelf, python
+, llvmPackages, libffi, libomxil-bellagio, libva
+, libelf, libvdpau, python
 , grsecEnabled ? false
 , enableTextureFloats ? false # Texture floats are patented, see docs/patents.txt
 }:
@@ -52,6 +52,7 @@ stdenv.mkDerivation {
   patches = [
     ./glx_ro_text_segm.patch # fix for grsecurity/PaX
     ./symlink-drivers.patch
+    ./match-swrast-loosely.patch
   ];
 
   outputs = [ "out" "dev" "drivers" "osmesa" ];
@@ -60,13 +61,20 @@ stdenv.mkDerivation {
   configureFlags = [
     "--sysconfdir=/etc"
     "--localstatedir=/var"
+    "--with-dri-driverdir=$(drivers)/lib/dri"
+    "--with-dri-searchpath=${driverLink}/lib/dri:$(drivers)/lib/dri"
+    "--with-egl-platforms=x11,wayland,drm"
     (optionalString (stdenv.system != "armv7l-linux")
-      "--with-gallium-drivers=svga,i915,ilo,r300,r600,nouveau,swrast,swr")
+      "--with-gallium-drivers=svga,i915,ilo,r300,r600,radeonsi,nouveau,swrast,swr")
+    (optionalString (stdenv.system != "armv7l-linux")
+      "--with-dri-drivers=i915,i965,nouveau,radeon,r200,swrast")
 
     (enableFeature enableTextureFloats "texture-float")
     (enableFeature grsecEnabled "glx-rts")
-    "--disable-dri"
-    "--disable-driglx-direct"
+    (enableFeature stdenv.isLinux "dri3")
+    (enableFeature stdenv.isLinux "nine") # Direct3D in Wine
+    "--enable-dri"
+    "--enable-driglx-direct"
     "--enable-gles1"
     "--enable-gles2"
     "--enable-glx"
@@ -74,15 +82,16 @@ stdenv.mkDerivation {
     "--disable-osmesa"
     "--enable-gallium-osmesa" # used by wine
     "--enable-gallium-llvm"
-    "--disable-egl"
+    "--enable-egl"
     "--enable-xa" # used in vmware driver
-    "--disable-gbm"
+    "--enable-gbm"
     "--enable-xvmc"
+    "--enable-vdpau"
     "--enable-shared-glapi"
     "--enable-sysfs"
     "--enable-llvm-shared-libs"
     "--enable-omx"
-    "--disable-va"
+    "--enable-va"
     "--disable-opencl"
   ];
 
@@ -96,8 +105,8 @@ stdenv.mkDerivation {
     autoreconfHook intltool expat llvmPackages.llvm
     glproto dri2proto dri3proto presentproto
     libX11 libXext libxcb libXt libXfixes libxshmfence
-    libffi wayland libelf libXvMC
-    libomxil-bellagio libpthreadstubs
+    libffi wayland libvdpau libelf libXvMC
+    libomxil-bellagio libva libpthreadstubs
     (python.withPackages (ps: [ ps.Mako ]))
   ] ++ optional stdenv.isLinux systemd;
 
@@ -121,8 +130,13 @@ stdenv.mkDerivation {
     # move gallium-related stuff to $drivers, so $out doesn't depend on LLVM
     mv -t "$drivers/lib/"    \
       $out/lib/libXvMC*      \
+      $out/lib/d3d           \
+      $out/lib/vdpau         \
       $out/lib/bellagio      \
       $out/lib/libxatracker* \
+
+    mv $out/lib/dri/* $drivers/lib/dri # */
+    rmdir "$out/lib/dri"
 
     # move libOSMesa to $osmesa, as it's relatively big
     mkdir -p {$osmesa,$drivers}/lib/
@@ -130,6 +144,12 @@ stdenv.mkDerivation {
 
     # now fix references in .la files
     sed "/^libdir=/s,$out,$osmesa," -i $osmesa/lib/libOSMesa*.la
+    sed "/^libdir=/s,$out,$drivers," -i $drivers/lib/libxatracker.la
+    sed "/^libdir=/s,$out,$drivers," -i $drivers/lib/d3d/d3dadapter9.la
+    sed "/^libdir=/s,$out,$drivers," -i $drivers/lib/bellagio/libomx_mesa.la
+
+    # set the default search path for DRI drivers; used e.g. by X server
+    substituteInPlace "$dev/lib/pkgconfig/dri.pc" --replace '$(drivers)' "${driverLink}"
   '';
 
   # TODO:
