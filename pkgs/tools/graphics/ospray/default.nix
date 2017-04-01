@@ -38,4 +38,6 @@ stdenv.mkDerivation rec {
 	propagatedBuildInputs = [ ispc  embree ];
 
 	enableParallelBuilding = true;
+
+	postInstall = "substituteInPlace $out/lib/cmake/${name}/osprayConfig.cmake --replace $out/ ''";
 }
