@@ -1,6 +1,7 @@
 { stdenv, fetchurl, pkgconfig, gettext, perl
 , expat, glib, cairo, pango, gdk_pixbuf, atk, at_spi2_atk, gobjectIntrospection
 , xorg, epoxy, json_glib, libxkbcommon, gmp
+, waylandSupport ? false
 , xineramaSupport ? stdenv.isLinux
 , cupsSupport ? stdenv.isLinux, cups ? null
 , darwin
