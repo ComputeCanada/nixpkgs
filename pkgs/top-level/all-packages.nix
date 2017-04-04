@@ -7416,6 +7416,8 @@ in
     }
   );
 
+  gl2ps = callPackage ../tools/graphics/gl2ps { };
+
   gle = callPackage ../development/libraries/gle { };
 
   glew = callPackage ../development/libraries/glew { };
