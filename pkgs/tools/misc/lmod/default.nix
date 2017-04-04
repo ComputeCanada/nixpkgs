@@ -3,10 +3,10 @@
 stdenv.mkDerivation rec {
   name = "Lmod-${version}";
 
-  version = "7.3.24";
+  version = "7.4.4";
   src = fetchurl {
     url = "http://github.com/TACC/Lmod/archive/${version}.tar.gz";
-    sha256 = "08ax5jfqhlvzs8akvdjfl9is6n6lk3pj9v3gnbafm5zr43qlikrv";
+    sha256 = "1161anjkp0nmf3jda42h0dhpan71lcbrgpl7wmb6li44blc0qbd6";
   };
 
   buildInputs = [ lua tcl perl rsync procps ];
