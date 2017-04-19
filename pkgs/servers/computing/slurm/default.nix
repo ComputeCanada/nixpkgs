@@ -18,6 +18,8 @@ stdenv.mkDerivation rec {
     curl python munge perl pam openssl mysql.lib ncurses gtk lua hwloc numactl
   ];
 
+  hardeningDisable = [ "bindnow" ];
+
   configureFlags =
     [ "--with-munge=${munge}"
       "--with-ssl=${openssl.dev}"
