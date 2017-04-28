@@ -2266,6 +2266,17 @@ let self = _self // overrides; _self = with self; {
       description = "Load and save configuration files in a standard format";
     };
   };
+  
+  ConfigSimple = buildPerlPackage rec {
+    name = "Config-Simple-4.59";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/S/SH/SHERZODR/${name}.tar.gz";
+      sha256 = "0m0hg29baarw5ds768q9r4rxb27im8kj4fazyf9gjqw4mmssjy6b";
+    };
+    meta = {
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
 
   ConfigTiny = buildPerlPackage rec {
     name = "Config-Tiny-2.23";
