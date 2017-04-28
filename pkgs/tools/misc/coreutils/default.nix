@@ -4,6 +4,7 @@
 , autoconf, automake114x, texinfo
 , withPrefix ? false
 , singleBinary ? "symlinks" # you can also pass "shebangs" or false
+, sssd, nss_ldap
 }:
 
 assert aclSupport -> acl != null;

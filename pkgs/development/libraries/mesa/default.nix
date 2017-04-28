@@ -112,6 +112,7 @@ stdenv.mkDerivation {
 
   # TODO: probably not all .la files are completely fixed, but it shouldn't matter;
   postInstall = ''
+    cp -rp include/GL/internal $dev/include/GL
     mkdir -p $drivers/lib
 
     for i in $out/lib/*.la; do

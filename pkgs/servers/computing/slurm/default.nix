@@ -4,11 +4,11 @@
 
 stdenv.mkDerivation rec {
   name = "slurm-llnl-${version}";
-  version = "16-05-9-1";
+  version = "17-02-1-2";
 
   src = fetchurl {
     url = "https://github.com/SchedMD/slurm/archive/slurm-${version}.tar.gz";
-    sha256 = "fba18ca59b9e9d72f4e165c0e13fd65056002c578b1dae8862d64ee9a9f0a5ff";
+    sha256 = "1nrh7v2l6s3yh0f9a44pfzfispiivd1flmjlxy6y1nh5r9gg85j9";
   };
 
   outputs = [ "out" "dev" ];
@@ -17,6 +17,8 @@ stdenv.mkDerivation rec {
   buildInputs = [
     curl python munge perl pam openssl mysql.lib ncurses gtk lua hwloc numactl
   ];
+
+  hardeningDisable = [ "bindnow" ];
 
   configureFlags =
     [ "--with-munge=${munge}"
