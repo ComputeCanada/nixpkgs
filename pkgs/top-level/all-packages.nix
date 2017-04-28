@@ -15468,6 +15468,7 @@ in
   x11vnc = callPackage ../tools/X11/x11vnc { };
 
   x2goclient = callPackage ../applications/networking/remote/x2goclient { };
+  x2goserver = callPackage ../applications/networking/remote/x2goserver { };
 
   x2vnc = callPackage ../tools/X11/x2vnc { };
 
