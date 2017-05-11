@@ -39,4 +39,5 @@ stdenv.mkDerivation rec {
   passthru = {
     shellPath = "/bin/tcsh";
   };
+  postInstall = "ln -s $out/bin/tcsh $out/bin/csh";
 }
