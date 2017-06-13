@@ -1,4 +1,4 @@
-{ stdenv, fetchurl }:
+{ stdenv, fetchurl, autoconf, automake, libtool, valgrind }:
 
 let
 
@@ -28,6 +28,12 @@ let
           url = "http://downloads.openfabrics.org/libipathverbs/${name}.tar.gz";
           sha256 = "1xwjfsfjnz1j6gdiic2raycvy849hnhz7x9p9njd1z0j1gm6js0l";
       };
+      opa-libhfi1verbs = rec {
+          version = "10_1_2";
+          name = "opa-libhfi1verbs-${version}";
+          url = "https://github.com/01org/opa-libhfi1verbs/archive/${version}.tar.gz";
+          sha256 = "895c7485c00331bf5d573678affa6a7436e7aae81d6f00277695b6007caa699c";
+      };
   };
 
 in stdenv.mkDerivation rec {
@@ -39,16 +45,22 @@ in stdenv.mkDerivation rec {
     ( fetchurl { inherit (drivers.libmlx4) url sha256 ; } )
     ( fetchurl { inherit (drivers.libmthca) url sha256 ; } )
     ( fetchurl { inherit (drivers.libipathverbs) url sha256 ; } )
+    ( fetchurl { inherit (drivers.opa-libhfi1verbs) url sha256 ; } )
   ];
 
   sourceRoot = name;
 
+  buildInputs = [ autoconf automake libtool valgrind ];
+
   # Install userspace drivers
   postInstall = ''
-    for dir in ${drivers.libmlx4.name} ${drivers.libmthca.name} ${drivers.libipathverbs.name} ; do
+    for dir in ${drivers.libmlx4.name} ${drivers.libmthca.name} ${drivers.libipathverbs.name} ${drivers.opa-libhfi1verbs.name} ; do
       cd ../$dir
       export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -I$out/include"
       export NIX_LDFLAGS="-rpath $out/lib $NIX_LDFLAGS -L$out/lib"
+      if test $dir == ${drivers.opa-libhfi1verbs.name}; then
+        rm makefile && ./autogen.sh
+      fi
       ./configure $configureFlags
       make -j$NIX_BUILD_CORES
       make install
