@@ -2901,6 +2901,8 @@ in
 
   oh-my-zsh = callPackage ../shells/oh-my-zsh { };
 
+  opa-libhfi1verbs = callPackage ../development/libraries/opa-libhfi1verbs { };
+
   opa-psm2 = callPackage ../development/libraries/opa-psm2 { };
 
   opencryptoki = callPackage ../tools/security/opencryptoki { };
