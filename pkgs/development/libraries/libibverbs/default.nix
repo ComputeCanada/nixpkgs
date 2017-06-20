@@ -1,20 +1,26 @@
-{ stdenv, fetchurl, autoconf, automake, libtool, valgrind }:
+{ stdenv, fetchurl, autoconf, automake, libtool, valgrind, pkgconfig, libnl }:
 
 let
 
   verbs = rec {
-      version = "1.1.8";
+      version = "1.2.1";
       name = "libibverbs-${version}";
       url = "http://downloads.openfabrics.org/verbs/${name}.tar.gz";
-      sha256 = "13w2j5lrrqxxxvhpxbqb70x7wy0h8g329inzgfrvqv8ykrknwxkw";
+      sha256 = "c352a7f24e9a9d30ea74faa35d1b721d78d770506a0c03732e3132b7c85ac330";
   };
 
   drivers = {
       libmlx4 = rec { 
-          version = "1.0.6";
+          version = "1.2.1";
           name = "libmlx4-${version}"; 
           url = "http://downloads.openfabrics.org/mlx4/${name}.tar.gz";
-          sha256 = "f680ecbb60b01ad893490c158b4ce8028a3014bb8194c2754df508d53aa848a8";
+          sha256 = "64604e0bcb79f443f2348b9eb803b1af5ce38a51480be4c0d49223e84847d81e";
+      };
+      libmlx5 = rec {
+          version = "1.2.1";
+          name = "libmlx5-${version}";
+          url = "http://downloads.openfabrics.org/mlx5/${name}.tar.gz";
+          sha256 = "d0551740c9a726dd3c3af88833b2540c30b489df050cf3e20b1f68058de26c62";
       };
       libmthca = rec { 
           version = "1.0.6"; 
@@ -43,6 +49,7 @@ in stdenv.mkDerivation rec {
   srcs = [
     ( fetchurl { inherit (verbs) url sha256 ; } )
     ( fetchurl { inherit (drivers.libmlx4) url sha256 ; } )
+    ( fetchurl { inherit (drivers.libmlx5) url sha256 ; } )
     ( fetchurl { inherit (drivers.libmthca) url sha256 ; } )
     ( fetchurl { inherit (drivers.libipathverbs) url sha256 ; } )
     ( fetchurl { inherit (drivers.opa-libhfi1verbs) url sha256 ; } )
@@ -50,11 +57,11 @@ in stdenv.mkDerivation rec {
 
   sourceRoot = name;
 
-  buildInputs = [ autoconf automake libtool valgrind ];
+  buildInputs = [ autoconf automake libtool valgrind pkgconfig libnl ];
 
   # Install userspace drivers
   postInstall = ''
-    for dir in ${drivers.libmlx4.name} ${drivers.libmthca.name} ${drivers.libipathverbs.name} ${drivers.opa-libhfi1verbs.name} ; do
+    for dir in ${drivers.libmlx4.name} ${drivers.libmlx5.name} ${drivers.libmthca.name} ${drivers.libipathverbs.name} ${drivers.opa-libhfi1verbs.name} ; do
       cd ../$dir
       export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -I$out/include"
       export NIX_LDFLAGS="-rpath $out/lib $NIX_LDFLAGS -L$out/lib"
