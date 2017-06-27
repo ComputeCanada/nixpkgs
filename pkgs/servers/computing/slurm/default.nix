@@ -32,7 +32,7 @@ stdenv.mkDerivation rec {
   '';
 
   postInstall = ''
-    rm -f $out/lib/*.la $out/lib/slurm/*.la
+    rm -f $lib/lib/*.la $lib/lib/slurm/*.la
   '';
 
   meta = with stdenv.lib; {
