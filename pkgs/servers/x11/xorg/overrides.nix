@@ -456,6 +456,7 @@ in
           "--with-default-font-path="   # there were only paths containing "${prefix}",
                                         # and there are no fonts in this package anyway
           "--enable-glamor"
+          "--disable-dri"               # no DRI in Compute Canada software stack
         ];
         postInstall = ''
           rm -fr $out/share/X11/xkb/compiled # otherwise X will try to write in it
