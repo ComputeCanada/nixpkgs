@@ -47,11 +47,11 @@ stdenv.mkDerivation {
           $WRAP_TK
       done
 
-      mkdir -p $out/etc/mercurial
-      cat >> $out/etc/mercurial/hgrc << EOF
-      [web]
-      cacerts = /etc/ssl/certs/ca-certificates.crt
-      EOF
+      #mkdir -p $out/etc/mercurial
+      #cat >> $out/etc/mercurial/hgrc << EOF
+      #[web]
+      #cacerts = /etc/ssl/certs/ca-certificates.crt
+      #EOF
 
       # copy hgweb.cgi to allow use in apache
       mkdir -p $out/share/cgi-bin
