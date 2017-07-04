@@ -12,12 +12,22 @@ stdenv.mkDerivation rec {
     sha256 = "0mssqd2wp3cs9x01v6g66iy3ymdxagbyw2c0v597vnc1l6s2rm6f";
   };
 
-  buildPhase = ''sh ./Build.sh -r -c lto'';
+  buildPhase = ''
+    sh ./Build.sh -r -c lto
+    CPPFLAGS="$CPPFLAGS -DMKSH_BINSHPOSIX"
+    sh ./Build.sh -L -r -c lto
+  '';
 
   installPhase = ''
     install -D -m 755 mksh $out/bin/mksh
     install -D -m 644 mksh.1 $out/share/man/man1/mksh.1
+    install -D -m 755 lksh $out/bin/lksh
+    install -D -m 644 lksh.1 $out/share/man/man1/lksh.1
     install -D -m 644 dot.mkshrc $out/share/mksh/mkshrc
+    ln -s lksh $out/bin/pdksh
+    ln -s lksh.1 $out/share/man/man1/pdksh.1
+    ln -s lksh $out/bin/ksh
+    ln -s lksh.1 $out/share/man/man1/ksh.1
   '';
 
   meta = with stdenv.lib; {
