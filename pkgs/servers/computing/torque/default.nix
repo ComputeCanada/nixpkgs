@@ -35,12 +35,16 @@ stdenv.mkDerivation rec {
    sed -i 's/ $hardcode_libdir_flag//' ./configure
   '';
 
+  configureFlags = [ "--disable-server" "--disable-mom" "--disable-clients" ];
+
   postInstall = ''
-    mv $out/sbin/* $out/bin/
-    rmdir $out/sbin
-    cp -v buildutils/pbs_mkdirs $out/bin/
-    cp -v torque.setup $out/bin/
-    chmod +x $out/bin/pbs_mkdirs $out/bin/torque.setup
+    #mv -f $out/sbin/* $out/bin/
+    #rmdir $out/sbin
+    #cp -v buildutils/pbs_mkdirs $out/bin/
+    #cp -v torque.setup $out/bin/
+    #chmod +x $out/bin/pbs_mkdirs $out/bin/torque.setup
+    rm -rf $out/share # no manual pages needed
+    rm -rf $out/lib/*.la
   '';
 
   meta = with stdenv.lib; {
