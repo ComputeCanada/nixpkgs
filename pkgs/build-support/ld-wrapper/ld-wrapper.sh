@@ -24,6 +24,13 @@ expandResponseParams() {
     done
 }
 
+if [ -z "$NIXUSER_PROFILE" ]; then
+  NIXUSER_PROFILE=/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09
+fi
+if [ -z "$EASYBUILD_CONFIGFILES" ]; then
+  EASYBUILD_CONFIGFILES=/cvmfs/soft.computecanada.ca/easybuild/config.cfg
+fi
+
 path_backup="$PATH"
 if [ -n "@coreutils_bin@" ]; then
   PATH="@coreutils_bin@/bin"
