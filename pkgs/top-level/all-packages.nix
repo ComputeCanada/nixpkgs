@@ -10131,6 +10131,8 @@ in
 
   perlXMLParser = perlPackages.XMLParser;
 
+  Perl4CoreLibs = callPackage ./perl4-corelibs.nix {overrides = (config.perlPackageOverrides or (p: {})) pkgs;};
+
   ack = perlPackages.ack;
 
   perlArchiveCpio = perlPackages.ArchiveCpio;
