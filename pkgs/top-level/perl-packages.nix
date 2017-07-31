@@ -2398,6 +2398,14 @@ let self = _self // overrides; _self = with self; {
     propagatedBuildInputs = [ CGICookieXS ];
   };
 
+  Perl4-CoreLibs = buildPerlModule rec {
+    name = "Perl4-CoreLibs-0.004";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/Z/ZE/ZEFRAM/${name}.tar.gz";
+      sha256 = "0jn69b51g8k71v106p7w9xlgn9m4nzlk522j1nq5m4zqclrpx23q";
+    };
+  };
+
   CPAN = buildPerlPackage rec {
     name = "CPAN-2.10";
     src = fetchurl {
