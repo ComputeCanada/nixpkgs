@@ -3,6 +3,7 @@ rec {
   atril = callPackage ./atril { };
   caja = callPackage ./caja { };
   pluma = callPackage ./pluma { };
+  eom = callPackage ./eom { };
   mate-common = callPackage ./mate-common { };
   mate-desktop = callPackage ./mate-desktop { };
   mate-icon-theme = callPackage ./mate-icon-theme { };
