@@ -102,6 +102,10 @@ stdenv.mkDerivation rec {
       done
     done
 
+    # setup compatibility libraries libcurses.so and libcursesw.so
+    echo "INPUT(-lncurses)" > $out/lib/libcurses.so
+    echo "INPUT(-lncursesw)" > $out/lib/libcursesw.so
+
     # move some utilities to $bin
     # these programs are used at runtime and don't really belong in $dev
     moveToOutput "bin/clear" "$out"
