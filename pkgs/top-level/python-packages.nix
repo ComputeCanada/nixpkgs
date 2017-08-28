@@ -22659,6 +22659,8 @@ in modules // {
     };
   };
 
+  secretstorage = callPackage ../development/python-modules/secretstorage { };
+
   semantic = buildPythonPackage rec {
     name = "semantic-1.0.3";
 
