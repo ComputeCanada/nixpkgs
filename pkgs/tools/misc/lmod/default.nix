@@ -11,7 +11,8 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ lua tcl perl rsync procps ];
   propagatedBuildInputs = [ luaposix luafilesystem ];
-  preConfigure = '' makeFlags="PREFIX=$out" '';
+  # set custom LD_LIBRARY_PATH so capture("groups") works properly
+  preConfigure = '' makeFlags="PREFIX=$out"; export LD_LIBRARY_PATH=/cvmfs/soft.computecanada.ca/nix/lib '';
   configureFlags = [ "--with-duplicatePaths=yes --with-caseIndependentSorting=yes --with-redirect=yes --with-module-root-path=/cvmfs/soft.computecanada.ca/easybuild/modules" ];
 
   # replace nix-store paths in the environment with nix-profile paths to allow easy upgrade
