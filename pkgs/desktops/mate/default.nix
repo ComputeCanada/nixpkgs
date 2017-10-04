@@ -22,6 +22,7 @@ let
     mate-menus = callPackage ./mate-menus { };
     mate-notification-daemon = callPackage ./mate-notification-daemon { };
     mate-panel = callPackage ./mate-panel { };
+    mate-power-manager = callPackage ./mate-power-manager { };
     mate-session-manager = callPackage ./mate-session-manager { };
     mate-settings-daemon = callPackage ./mate-settings-daemon { };
     mate-terminal = callPackage ./mate-terminal { };
@@ -52,6 +53,7 @@ let
       engrampa
       eom
       mate-icon-theme-faenza
+      mate-power-manager
       mate-terminal
       pluma
     ];
