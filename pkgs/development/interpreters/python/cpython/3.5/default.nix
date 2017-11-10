@@ -93,8 +93,6 @@ stdenv.mkDerivation {
     touch $out/lib/python${majorVersion}/test/__init__.py
 
     ln -s "$out/include/python${majorVersion}m" "$out/include/python${majorVersion}"
-    # create "python" symlink for compatibility with easybuild
-    ln -s "$out/bin/python${majorVersion}" "$out/bin/python"
     paxmark E $out/bin/python${majorVersion}
 
     # Python on Nix is not manylinux1 compatible. https://github.com/NixOS/nixpkgs/issues/18484
