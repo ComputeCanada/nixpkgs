@@ -3857,6 +3857,8 @@ in
 
   ucspi-tcp = callPackage ../tools/networking/ucspi-tcp { };
 
+  ucx = callPackage ../development/libraries/ucx { };
+
   udftools = callPackage ../tools/filesystems/udftools {};
 
   udptunnel = callPackage ../tools/networking/udptunnel { };
