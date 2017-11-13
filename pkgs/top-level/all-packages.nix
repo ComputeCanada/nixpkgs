@@ -1280,6 +1280,8 @@ in
 
   daemonize = callPackage ../tools/system/daemonize { };
 
+  dapl = callPackage ../development/libraries/dapl { };
+
   daq = callPackage ../applications/networking/ids/daq { };
 
   dar = callPackage ../tools/archivers/dar { };
