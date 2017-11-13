@@ -1,0 +1,70 @@
+diff --git a/prov/mlx/src/mlx_ep.c b/prov/mlx/src/mlx_ep.c
+index a8250f672..09701f341 100644
+--- a/prov/mlx/src/mlx_ep.c
++++ b/prov/mlx/src/mlx_ep.c
+@@ -94,6 +94,7 @@ static int mlx_ep_bind(struct fid *fid, struct fid *bfid, uint64_t flags)
+ 
+ 	switch (bfid->fclass) {
+ 	case FI_CLASS_CQ:
++		cq = container_of(bfid, struct util_cq, cq_fid.fid);
+ 		status = ofi_ep_bind_cq(&ep->ep, cq, flags);
+ 		break;
+ 	case FI_CLASS_AV:
+diff --git a/prov/mlx/src/mlx_init.c b/prov/mlx/src/mlx_init.c
+index 36fdcd446..9eeb15dc7 100644
+--- a/prov/mlx/src/mlx_init.c
++++ b/prov/mlx/src/mlx_init.c
+@@ -32,7 +32,7 @@
+ #include "mlx.h"
+ 
+ 
+-int mlx_errcode_translation_table[(-UCS_ERR_LAST)+2];
++int mlx_errcode_translation_table[(-UCS_ERR_LAST)+2] = { -FI_EOTHER };
+ 
+ struct mlx_global_descriptor mlx_descriptor = {
+ 	.config = NULL,
+@@ -40,7 +40,6 @@ struct mlx_global_descriptor mlx_descriptor = {
+ 
+ static int mlx_init_errcodes()
+ {
+-	memset(mlx_errcode_translation_table, -FI_EOTHER, (-UCS_ERR_LAST)+2);
+ 	MLX_TRANSLATE_ERRCODE (UCS_OK)                  = -FI_SUCCESS;
+ 	MLX_TRANSLATE_ERRCODE (UCS_INPROGRESS)          = -FI_EINPROGRESS;
+ 	MLX_TRANSLATE_ERRCODE (UCS_ERR_NO_MESSAGE)      = -FI_ENOMSG;
+@@ -83,7 +82,7 @@ struct fi_domain_attr mlx_domain_attrs = {
+ 	.rx_ctx_cnt = 1,
+ 	.max_ep_tx_ctx = 1,
+ 	.max_ep_rx_ctx = 1,
+-	.mr_cnt = FI_MLX_DEF_MR_CNT;
++	.mr_cnt = FI_MLX_DEF_MR_CNT,
+ };
+ 
+ struct fi_rx_attr mlx_rx_attrs = {
+@@ -119,7 +118,13 @@ struct fi_fabric_attr mlx_fabric_attrs = {
+ struct fi_ep_attr mlx_ep_attrs = {
+ 	.type = FI_EP_RDM,
+ 	.protocol = FI_PROTO_MLX,
+-	.protocol_version = UCP_API_RELEASE,
++#if defined(UCP_API_RELEASE) && (UCP_API_RELEASE <= 2947)
++#warning "HPCX 1.9.7 have an issue with UCP_API_VERSION macro"
++	.protocol_version = (((UCP_API_MAJOR) << UCP_VERSION_MAJOR_SHIFT)|
++        ((UCP_API_MINOR) << UCP_VERSION_MINOR_SHIFT)),
++#else
++	.protocol_version = (UCP_API_VERSION),
++#endif
+ 	.max_msg_size = 0xFFFFFFFF,
+ 	.mem_tag_format = 0x0,
+ 	.tx_ctx_cnt = 1,
+diff --git a/prov/mlx/src/mlx_tagged.c b/prov/mlx/src/mlx_tagged.c
+index 4f3d1abf8..c49078aeb 100644
+--- a/prov/mlx/src/mlx_tagged.c
++++ b/prov/mlx/src/mlx_tagged.c
+@@ -39,7 +39,7 @@ static ssize_t mlx_tagged_recvmsg(
+ 				uint64_t flags)
+ {
+ 	ucs_status_ptr_t status = NULL;
+-	ucs_recv_callback_t cbf;
++	ucp_tag_recv_callback_t cbf;
+ 	struct mlx_ep* u_ep;
+ 	struct mlx_request *req;
+ 	struct util_cq* cq;

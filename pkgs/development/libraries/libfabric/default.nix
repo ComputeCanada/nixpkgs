@@ -1,17 +1,19 @@
-{ stdenv, fetchurl, infinipath-psm, opa-psm2, libibverbs, librdmacm, libnl, mxm }:
+{ stdenv, fetchurl, infinipath-psm, opa-psm2, libibverbs, librdmacm, libnl, ucx }:
 
 stdenv.mkDerivation rec {
-  name = "libfabric-1.4.1";
+  name = "libfabric-1.5.2";
 
   src = fetchurl {
-    url = "https://github.com/ofiwg/libfabric/releases/download/v1.4.1/${name}.tar.bz2";
-    sha256 = "fb165fe140a1c1828c49a4780860e669657221a2fc48f28b3934289b5da882a6";
+    url = "https://github.com/ofiwg/libfabric/releases/download/v1.5.2/${name}.tar.bz2";
+    sha256 = "0v8dks6x0zw2hzdbpw38dccp5mz6fmhb1qdqhc31khcvj8g60py0";
   };
 
-  buildInputs = [ infinipath-psm opa-psm2 libibverbs librdmacm libnl mxm ];
+  patches = [ ./3249.patch ];
+
+  buildInputs = [ infinipath-psm opa-psm2 libibverbs librdmacm libnl ucx ];
 
   configureFlags = [ "--with-libnl=${libnl.dev}" "--enable-psm=dl" "--enable-psm2=dl"
-                     "--enable-mxm=dl" "--enable-verbs=dl" ];
+                     "--enable-verbs=dl" "--enable-mlx=dl" ];
 
   meta = with stdenv.lib; {
     homepage = https://ofiwg.github.io/libfabric/;
