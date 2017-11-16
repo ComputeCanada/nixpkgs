@@ -1,11 +1,11 @@
-{ stdenv, fetchurl, libuuid }:
+{ stdenv, fetchurl, libuuid, numactl }:
 
 stdenv.mkDerivation rec {
-  name = "opa-psm2-10.3.1";
+  name = "opa-psm2-10.3.8";
 
   src = fetchurl {
-    url = "https://github.com/01org/opa-psm2/archive/IFS_RELEASE_10_3_1_0_22.tar.gz";
-    sha256 = "7fde8c0204c9690404f22d59f45b12b820ce36d67a612fb7045f68f2670fefb3";
+    url = "https://github.com/01org/opa-psm2/archive/IFS_RELEASE_10_6_0_0_134.tar.gz";
+    sha256 = "0h4g5bzcnjhjmid8rn889a6cfqq0f1fn8kkmhizdhngl8czwjnvh";
   };
 
   configurePhase = "sed -i 's|/usr|/|' Makefile";
@@ -14,7 +14,7 @@ stdenv.mkDerivation rec {
 
   hardeningDisable = [ "format" ];
 
-  buildInputs = [ libuuid ];
+  buildInputs = [ libuuid numactl ];
   buildPhase = "make arch=x86_64 USE_PSM_UUID=1 WERROR=";
 
   installPhase = "make install arch=x86_64 DESTDIR=$out";
