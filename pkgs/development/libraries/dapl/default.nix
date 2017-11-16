@@ -10,6 +10,13 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ libscif librdmacm libibverbs ];
 
+  # libdat dynamically loads the libraries in $out/lib
+  postFixup = ''
+    patchelf --set-rpath \
+      $(patchelf --print-rpath $out/lib/libdat2.so.2.0.0):$out/lib \
+      $out/lib/libdat2.so.2.0.0
+  '';
+
   meta = with stdenv.lib; {
     homepage = https://www.openfabrics.org/;
     platforms = with platforms; linux ++ freebsd;
