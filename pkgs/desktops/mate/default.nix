@@ -19,6 +19,7 @@ let
     mate-desktop = callPackage ./mate-desktop { };
     mate-icon-theme = callPackage ./mate-icon-theme { };
     mate-icon-theme-faenza = callPackage ./mate-icon-theme-faenza { };
+    mate-media = callPackage ./mate-media { };
     mate-menus = callPackage ./mate-menus { };
     mate-notification-daemon = callPackage ./mate-notification-daemon { };
     mate-panel = callPackage ./mate-panel { };
@@ -53,6 +54,7 @@ let
       engrampa
       eom
       mate-icon-theme-faenza
+      mate-media
       mate-power-manager
       mate-terminal
       pluma
