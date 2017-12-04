@@ -109,6 +109,8 @@ in modules // {
     };
   };
 
+  argon2_cffi = callPackage ../development/python-modules/argon2_cffi { };
+
   # packages defined elsewhere
 
   blivet = callPackage ../development/python-modules/blivet { };
