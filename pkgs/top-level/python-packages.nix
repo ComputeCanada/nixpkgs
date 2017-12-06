@@ -14676,6 +14676,20 @@ in modules // {
     };
   };
 
+  no-manylinux1 = buildPythonPackage rec {
+    version = "1.0.0";
+    name = "no-manylinux1-${version}";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/n/no-manylinux1/${name}.tar.gz";
+      sha256 = "1a9119lkv68lhbrdc72glpsrw3q951f76hf2q1syq7fpvjq1r6h3";
+    };
+
+    meta = {
+      description = "Install this package to disable manylinux1 wheels when dowloading from pip.";
+    };
+  };
+
   nose = buildPythonPackage rec {
     version = "1.3.7";
     name = "nose-${version}";
