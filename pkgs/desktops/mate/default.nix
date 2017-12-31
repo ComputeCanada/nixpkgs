@@ -28,6 +28,7 @@ let
     mate-power-manager = callPackage ./mate-power-manager { };
     mate-session-manager = callPackage ./mate-session-manager { };
     mate-settings-daemon = callPackage ./mate-settings-daemon { };
+    mate-screensaver = callPackage ./mate-screensaver { };
     mate-terminal = callPackage ./mate-terminal { };
     mate-themes = callPackage ./mate-themes { };
     mate-user-guide = callPackage ./mate-user-guide { };
@@ -61,6 +62,7 @@ let
       mate-icon-theme-faenza
       mate-media
       mate-power-manager
+      mate-screensaver
       mate-terminal
       mate-user-guide
       pluma
