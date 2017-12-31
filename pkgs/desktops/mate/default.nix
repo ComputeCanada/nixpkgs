@@ -23,6 +23,7 @@ let
     mate-menus = callPackage ./mate-menus { };
     mate-notification-daemon = callPackage ./mate-notification-daemon { };
     mate-panel = callPackage ./mate-panel { };
+    mate-polkit = callPackage ./mate-polkit { };
     mate-power-manager = callPackage ./mate-power-manager { };
     mate-session-manager = callPackage ./mate-session-manager { };
     mate-settings-daemon = callPackage ./mate-settings-daemon { };
@@ -44,6 +45,7 @@ let
       mate-menus
       mate-notification-daemon
       mate-panel
+      mate-polkit
       mate-session-manager
       mate-settings-daemon
       mate-themes
