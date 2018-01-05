@@ -40,6 +40,7 @@ let
     mate-user-guide = callPackage ./mate-user-guide { };
     mate-user-share = callPackage ./mate-user-share { };
     mate-utils = callPackage ./mate-utils { };
+    mozo = callPackage ./mozo { };
     pluma = callPackage ./pluma { };
 
     basePackages = [
@@ -81,6 +82,7 @@ let
       mate-user-guide
       #mate-user-share
       mate-utils
+      mozo
       pluma
     ];
   
