@@ -72,14 +72,16 @@ stdenv.mkDerivation rec {
     cfg=$(basename $dev/bin/ncurses*-config)
 
     # symlink the full suffixed include directory
-    ln -svf . $dev/include/ncurses$suffix
+    mkdir $dev/include/ncurses$suffix
+    (cd $dev/include/ncurses$suffix; cp -s ../*.h .)
 
     for newsuffix in $suffixes ""; do
       # Create a non-abi versioned config util links
       ln -svf $cfg $dev/bin/ncurses$newsuffix-config
 
       # Allow for end users who #include <ncurses?w/*.h>
-      ln -svf . $dev/include/ncurses$newsuffix
+      mkdir $dev/include/ncurses$newsuffix
+      (cd $dev/include/ncurses$newsuffix; cp -s ../*.h .)
 
       for library in $libs; do
         for dylibtype in so dll dylib; do
