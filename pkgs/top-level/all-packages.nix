@@ -8938,7 +8938,7 @@ in
 
   notify-sharp = callPackage ../development/libraries/notify-sharp { };
 
-  ncurses5 = callPackage ../development/libraries/ncurses { abiVersion = "5"; };
+  ncurses5 = lowPrio( callPackage ../development/libraries/ncurses { abiVersion = "5"; });
   ncurses6 = callPackage ../development/libraries/ncurses { abiVersion = "6"; };
   ncurses = if stdenv.isDarwin then ncurses5 else ncurses6;
 
