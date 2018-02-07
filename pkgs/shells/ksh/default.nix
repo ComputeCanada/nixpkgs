@@ -15,8 +15,6 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ vim bison db ];
 
-  hardeningDisable = [ ];
-
   buildPhase = ''
     CCFLAGS="-O2 -fno-strict-aliasing" bin/package make
   '';
