@@ -1,0 +1,11 @@
+--- ast-683bccf3bab8545b6334ab7b7c179e08f5eb89fa/src/lib/libardir/ardir.c.orig	2018-02-07 14:17:57.742435615 +0000
++++ ast-683bccf3bab8545b6334ab7b7c179e08f5eb89fa/src/lib/libardir/ardir.c	2018-02-07 14:20:25.113983568 +0000
+@@ -39,7 +39,7 @@
+ 		return 0;
+ 	strcpy(ar->path = (char*)(ar + 1), file);
+ 	ar->flags = flags;
+-	if (((ar->fd = open(file, (flags & ARDIR_CREATE) ? (O_CREAT|O_TRUNC|O_RDWR|O_BINARY|O_cloexec) : (flags & ARDIR_UPDATE) ? (O_RDWR|O_BINARY|O_cloexec) : (O_RDONLY|O_BINARY|O_cloexec))) < 0 || fstat(ar->fd, &ar->st) || !S_ISREG(ar->st.st_mode)) && (!meth || !(flags & ARDIR_FORCE)))
++	if (((ar->fd = open(file, (flags & ARDIR_CREATE) ? (O_CREAT|O_TRUNC|O_RDWR|O_BINARY|O_cloexec) : (flags & ARDIR_UPDATE) ? (O_RDWR|O_BINARY|O_cloexec) : (O_RDONLY|O_BINARY|O_cloexec), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) < 0 || fstat(ar->fd, &ar->st) || !S_ISREG(ar->st.st_mode)) && (!meth || !(flags & ARDIR_FORCE)))
+ 	{
+ 		ardirclose(ar);
+ 		return 0;

@@ -4349,6 +4349,8 @@ in
 
   fish-foreign-env = callPackage ../shells/fish-foreign-env { };
 
+  ksh = callPackage ../shells/ksh { };
+
   mksh = callPackage ../shells/mksh { };
 
   oh = callPackage ../shells/oh { };
