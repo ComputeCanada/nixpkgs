@@ -48,7 +48,7 @@
   aycanirican = "Aycan iRiCAN <iricanaycan@gmail.com>";
   badi = "Badi' Abdul-Wahid <abdulwahidc@gmail.com>";
   balajisivaraman = "Balaji Sivaraman<sivaraman.balaji@gmail.com>";
-  bartoldeman = "Bart Oldeman<bart.oldeman@calculquebec.ca>"
+  bartoldeman = "Bart Oldeman<bart.oldeman@calculquebec.ca>";
   Baughn = "Svein Ove Aas <sveina@gmail.com>";
   bbenoist = "Baptist BENOIST <return_0@live.com>";
   bcarrell = "Brandon Carrell <brandoncarrell@gmail.com>";
