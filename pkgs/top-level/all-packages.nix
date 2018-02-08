@@ -3024,7 +3024,14 @@ in
 
   par2cmdline = callPackage ../tools/networking/par2cmdline { };
 
-  parallel = callPackage ../tools/misc/parallel { };
+  parallel = callPackage ../tools/misc/parallel {
+    version = "20180122";
+    sha256 = "1wkbppb4mc56grl6jsp803sf0hm7mg5ff7qmxalp7sd0vxqw41p9";
+  };
+  parallel-20160722 = callPackage ../tools/misc/parallel { 
+    version = "20160722";
+    sha256 = "08gm0i9vj2nz8qgqi98z00myypgb3dni0s5yf3l17fp8h78fp4g3";
+  };
 
   parcellite = callPackage ../tools/misc/parcellite { };
 
