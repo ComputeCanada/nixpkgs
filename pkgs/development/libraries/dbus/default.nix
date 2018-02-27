@@ -67,10 +67,10 @@ self =  stdenv.mkDerivation {
     installFlags = "sysconfdir=$(out)/etc datadir=$(out)/share";
 
     # it's executed from $lib by absolute path
-    postFixup = ''
-      moveToOutput bin/dbus-launch "$lib"
-      ln -s "$lib/bin/dbus-launch" "$out/bin/"
-    '';
+#    postFixup = ''
+#      moveToOutput bin/dbus-launch "$lib"
+#      ln -s "$lib/bin/dbus-launch" "$out/bin/"
+#    '';
 
     passthru = {
       dbus-launch = "${self.lib}/bin/dbus-launch";
