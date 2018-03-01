@@ -10693,7 +10693,8 @@ in
     postgresql93
     postgresql94
     postgresql95
-    postgresql96;
+    postgresql96
+    postgresql100;
 
   postgresql_jdbc = callPackage ../servers/sql/postgresql/jdbc { };
 
