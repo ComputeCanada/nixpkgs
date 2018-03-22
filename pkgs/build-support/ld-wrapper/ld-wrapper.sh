@@ -111,6 +111,10 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
             "${1:0:${#EASYBUILD_DIR}}" != "$EASYBUILD_DIR" ]; then
             return 0
         fi
+        # this gets explicitly added at the end only
+        if [ "$1" == "$NIXUSER_PROFILE/lib" -a -z "$2" ]; then
+            return 0
+        fi
         case $rpath in
             *\ $1\ *) return 0 ;;
         esac
@@ -199,6 +203,7 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
 
 
     # Finally, add `-rpath' switches.
+    addToRPath $NIXUSER_PROFILE/lib force
     for i in $rpath; do
         extra+=(-rpath $i)
     done
