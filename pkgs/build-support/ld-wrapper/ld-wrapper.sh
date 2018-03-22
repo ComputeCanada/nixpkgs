@@ -115,6 +115,9 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
         if [ "$1" == "$NIXUSER_PROFILE/lib" -a -z "$2" ]; then
             return 0
         fi
+        if [ "$1" == "$NIXUSER_PROFILE/lib64" ]; then
+            return 0
+        fi
         case $rpath in
             *\ $1\ *) return 0 ;;
         esac
