@@ -1,0 +1,28 @@
+2018-01-23  Matthias Kretz  <kretz@kde.org>
+    
+      * config/i386/avx512fintrin.h: Fix signatures of _mm512_abs_ps and
+      _mm512_mask_abs_pd to use __m512d instead of __m512.
+
+diff --git a/gcc/config/i386/avx512fintrin.h b/gcc/config/i386/avx512fintrin.h
+index 71e36a5..de68675 100644
+--- a/gcc/config/i386/avx512fintrin.h
++++ b/gcc/config/i386/avx512fintrin.h
+@@ -7612,7 +7612,7 @@ _mm512_mask_abs_ps (__m512 __W, __mmask16 __U, __m512 
+__A)
+ 
+ extern __inline __m512d
+ __attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
+-_mm512_abs_pd (__m512 __A)
++_mm512_abs_pd (__m512d __A)
+ {
+   return (__m512d) _mm512_and_epi64 ((__m512i) __A,
+                 _mm512_set1_epi64 (0x7fffffffffffffffLL));
+@@ -7620,7 +7620,7 @@ _mm512_abs_pd (__m512 __A)
+ 
+ extern __inline __m512d
+ __attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
+-_mm512_mask_abs_pd (__m512d __W, __mmask8 __U, __m512 __A)
++_mm512_mask_abs_pd (__m512d __W, __mmask8 __U, __m512d __A)
+ {
+   return (__m512d)
+    _mm512_mask_and_epi64 ((__m512i) __W, __U, (__m512i) __A,
