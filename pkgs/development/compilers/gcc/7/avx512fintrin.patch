@@ -7,8 +7,7 @@ diff --git a/gcc/config/i386/avx512fintrin.h b/gcc/config/i386/avx512fintrin.h
 index 71e36a5..de68675 100644
 --- a/gcc/config/i386/avx512fintrin.h
 +++ b/gcc/config/i386/avx512fintrin.h
-@@ -7612,7 +7612,7 @@ _mm512_mask_abs_ps (__m512 __W, __mmask16 __U, __m512 
-__A)
+@@ -7612,7 +7612,7 @@ _mm512_mask_abs_ps (__m512 __W, __mmask16 __U, __m512 __A)
  
  extern __inline __m512d
  __attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
