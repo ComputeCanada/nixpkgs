@@ -81,7 +81,7 @@ in stdenv.mkDerivation rec {
   postInstall = ""
   + stdenv.lib.optionalString (enableSharedLibraries) ''
     moveToOutput "lib/libLLVM-*" "$lib"
-    moveToOutput "lib/libLLVM.so" "$lib"
+    mv "$out/lib/libLLVM.so" "$lib/lib"
     substituteInPlace "$out/lib/cmake/llvm/LLVMExports-release.cmake" \
       --replace "\''${_IMPORT_PREFIX}/lib/libLLVM-" "$lib/lib/libLLVM-"
   ''
