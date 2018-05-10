@@ -41,8 +41,8 @@
       <dir>~/.nix-profile/lib/X11/fonts</dir>
       <dir>~/.nix-profile/share/fonts</dir>
       <!-- nix default profile -->
-      <dir>/nix/var/nix/profiles/default/lib/X11/fonts</dir>
-      <dir>/nix/var/nix/profiles/default/share/fonts</dir>
+      <dir>/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09/lib/X11/fonts</dir>
+      <dir>/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09/share/fonts</dir>
 
     </fontconfig>
 
