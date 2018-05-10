@@ -21,6 +21,9 @@ stdenv.mkDerivation rec {
     sed -i -e 's;/cvmfs/soft.computecanada.ca/nix/store/[^/"]*;/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09;g' \
     	   -e 's:/usr/share/lua/5.2/?.lua;/usr/share/lua/5.2/?/init.lua;/usr/lib/lua/5.2/?.lua;/usr/lib/lua/5.2/?/init.lua;./?.lua;::g' \
     	   -e 's:/usr/lib/lua/5.2/?.so;/usr/lib/lua/5.2/loadall.so;./?.so;::g' $(grep -rl "nix/store" $out | grep lua)
+    sed -i -e 's;/cvmfs/soft.computecanada.ca/nix/store/[^/"]*;/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09;g' \
+    	   -e 's:/usr/share/lua/5.2/?.lua;/usr/share/lua/5.2/?/init.lua;/usr/lib/lua/5.2/?.lua;/usr/lib/lua/5.2/?/init.lua;./?.lua;::g' \
+    	   -e 's:/usr/lib/lua/5.2/?.so;/usr/lib/lua/5.2/loadall.so;./?.so;::g' $out/lmod/lmod/libexec/{computeHashSum,lmod,addto,spider,clearMT_cmd,ml_cmd,spiderCacheSupport,sh_to_modulefile,update_lmod_system_cache_files} 
   '';
 
   LUA_PATH="${luaposix}/share/lua/5.2/?.lua;${luaposix}/share/lua/5.2/?/init.lua;;";
