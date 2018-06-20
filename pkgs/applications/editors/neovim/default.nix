@@ -1,6 +1,6 @@
-{ stdenv, fetchFromGitHub, cmake, gettext, libmsgpack, libtermkey
-, libtool, libuv, luajit, luaPackages, man, ncurses, perl, pkgconfig
-, unibilium, makeWrapper, vimUtils, xsel
+{ stdenv, fetchFromGitHub, cmake, libtool, pkgconfig, man
+, gettext, libmsgpack, libtermkey, libuv, luaPackages, ncurses, perl
+, unibilium, vimUtils, xsel, gperf, makeWrapper, luajit
 
 , withPython ? true, pythonPackages, extraPythonPackages ? []
 , withPython3 ? true, python3Packages, extraPython3Packages ? []
@@ -18,20 +18,19 @@ let
   # Note: this is NOT the libvterm already in nixpkgs, but some NIH silliness:
   neovimLibvterm = stdenv.mkDerivation rec {
     name = "neovim-libvterm-${version}";
-    version = "2015-11-06";
+    version = "2018-06-20";
 
     src = fetchFromGitHub {
       owner = "neovim";
       repo = "libvterm";
-      rev = "487f21dbf65f1c28962fef3f064603f415fbaeb2";
-      sha256 = "1fig6v0qk0ylr7lqqk0d6x5yywb9ymh85vay4spw5b5r5p0ky7yx";
+      rev = "005845cd58ca409a970d822b74e1a02a503d32e7";
+      sha256 = "14yv4y684pv59p7lm8c402fri7lsnpy7knpnapbwp80mf7kjirwp";
     };
 
     buildInputs = [ perl ];
     nativeBuildInputs = [ libtool ];
 
-    makeFlags = [ "PREFIX=$(out)" ]
-      ++ stdenv.lib.optional stdenv.isDarwin "LIBTOOL=${libtool}/bin/libtool";
+    makeFlags = [ "PREFIX=$(out)" ];
 
     enableParallelBuilding = true;
 
@@ -60,13 +59,13 @@ let
 
   neovim = stdenv.mkDerivation rec {
     name = "neovim-${version}";
-    version = "0.1.5";
+    version = "0.3.0";
 
     src = fetchFromGitHub {
       owner = "neovim";
       repo = "neovim";
       rev = "v${version}";
-      sha256 = "1ihlgm2h7147xyd5wrwg61vsnmkqc9j3ghsida4g2ilr7gw9c85y";
+      sha256 = "10c8y309fdwvr3d9n6vm1f2c0k6pzicnhc64l2dvbw1lnabp04vv";
     };
 
     enableParallelBuilding = true;
@@ -75,17 +74,18 @@ let
       libtermkey
       libuv
       libmsgpack
-      ncurses
       neovimLibvterm
       unibilium
       luajit
       luaPackages.lua
+      gperf
     ] ++ optional withJemalloc jemalloc
       ++ lualibs;
 
     nativeBuildInputs = [
       cmake
       gettext
+      ncurses
       makeWrapper
       pkgconfig
     ];
@@ -105,18 +105,9 @@ let
     preConfigure = ''
       substituteInPlace runtime/autoload/man.vim \
         --replace /usr/bin/man ${man}/bin/man
-    '' + stdenv.lib.optionalString stdenv.isDarwin ''
-      export DYLD_LIBRARY_PATH=${jemalloc}/lib
-      substituteInPlace src/nvim/CMakeLists.txt --replace "    util" ""
     '';
 
-    postInstall = stdenv.lib.optionalString stdenv.isDarwin ''
-      echo patching $out/bin/nvim
-      install_name_tool -change libjemalloc.1.dylib \
-                ${jemalloc}/lib/libjemalloc.1.dylib \
-                $out/bin/nvim
-      sed -i -e "s|'xsel|'${xsel}/bin/xsel|" $out/share/nvim/runtime/autoload/provider/clipboard.vim
-    '' + optionalString withPython ''
+    postInstall = optionalString withPython ''
       ln -s ${pythonEnv}/bin/python $out/bin/nvim-python
     '' + optionalString withPyGUI ''
       makeWrapper "${pythonEnv}/bin/pynvim" "$out/bin/pynvim" \
