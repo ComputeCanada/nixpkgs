@@ -2847,6 +2847,8 @@ in
 
   nss_pam_ldapd = callPackage ../tools/networking/nss-pam-ldapd {};
 
+  nss_symlinks = callPackage ../os-specific/linux/nss-symlinks {};
+
   ntfs3g = callPackage ../tools/filesystems/ntfs-3g { };
 
   # ntfsprogs are merged into ntfs-3g
