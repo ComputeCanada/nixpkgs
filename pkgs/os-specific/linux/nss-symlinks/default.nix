@@ -13,6 +13,6 @@ stdenv.mkDerivation {
   installPhase = ''
     mkdir -p "$out"/lib
     ln -s /lib64/libnss_ldap.so.2 "$out"/lib
-    ln -s /lib64/libnss_nss.so.2 "$out"/lib
+    ln -s /lib64/libnss_sss.so.2 "$out"/lib
   '';
 }
