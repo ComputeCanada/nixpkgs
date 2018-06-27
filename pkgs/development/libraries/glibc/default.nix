@@ -30,7 +30,7 @@ in
       unset CFLAGS
 
       # Apparently --bindir is not respected.
-      makeFlagsArray+=("bindir=$bin/bin" "sbindir=$bin/sbin" "rootsbindir=$bin/sbin")
+      makeFlagsArray+=("bindir=$bin/bin" "sbindir=$bin/sbin" "rootsbindir=$bin/sbin" "user-defined-trusted-dirs=/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09/lib:/usr/lib64/nvidia")
     '';
 
     # The stackprotector and fortify hardening flags are autodetected by glibc
