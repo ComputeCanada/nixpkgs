@@ -10,7 +10,7 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ coreutils ];
 
-  doCheck = !stdenv.isDarwin;
+  doCheck = false;
 
   outputs = [ "out" "info" ];
 
