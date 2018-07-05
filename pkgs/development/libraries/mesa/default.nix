@@ -1,6 +1,6 @@
 { stdenv, fetchurl, fetchpatch
 , pkgconfig, intltool, autoreconfHook, substituteAll
-, file, expat, libdrm, xorg, wayland, systemd
+, file, expat, libdrm, xorg, wayland
 , llvmPackages, libffi, libomxil-bellagio
 , libelf, python
 , grsecEnabled ? false
@@ -99,7 +99,7 @@ stdenv.mkDerivation {
     libffi wayland libelf libXvMC
     libomxil-bellagio libpthreadstubs
     (python.withPackages (ps: [ ps.Mako ]))
-  ] ++ optional stdenv.isLinux systemd;
+  ];
 
 
   enableParallelBuilding = true;
