@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, pkgconfig, zlib, libseccomp, fetchpatch, autoreconfHook, ncurses ? null, perl ? null, pam, minimal ? false }:
+{ lib, stdenv, fetchurl, pkgconfig, zlib, libseccomp, fetchpatch, autoreconfHook, ncurses ? null, perl ? null, pam, systemd, minimal ? false }:
 
 stdenv.mkDerivation rec {
   name = "util-linux-${version}";
@@ -46,6 +46,10 @@ stdenv.mkDerivation rec {
     --disable-use-tty-group
     --enable-fs-paths-default=/var/setuid-wrappers:/var/run/current-system/sw/bin:/sbin
     ${if ncurses == null then "--without-ncurses" else ""}
+    ${if systemd == null then "" else ''
+      --with-systemd
+      --with-systemdsystemunitdir=$out/lib/systemd/system/
+    ''}
   '';
 
   makeFlags = "usrbin_execdir=$(bin)/bin usrsbin_execdir=$(bin)/sbin";
@@ -56,6 +60,7 @@ stdenv.mkDerivation rec {
   buildInputs =
     [ zlib pam libseccomp ]
     ++ lib.optional (ncurses != null) ncurses
+    ++ lib.optional (systemd != null) systemd
     ++ lib.optional (perl != null) perl;
 
   postInstall = ''
