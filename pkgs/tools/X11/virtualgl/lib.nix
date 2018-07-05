@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, cmake, mesa, libX11, libXv, libjpeg_turbo, fltk }:
+{ stdenv, fetchurl, cmake, mesa_glu, mesa_noglu, libX11, libXv, libjpeg_turbo, fltk }:
 
 stdenv.mkDerivation rec {
   name = "virtualgl-lib-${version}";
@@ -15,7 +15,7 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ cmake ];
 
-  buildInputs = [ libjpeg_turbo mesa fltk libX11 libXv ];
+  buildInputs = [ libjpeg_turbo mesa_glu mesa_noglu fltk libX11 libXv ];
 
   enableParallelBuilding = true;
 
