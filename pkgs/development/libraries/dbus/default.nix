@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchurl, pkgconfig, expat, glib, dbus_glib, python
+{ stdenv, lib, fetchurl, pkgconfig, expat, systemd, glib, dbus_glib, python
 , libX11 ? null, libICE ? null, libSM ? null, x11Support ? (stdenv.isLinux || stdenv.isDarwin) }:
 
 assert x11Support -> libX11 != null
@@ -36,7 +36,8 @@ self =  stdenv.mkDerivation {
 
     nativeBuildInputs = [ pkgconfig ];
     propagatedBuildInputs = [ expat ];
-    buildInputs = lib.optionals x11Support [ libX11 libICE libSM ];
+    buildInputs = lib.optional stdenv.isLinux systemd
+      ++ lib.optionals x11Support [ libX11 libICE libSM ];
     # ToDo: optional selinux?
 
     configureFlags = [
@@ -45,6 +46,8 @@ self =  stdenv.mkDerivation {
       "--with-session-socket-dir=/tmp"
       "--with-system-pid-file=/run/dbus/pid"
       "--with-system-socket=/run/dbus/system_bus_socket"
+      "--with-systemdsystemunitdir=$(out)/etc/systemd/system"
+      "--with-systemduserunitdir=$(out)/etc/systemd/user"
       "--enable-user-session"
       # this package installs nothing into those dirs and they create a dependency
       "--datadir=/run/current-system/sw/share"
