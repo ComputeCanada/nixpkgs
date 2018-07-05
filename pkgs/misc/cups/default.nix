@@ -1,5 +1,5 @@
 { stdenv, fetchurl, pkgconfig, zlib, libjpeg, libpng, libtiff, pam
-, dbus, systemd, acl, gmp, darwin
+, dbus, acl, gmp, darwin
 , libusb ? null, gnutls ? null, avahi ? null, libpaper ? null
 }:
 
@@ -22,7 +22,7 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "dev" "man" ]; # TODO: above
 
   buildInputs = [ pkgconfig zlib libjpeg libpng libtiff libusb gnutls libpaper ]
-    ++ optionals stdenv.isLinux [ avahi pam dbus systemd acl ]
+    ++ optionals stdenv.isLinux [ avahi pam dbus acl ]
     ++ optionals stdenv.isDarwin (with darwin; [
       configd apple_sdk.frameworks.ApplicationServices
     ]);
@@ -32,7 +32,6 @@ stdenv.mkDerivation rec {
   configureFlags = [
     "--localstatedir=/var"
     "--sysconfdir=/etc"
-    "--with-systemd=\${out}/lib/systemd/system"
     "--enable-raw-printing"
     "--enable-threads"
   ] ++ optionals stdenv.isLinux [
