@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, pythonPackages, pkgconfig
+{ stdenv, lib, fetchurl, callPackage, pythonPackages, pkgconfig
 , xorg, gtk, glib, pango, cairo, gdk_pixbuf, atk
 , makeWrapper, xkbcomp, xorgserver, getopt, xauth, utillinux, which, fontsConf, xkeyboard_config
 , ffmpeg, x264, libvpx, libwebp
@@ -6,6 +6,7 @@
 
 let
   inherit (pythonPackages) python cython buildPythonApplication;
+  xf86videodummy = callPackage ./xf86videodummy { };
 in buildPythonApplication rec {
   name = "xpra-2.4.3";
   namePrefix = "";
@@ -35,6 +36,7 @@ in buildPythonApplication rec {
 
   preBuild = ''
     export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE $(pkg-config --cflags gtk+-2.0) $(pkg-config --cflags pygtk-2.0) $(pkg-config --cflags xtst)"
+    substituteInPlace xpra/x11/bindings/keyboard_bindings.pyx --replace "/usr/share/X11/xkb" "${xorg.xkeyboardconfig}/share/X11/xkb"
   '';
   setupPyBuildFlags = ["--with-Xdummy" "--without-strict"];
 
@@ -63,11 +65,13 @@ in buildPythonApplication rec {
   #  sed -i '4iexport PATH=${stdenv.lib.makeBinPath [ getopt xorgserver xauth which utillinux ]}\${PATH:+:}\$PATH' $out/bin/xpra
   #'';
 
+  passthru = { inherit xf86videodummy; };
 
   meta = {
     homepage = http://xpra.org/;
     description = "Persistent remote applications for X";
     platforms = stdenv.lib.platforms.linux;
-    maintainers = with stdenv.lib.maintainers; [ tstrobel ];
+    license = stdenv.lib.licenses.gpl2;
+    maintainers = with stdenv.lib.maintainers; [ tstrobel offline numinit ];
   };
 }
