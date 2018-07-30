@@ -76,6 +76,8 @@ rec {
     inherit (darwin) Security;
   };
 
+  pre-commit = callPackage ./pre-commit { };
+
   qgit = callPackage ./qgit { };
 
   qgitGit = callPackage ./qgit/qgit-git.nix { };
