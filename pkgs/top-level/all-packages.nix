@@ -3289,6 +3289,8 @@ in
 
   openmodelica = callPackage ../applications/science/misc/openmodelica { };
 
+  pmix = callPackage ../development/libraries/pmix { };
+
   qarte = callPackage ../applications/video/qarte { };
 
   qnial = callPackage ../development/interpreters/qnial {};
