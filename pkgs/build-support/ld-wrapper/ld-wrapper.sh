@@ -111,7 +111,7 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
             "${1:0:${#EASYBUILD_DIR}}" != "$EASYBUILD_DIR" ]; then
             return 0
         fi
-        # this does not get added any more
+        # this gets explicitly added at the end only using -rpath-link
         if [ "$1" == "$NIXUSER_PROFILE/lib" -a -z "$2" ]; then
             return 0
         fi
@@ -209,6 +209,10 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
     for i in $rpath; do
         extra+=(-rpath $i)
     done
+    case $rpath in
+        *\ $NIXUSER_PROFILE/lib\ *) ;;
+        *) extra+=(-rpath-link $NIXUSER_PROFILE/lib) ;;
+    esac
 fi
 
 # Optionally print debug info.
