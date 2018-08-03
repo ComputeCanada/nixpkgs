@@ -1,12 +1,12 @@
 { stdenv, fetchurl, pkgconfig, graphviz, numactl, binutils, libiberty, libibverbs, zlib, knem, doxygen, perl, texlive }:
 
 stdenv.mkDerivation rec {
-  version = "1.2.1";
+  version = "1.3.0";
   name = "ucx-${version}";
 
   src = fetchurl {
     url = "https://github.com/openucx/ucx/releases/download/v${version}/${name}.tar.gz";
-    sha256 = "fc63760601c03ff60a2531ec3c6637e98f5b743576eb410f245839c84a0ad617";
+    sha256 = "71e69e6d78a4950cc5a1edcbe59bf7a8f8e38d59c9f823109853927c4d442952";
   };
 
   nativeBuildInputs = [ pkgconfig ];
