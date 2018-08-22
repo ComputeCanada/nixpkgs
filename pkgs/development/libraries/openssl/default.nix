@@ -59,6 +59,16 @@ let
           rm "$out/lib/"*.a
       fi
 
+      # generate RH compatible library names and SONAMEs.
+      for i in ssl crypto; do
+          if [ -f $out/lib/lib$i.so.1.0.0 ]; then
+              cp -p $out/lib/lib$i.so.1.0.0 $out/lib/lib$i.so.10
+              chmod +w $out/lib/lib$i.so.10
+              patchelf --set-soname lib$i.so.10 $out/lib/lib$i.so.10
+              chmod -w $out/lib/lib$i.so.10
+          fi
+      done
+
       mkdir -p $bin
       mv $out/bin $bin/
 
