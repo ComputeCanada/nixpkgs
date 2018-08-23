@@ -67,7 +67,7 @@ diff -up openssl-1.0.2a/Makefile.shared.version openssl-1.0.2a/Makefile.shared
 diff -up openssl-1.0.2a/version.map.version openssl-1.0.2a/version.map
 --- openssl-1.0.2a/version.map.version	2015-04-21 16:43:02.676171879 +0200
 +++ openssl-1.0.2a/version.map	2015-04-21 16:51:49.621630589 +0200
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,17 @@
 +OPENSSL_1.0.1 {
 +    global:
 +	    SSLeay;
@@ -75,6 +75,10 @@ diff -up openssl-1.0.2a/version.map.version openssl-1.0.2a/version.map
 +    local:
 +	    _original*;
 +	    _current*;
++};
++OPENSSL_1.0.1_EC {
++    global:
++            EC*;
 +};
 +OPENSSL_1.0.2 {
 +    global:
