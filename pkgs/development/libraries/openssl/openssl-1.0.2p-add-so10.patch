@@ -1,0 +1,15 @@
+# generate RH compatible library names and SONAMEs.
+--- openssl-1.0.2p/Makefile.shared	2018-08-23 12:30:21.693801562 +0000
++++ openssl-1.0.2p/Makefile.shared.new	2018-08-23 12:31:08.604371345 +0000
+@@ -166,7 +166,10 @@
+ link_o.gnu:
+ 	@ $(DO_GNU_SO); $(LINK_SO_O)
+ link_a.gnu:
+-	@ $(DO_GNU_SO); $(LINK_SO_A)
++	@ $(DO_GNU_SO); $(LINK_SO_A); \
++	ln -sf libcrypto.so.10 libcrypto.so; \
++	SHLIB_SOVER=.10; SHAREDFLAGS="$$SHAREDFLAGS -Wl,-soname=$$SHLIB$$SHLIB_SOVER"; $(LINK_SO_A);\
++	ln -sf libcrypto.so.1.0.0 libcrypto.so
+ link_app.gnu:
+ 	@ $(DO_GNU_APP); $(LINK_APP)
+ 

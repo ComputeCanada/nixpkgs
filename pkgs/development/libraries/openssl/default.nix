@@ -19,6 +19,8 @@ let
     patches =
       (args.patches or [])
       ++ [ ./nix-ssl-cert-file.patch ]
+      ++ optional (versionOlder version "1.1.0") ./openssl-1.0.2a-version.patch
+      ++ optional (versionOlder version "1.1.0") ./openssl-1.0.2p-add-so10.patch
       ++ optional (versionOlder version "1.1.0") ./use-etc-ssl-certs.patch
       ++ optional stdenv.isCygwin ./1.0.1-cygwin64.patch
       ++ optional
@@ -59,15 +61,10 @@ let
           rm "$out/lib/"*.a
       fi
 
-      # generate RH compatible library names and SONAMEs.
-      for i in ssl crypto; do
-          if [ -f $out/lib/lib$i.so.1.0.0 ]; then
-              cp -p $out/lib/lib$i.so.1.0.0 $out/lib/lib$i.so.10
-              chmod +w $out/lib/lib$i.so.10
-              patchelf --set-soname lib$i.so.10 $out/lib/lib$i.so.10
-              chmod -w $out/lib/lib$i.so.10
-          fi
-      done
+      # copy RH compatible library names
+      if [ -f libssl.so.10 ]; then
+          cp -p *.so.10 $out/lib
+      fi
 
       mkdir -p $bin
       mv $out/bin $bin/
