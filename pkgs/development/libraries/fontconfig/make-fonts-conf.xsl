@@ -29,7 +29,7 @@
       <cachedir>/var/cache/fontconfig</cachedir>
 
       <!-- versioned system-wide config -->
-      <include ignore_missing="yes">/etc/fonts/<xsl:value-of select="$fontconfigConfigVersion" />/conf.d</include>
+      <include ignore_missing="yes">/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09/etc/fonts/conf.d</include>
 
       <dir prefix="xdg">fonts</dir>
       <xsl:for-each select="str:tokenize($fontDirectories)">
