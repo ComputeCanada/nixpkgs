@@ -26,6 +26,8 @@ let
       "--with-openssl"
       "--sysconfdir=/etc"
       "--libdir=$(lib)/lib"
+      "--with-ldap"
+      "--with-pam"
     ]
       ++ lib.optional (stdenv.isDarwin)  "--with-uuid=e2fs"
       ++ lib.optional (!stdenv.isDarwin) "--with-ossp-uuid";
