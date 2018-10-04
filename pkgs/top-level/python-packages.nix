@@ -12543,6 +12543,25 @@ in modules // {
     };
   };
 
+  keyrings.cryptfile = buildPythonPackage rec {
+    name = "keyrings.cryptfile-1.2.1";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/k/keyrings.cryptfile/${name}.tar.gz";
+      sha256 = "bb7d05c6420cd6b3fbf0dea27ea61d74ba53c1e2f4cd0d2001555a366a9db488";
+    };
+
+    buildInputs = with self;
+      [ fs gdata python_keyczar mock pyasn1 pycrypto pytest_28 six setuptools_scm pytestrunner keyring ];
+
+    meta = {
+      description = "Encrypted plain file keyring backend for use with the keyring package.";
+      homepage    = "https://pypi.python.org/pypi/keyrings.cryptfile";
+      license     = licenses.mit;
+      platforms   = platforms.unix;
+    };
+  };
+
   klaus = buildPythonPackage rec {
     version = "0.9.1";
     name = "klaus-${version}";
