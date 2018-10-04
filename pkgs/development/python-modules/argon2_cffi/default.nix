@@ -5,7 +5,7 @@
 , pytest
 , wheel
 , buildPythonPackage
-, fetchPypi
+, fetchurl
 }:
 
 buildPythonPackage rec {
