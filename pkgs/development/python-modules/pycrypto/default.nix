@@ -13,7 +13,7 @@ buildPythonPackage rec {
     (fetchpatch {
       name = "CVE-2013-7459.patch";
       url = "https://raw.githubusercontent.com/openembedded/meta-openembedded/master/meta-python/recipes-devtools/python/python-pycrypto/CVE-2013-7459.patch";
-      sha256 = "870d6afad0e0a08a4888b99a2f935177d5a0cda73804897e9ea4fda4bee2e8c7";
+      sha256 = "01r7aghnchc1bpxgdv58qyi2085gh34bxini973xhy3ks7fq3ir9";
     })
   ];
 
