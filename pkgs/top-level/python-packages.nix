@@ -12554,7 +12554,7 @@ in modules // {
     };
 
     buildInputs = with self;
-      [ fs gdata python_keyczar mock pyasn1 pycrypto pytest_28 six setuptools_scm pytestrunner keyring ];
+      [ fs gdata python_keyczar mock pyasn1 pycrypto pytest_28 six setuptools_scm pytestrunner keyring argon2_cffi ];
 
     meta = {
       description = "Encrypted plain file keyring backend for use with the keyring package.";
