@@ -13,8 +13,8 @@ buildPythonPackage rec {
   version = "16.3.0";
   name    = "${pname}-${version}";
 
-  src = fetchPypi {
-    inherit pname version;
+  src = fetchurl {
+    url = "mirror://pypi/a/argon2_cffi/${name}.tar.gz";
     sha256 = "1ap3il3j1pjyprrhpfyhc21izpmhzhfb5s69vlzc65zvd1nj99cr";
   };
 
