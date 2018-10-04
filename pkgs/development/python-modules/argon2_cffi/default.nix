@@ -20,9 +20,6 @@ buildPythonPackage rec {
 
   propagatedBuildInputs = [ cffi six ];
   checkInputs = [ hypothesis pytest wheel ];
-  checkPhase = ''
-    pytest tests
-  '';
 
   meta = {
     description = "Secure Password Hashes for Python";
