@@ -12,7 +12,7 @@ buildPythonPackage rec {
   patches = [
     (fetchpatch {
       name = "CVE-2013-7459.patch";
-      url = "https://anonscm.debian.org/cgit/collab-maint/python-crypto.git/plain/debian/patches/CVE-2013-7459.patch?h=debian/2.6.1-7";
+      url = "https://raw.githubusercontent.com/openembedded/meta-openembedded/master/meta-python/recipes-devtools/python/python-pycrypto/CVE-2013-7459.patch";
       sha256 = "01r7aghnchc1bpxgdv58qyi2085gh34bxini973xhy3ks7fq3ir9";
     })
   ];

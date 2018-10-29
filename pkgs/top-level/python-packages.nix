@@ -109,6 +109,8 @@ in modules // {
     };
   };
 
+  argon2_cffi = callPackage ../development/python-modules/argon2_cffi { };
+
   # packages defined elsewhere
 
   blivet = callPackage ../development/python-modules/blivet { };
@@ -228,6 +230,8 @@ in modules // {
   pycangjie = if isPy3k then callPackage ../development/python-modules/pycangjie { } else throw "pycangjie not supported for interpreter ${python.executable}";
 
   pycrypto = callPackage ../development/python-modules/pycrypto { };
+
+  pycryptodome = callPackage ../development/python-modules/pycryptodome { };
 
   pyexiv2 = if (!isPy3k) then callPackage ../development/python-modules/pyexiv2 {} else throw "pyexiv2 not supported for interpreter ${python.executable}";
 
@@ -12543,6 +12547,25 @@ in modules // {
     };
   };
 
+  keyrings.cryptfile = buildPythonPackage rec {
+    name = "keyrings.cryptfile-1.2.1";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/k/keyrings.cryptfile/${name}.tar.gz";
+      sha256 = "bb7d05c6420cd6b3fbf0dea27ea61d74ba53c1e2f4cd0d2001555a366a9db488";
+    };
+
+    buildInputs = with self;
+      [ fs gdata python_keyczar mock pyasn1 pycryptodome pytest_28 six setuptools_scm pytestrunner keyring argon2_cffi enum34 ];
+
+    meta = {
+      description = "Encrypted plain file keyring backend for use with the keyring package.";
+      homepage    = "https://pypi.python.org/pypi/keyrings.cryptfile";
+      license     = licenses.mit;
+      platforms   = platforms.unix;
+    };
+  };
+
   klaus = buildPythonPackage rec {
     version = "0.9.1";
     name = "klaus-${version}";
@@ -22658,6 +22681,8 @@ in modules // {
       maintainers = with maintainers; [ domenkozar ];
     };
   };
+
+  secretstorage = callPackage ../development/python-modules/secretstorage { };
 
   semantic = buildPythonPackage rec {
     name = "semantic-1.0.3";
