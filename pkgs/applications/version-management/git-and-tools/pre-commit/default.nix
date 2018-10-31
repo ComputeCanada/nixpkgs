@@ -1,12 +1,11 @@
-{ stdenv, pythonPackages, fetchurl }:
-with pythonPackages; buildPythonApplication rec {
+{ stdenv, python3Packages }:
+with python3Packages; buildPythonApplication rec {
   pname = "pre_commit";
-  version = "1.10.4";
-  name = "${pname}-${version}";
+  version = "1.11.1";
 
-  src = fetchurl {
-    url = "mirror://pypi/p/${pname}/${name}.tar.gz";
-    sha256 = "1kn8h9k9ca330m5n7r4cvxp679y3sc95m1x23a3qhzgam09n7jwr";
+  src = fetchPypi {
+    inherit pname version;
+    sha256 = "1kjrq8z78b6aqhyyw07dlwf6cqls88kik6f5l07hs71fj5ddvs9w";
   };
 
   propagatedBuildInputs = [
@@ -15,7 +14,6 @@ with pythonPackages; buildPythonApplication rec {
     cfgv
     identify
     nodeenv
-    pyyaml
     six
     toml
     virtualenv

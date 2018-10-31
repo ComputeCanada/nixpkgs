@@ -1,0 +1,3159 @@
+diff --git a/pkgs/applications/version-management/git-and-tools/bfg-repo-cleaner/default.nix b/pkgs/applications/version-management/git-and-tools/bfg-repo-cleaner/default.nix
+new file mode 100644
+index 0000000..0d77296
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/bfg-repo-cleaner/default.nix
+@@ -0,0 +1,49 @@
++{ stdenv, fetchurl, jre, makeWrapper }:
++
++let
++  version = "1.13.0";
++  jarName = "bfg-${version}.jar";
++  mavenUrl = "http://central.maven.org/maven2/com/madgag/bfg/${version}/${jarName}";
++in
++  stdenv.mkDerivation {
++    inherit version jarName;
++
++    name = "bfg-repo-cleaner-${version}";
++
++    src = fetchurl {
++      url = mavenUrl;
++      sha256 = "1kn84rsvms1v5l1j2xgrk7dc7mnsmxkc6sqd94mnim22vnwvl8mz";
++    };
++
++    buildInputs = [ jre makeWrapper ];
++
++    phases = "installPhase";
++
++    installPhase = ''
++      mkdir -p $out/share/java
++      mkdir -p $out/bin
++      cp $src $out/share/java/$jarName
++      makeWrapper "${jre}/bin/java" $out/bin/bfg --add-flags "-cp $out/share/java/$jarName com.madgag.git.bfg.cli.Main"
++    '';
++
++    meta = with stdenv.lib; {
++      homepage = https://rtyley.github.io/bfg-repo-cleaner/;
++      # Descriptions taken with minor modification from the homepage of bfg-repo-cleaner
++      description = "Removes large or troublesome blobs in a git repository like git-filter-branch does, but faster";
++      longDescription = ''
++        The BFG is a simpler, faster alternative to git-filter-branch for
++        cleansing bad data out of your Git repository history, in particular removing
++        crazy big files and removing passwords, credentials, and other private data.
++
++        The git-filter-branch command is enormously powerful and can do things
++        that the BFG can't - but the BFG is much better for the tasks above, because
++        it's faster (10-720x), simpler (dedicated to just removing things), and
++        beautiful (can use Scala instead of bash to script customizations).
++      '';
++      license = licenses.gpl3;
++      maintainers = [ maintainers.changlinli ];
++      platforms = platforms.unix;
++      downloadPage = "https://mvnrepository.com/artifact/com.madgag/bfg/${version}";
++    };
++
++  }
+diff --git a/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/Gemfile b/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/Gemfile
+new file mode 100644
+index 0000000..8ed3251
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/Gemfile
+@@ -0,0 +1,2 @@
++source 'https://rubygems.org'
++gem 'atlassian-stash'
+diff --git a/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/Gemfile.lock b/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/Gemfile.lock
+new file mode 100644
+index 0000000..61159eb
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/Gemfile.lock
+@@ -0,0 +1,27 @@
++GEM
++  remote: https://rubygems.org/
++  specs:
++    addressable (2.5.0)
++      public_suffix (~> 2.0, >= 2.0.2)
++    atlassian-stash (0.7.0)
++      commander (~> 4.1.2)
++      git (>= 1.2.5)
++      json (>= 1.7.5)
++      launchy (~> 2.4.2)
++    commander (4.1.6)
++      highline (~> 1.6.11)
++    git (1.3.0)
++    highline (1.6.21)
++    json (2.0.2)
++    launchy (2.4.3)
++      addressable (~> 2.3)
++    public_suffix (2.0.5)
++
++PLATFORMS
++  ruby
++
++DEPENDENCIES
++  atlassian-stash
++
++BUNDLED WITH
++   1.13.6
+diff --git a/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/default.nix b/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/default.nix
+new file mode 100644
+index 0000000..341b50f
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/default.nix
+@@ -0,0 +1,19 @@
++{ lib, bundlerEnv, ruby }:
++
++bundlerEnv rec {
++  name = "bitbucket-server-cli-${version}";
++
++  version = (import ./gemset.nix).atlassian-stash.version;
++  inherit ruby;
++  gemdir = ./.;
++
++  pname = "atlassian-stash";
++
++  meta = with lib; {
++    description = "A command line interface to interact with BitBucket Server (formerly Atlassian Stash)";
++    homepage    = https://bitbucket.org/atlassian/bitbucket-server-cli;
++    license     = licenses.mit;
++    maintainers = with maintainers; [ jgertm ];
++    platforms   = platforms.unix;
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/gemset.nix b/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/gemset.nix
+new file mode 100644
+index 0000000..a7c1406
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/bitbucket-server-cli/gemset.nix
+@@ -0,0 +1,66 @@
++{
++  addressable = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "1j5r0anj8m4qlf2psnldip4b8ha2bsscv11lpdgnfh4nnchzjnxw";
++      type = "gem";
++    };
++    version = "2.5.0";
++  };
++  atlassian-stash = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "1rsf9h5w5wiglwv0fqwp45fq06fxbg68cqkc3bpqvps1i1qm0p6i";
++      type = "gem";
++    };
++    version = "0.7.0";
++  };
++  commander = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "0x9i8hf083wjlgj09nl1p9j8sr5g7amq0fdmxjqs4cxdbg3wpmsb";
++      type = "gem";
++    };
++    version = "4.1.6";
++  };
++  git = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "1waikaggw7a1d24nw0sh8fd419gbf7awh000qhsf411valycj6q3";
++      type = "gem";
++    };
++    version = "1.3.0";
++  };
++  highline = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "06bml1fjsnrhd956wqq5k3w8cyd09rv1vixdpa3zzkl6xs72jdn1";
++      type = "gem";
++    };
++    version = "1.6.21";
++  };
++  json = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "1lhinj9vj7mw59jqid0bjn2hlfcnq02bnvsx9iv81nl2han603s0";
++      type = "gem";
++    };
++    version = "2.0.2";
++  };
++  launchy = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "190lfbiy1vwxhbgn4nl4dcbzxvm049jwc158r2x7kq3g5khjrxa2";
++      type = "gem";
++    };
++    version = "2.4.3";
++  };
++  public_suffix = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "040jf98jpp6w140ghkhw2hvc1qx41zvywx5gj7r2ylr1148qnj7q";
++      type = "gem";
++    };
++    version = "2.0.5";
++  };
++}
+\ No newline at end of file
+diff --git a/pkgs/applications/version-management/git-and-tools/cgit/default.nix b/pkgs/applications/version-management/git-and-tools/cgit/default.nix
+index d144d48..5bfd743 100644
+--- a/pkgs/applications/version-management/git-and-tools/cgit/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/cgit/default.nix
+@@ -1,36 +1,40 @@
+ { stdenv, fetchurl, openssl, zlib, asciidoc, libxml2, libxslt
+-, docbook_xml_xslt, pkgconfig, luajit
+-, gzip, bzip2, xz
++, docbook_xsl, pkgconfig, luajit
++, groff, gzip, bzip2, xz
++, python, wrapPython, pygments, markdown
+ }:
+ 
+ stdenv.mkDerivation rec {
+   name = "cgit-${version}";
+-  version = "0.12";
++  version = "1.2.1";
+ 
+   src = fetchurl {
+-    url = "http://git.zx2c4.com/cgit/snapshot/${name}.tar.xz";
+-    sha256 = "1dx54hgfyabmg9nm5qp6d01f54nlbqbbdwhwl0llb9imjf237qif";
++    url = "https://git.zx2c4.com/cgit/snapshot/${name}.tar.xz";
++    sha256 = "1gw2j5xc5qdx2hwiwkr8h6kgya7v9d9ff9j32ga1dys0cca7qm1w";
+   };
+ 
+   # cgit is tightly coupled with git and needs a git source tree to build.
+   # IMPORTANT: Remember to check which git version cgit needs on every version
+-  # bump (look in the Makefile).
+-  # NOTE: as of 0.10.1, the git version is compatible from 1.9.0 to
+-  # 1.9.2 (see the repository history)
++  # bump (look for "GIT_VER" in the top-level Makefile).
+   gitSrc = fetchurl {
+-    url    = "mirror://kernel/software/scm/git/git-2.7.0.tar.xz";
+-    sha256 = "03bvb8s5j8i54qbi3yayl42bv0wf2fpgnh1a2lkhbj79zi7b77zs";
++    url    = "mirror://kernel/software/scm/git/git-2.18.0.tar.xz";
++    sha256 = "14hfwfkrci829a9316hnvkglnqqw1p03cw9k56p4fcb078wbwh4b";
+   };
+ 
++  nativeBuildInputs = [ pkgconfig ] ++ [ python wrapPython ];
+   buildInputs = [
+-    openssl zlib asciidoc libxml2 libxslt docbook_xml_xslt pkgconfig luajit
++    openssl zlib asciidoc libxml2 libxslt docbook_xsl luajit
+   ];
++  pythonPath = [ pygments markdown ];
+ 
+   postPatch = ''
+     sed -e 's|"gzip"|"${gzip}/bin/gzip"|' \
+         -e 's|"bzip2"|"${bzip2.bin}/bin/bzip2"|' \
+         -e 's|"xz"|"${xz.bin}/bin/xz"|' \
+         -i ui-snapshot.c
++
++    substituteInPlace filters/html-converters/man2html \
++      --replace 'groff' '${groff}/bin/groff'
+   '';
+ 
+   # Give cgit a git source tree and pass configuration parameters (as make
+@@ -51,10 +55,12 @@ stdenv.mkDerivation rec {
+     a2x --no-xmllint -f manpage cgitrc.5.txt
+     mkdir -p "$out/share/man/man5"
+     cp cgitrc.5 "$out/share/man/man5"
++
++    wrapPythonProgramsIn "$out/lib/cgit/filters" "$out $pythonPath"
+   '';
+ 
+   meta = {
+-    homepage = http://git.zx2c4.com/cgit/about/;
++    homepage = https://git.zx2c4.com/cgit/about/;
+     repositories.git = git://git.zx2c4.com/cgit;
+     description = "Web frontend for git repositories";
+     license = stdenv.lib.licenses.gpl2;
+diff --git a/pkgs/applications/version-management/git-and-tools/darcs-to-git/default.nix b/pkgs/applications/version-management/git-and-tools/darcs-to-git/default.nix
+index f7c6ef2..1af1870 100644
+--- a/pkgs/applications/version-management/git-and-tools/darcs-to-git/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/darcs-to-git/default.nix
+@@ -73,7 +73,7 @@ stdenv.mkDerivation rec {
+ 
+   meta = {
+     description = "Converts a Darcs repository into a Git repository";
+-    homepage = "http://www.sanityinc.com/articles/converting-darcs-repositories-to-git";
++    homepage = http://www.sanityinc.com/articles/converting-darcs-repositories-to-git;
+     license = stdenv.lib.licenses.mit;
+     platforms = stdenv.lib.platforms.unix;
+   };
+diff --git a/pkgs/applications/version-management/git-and-tools/default.nix b/pkgs/applications/version-management/git-and-tools/default.nix
+index 1285f7d..6661b4a 100644
+--- a/pkgs/applications/version-management/git-and-tools/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/default.nix
+@@ -1,38 +1,45 @@
+ /* All git-relates tools live here, in a separate attribute set so that users
+  * can get a fast overview over what's available.
+  */
+-args @ {pkgs}: with args; with pkgs;
++args @ {config, lib, pkgs}: with args; with pkgs;
+ let
+   gitBase = callPackage ./git {
+-    texinfo = texinfo5;
+     svnSupport = false;         # for git-svn support
+     guiSupport = false;         # requires tcl/tk
+     sendEmailSupport = false;   # requires plenty of perl libraries
+     perlLibs = [perlPackages.LWP perlPackages.URI perlPackages.TermReadKey];
+     smtpPerlLibs = [
+-      perlPackages.NetSMTP perlPackages.NetSMTPSSL
++      perlPackages.libnet perlPackages.NetSMTPSSL
+       perlPackages.IOSocketSSL perlPackages.NetSSLeay
+-      perlPackages.MIMEBase64 perlPackages.AuthenSASL
+-      perlPackages.DigestHMAC
++      perlPackages.AuthenSASL perlPackages.DigestHMAC
+     ];
+-    gitwebPerlLibs = with perlPackages; [ CGI HTMLParser ];
+   };
+ 
+-in
+-rec {
++  self = rec {
+   # Try to keep this generally alphabetized
+ 
++  bfg-repo-cleaner = callPackage ./bfg-repo-cleaner { };
++
++  bitbucket-server-cli = callPackage ./bitbucket-server-cli { };
++
+   darcsToGit = callPackage ./darcs-to-git { };
+ 
+   diff-so-fancy = callPackage ./diff-so-fancy { };
+ 
++  ghq = callPackage ./ghq { };
++
+   git = appendToName "minimal" gitBase;
+ 
++  git-appraise = callPackage ./git-appraise {};
++
++  git-fame = callPackage ./git-fame {};
++
+   # The full-featured Git.
+   gitFull = gitBase.override {
+     svnSupport = true;
+     guiSupport = true;
+     sendEmailSupport = !stdenv.isDarwin;
++    withLibsecret = !stdenv.isDarwin;
+   };
+ 
+   # Git with SVN support, but without GUI.
+@@ -41,29 +48,56 @@ rec {
+   }));
+ 
+   git-annex = pkgs.haskellPackages.git-annex;
+-  gitAnnex = git-annex;
++
++  git-annex-metadata-gui = libsForQt5.callPackage ./git-annex-metadata-gui {
++    inherit (python3Packages) buildPythonApplication pyqt5 git-annex-adapter;
++  };
+ 
+   git-annex-remote-b2 = callPackage ./git-annex-remote-b2 { };
+ 
++  git-annex-remote-rclone = callPackage ./git-annex-remote-rclone { };
++
++  git-bug = callPackage ./git-bug { };
++
+   # support for bugzilla
+   git-bz = callPackage ./git-bz { };
+ 
++  git-codeowners = callPackage ./git-codeowners { };
++
+   git-cola = callPackage ./git-cola { };
+ 
+   git-crypt = callPackage ./git-crypt { };
+ 
++  git-dit = callPackage ./git-dit {
++    inherit (darwin.apple_sdk.frameworks) CoreFoundation Security;
++  };
++
+   git-extras = callPackage ./git-extras { };
+ 
+   git-hub = callPackage ./git-hub { };
+ 
+   git-imerge = callPackage ./git-imerge { };
+ 
++  git-octopus = callPackage ./git-octopus { };
++
++  git-open = callPackage ./git-open { };
++
+   git-radar = callPackage ./git-radar { };
+ 
++  git-recent = callPackage ./git-recent {
++    utillinux = if stdenv.isLinux then utillinuxMinimal else utillinux;
++  };
++
+   git-remote-hg = callPackage ./git-remote-hg { };
+ 
++  git-secret = callPackage ./git-secret { };
++
++  git-secrets = callPackage ./git-secrets { };
++
+   git-stree = callPackage ./git-stree { };
+ 
++  git-sync = callPackage ./git-sync { };
++
+   git2cl = callPackage ./git2cl { };
+ 
+   gitFastExport = callPackage ./fast-export { };
+@@ -72,15 +106,19 @@ rec {
+ 
+   gitflow = callPackage ./gitflow { };
+ 
++  grv = callPackage ./grv { };
++
+   hub = callPackage ./hub {
+     inherit (darwin) Security;
+   };
+ 
++  hubUnstable = throw "use gitAndTools.hub instead";
++
+   pre-commit = callPackage ./pre-commit { };
+ 
+-  qgit = callPackage ./qgit { };
++  pass-git-helper = python3Packages.callPackage ./pass-git-helper { };
+ 
+-  qgitGit = callPackage ./qgit/qgit-git.nix { };
++  qgit = qt5.callPackage ./qgit { };
+ 
+   stgit = callPackage ./stgit {
+   };
+@@ -91,11 +129,18 @@ rec {
+     git = gitSVN;
+   };
+ 
+-  svn2git_kde = callPackage ./svn2git-kde { };
++  svn-all-fast-export = libsForQt5.callPackage ./svn-all-fast-export { };
+ 
+   tig = callPackage ./tig { };
+ 
+   topGit = callPackage ./topgit { };
+ 
+   transcrypt = callPackage ./transcrypt { };
+-}
++
++} // lib.optionalAttrs (config.allowAliases or true) (with self; {
++  # aliases
++  gitAnnex = git-annex;
++  svn_all_fast_export = svn-all-fast-export;
++});
++in
++  self
+diff --git a/pkgs/applications/version-management/git-and-tools/diff-so-fancy/default.nix b/pkgs/applications/version-management/git-and-tools/diff-so-fancy/default.nix
+index aa4b83c..988911d 100644
+--- a/pkgs/applications/version-management/git-and-tools/diff-so-fancy/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/diff-so-fancy/default.nix
+@@ -2,18 +2,18 @@
+ 
+ stdenv.mkDerivation rec {
+   name = "diff-so-fancy-${version}";
+-  version = "0.11.1";
+-
+-  # perl is needed here so patchShebangs can do its job
+-  buildInputs = [perl makeWrapper];
++  version = "1.2.0";
+ 
+   src = fetchFromGitHub {
+     owner = "so-fancy";
+     repo = "diff-so-fancy";
+     rev = "v${version}";
+-    sha256 = "1dw32c5i9mry6zr2a6h1369fhp1qbqimx04qgdmdnmn1imyck1h3";
++    sha256 = "0j8dxfl4js7agwdpcvxwigzpp0lik33h7s3vsjg0pd413h2j4mvz";
+   };
+ 
++  # Perl is needed here for patchShebangs
++  nativeBuildInputs = [ perl makeWrapper ];
++
+   buildPhase = null;
+ 
+   installPhase = ''
+@@ -23,7 +23,7 @@ stdenv.mkDerivation rec {
+     # itself, so we are copying executable to lib, and only symlink it
+     # from bin/
+     cp diff-so-fancy $out/lib/diff-so-fancy
+-    cp -r libexec $out/lib/diff-so-fancy
++    cp -r lib $out/lib/diff-so-fancy
+     ln -s $out/lib/diff-so-fancy/diff-so-fancy $out/bin
+ 
+     # ncurses is needed for `tput`
+@@ -34,16 +34,15 @@ stdenv.mkDerivation rec {
+       --prefix PATH : "${ncurses.out}/bin"
+   '';
+ 
+-  meta = {
++  meta = with stdenv.lib; {
+     homepage = https://github.com/so-fancy/diff-so-fancy;
+     description = "Good-looking diffs filter for git";
+-    license = stdenv.lib.licenses.mit;
+-
++    license = licenses.mit;
++    platforms = platforms.all;
+     longDescription = ''
+       diff-so-fancy builds on the good-lookin' output of git contrib's
+       diff-highlight to upgrade your diffs' appearances.
+     '';
+-
+-    platforms = stdenv.lib.platforms.all;
++    maintainers = with maintainers; [ fpletz ];
+   };
+ }
+diff --git a/pkgs/applications/version-management/git-and-tools/fast-export/default.nix b/pkgs/applications/version-management/git-and-tools/fast-export/default.nix
+index bb3bc80..88d1f07 100644
+--- a/pkgs/applications/version-management/git-and-tools/fast-export/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/fast-export/default.nix
+@@ -1,4 +1,4 @@
+-{stdenv, fetchgit, mercurial, coreutils, git, makeWrapper, subversion}:
++{stdenv, fetchgit, mercurial, makeWrapper, subversion}:
+ 
+ with stdenv.lib;
+ stdenv.mkDerivation {
+@@ -26,7 +26,7 @@ stdenv.mkDerivation {
+     mv *.py $l
+     for p in $out/bin/*.sh; do
+       wrapProgram $p \
+-        --prefix PYTHONPATH : "$(echo ${mercurial}/lib/python*/site-packages):$(echo ${mercurial.python}/lib/python*/site-packages)${stdenv.lib.concatMapStrings (x: ":$(echo ${x}/lib/python*/site-packages)") mercurial.pythonPackages}" \
++        --prefix PYTHONPATH : "$(echo ${mercurial}/lib/python*/site-packages):$(echo ${mercurial.python}/lib/python*/site-packages)${stdenv.lib.concatMapStrings (x: ":$(echo ${x}/lib/python*/site-packages)") mercurial.pythonPackages or []}" \
+         --prefix PATH : "$(dirname $(type -p python))":$l
+     done
+   '';
+diff --git a/pkgs/applications/version-management/git-and-tools/ghq/default.nix b/pkgs/applications/version-management/git-and-tools/ghq/default.nix
+new file mode 100644
+index 0000000..84a4416
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/ghq/default.nix
+@@ -0,0 +1,33 @@
++{ stdenv, buildGoPackage, fetchFromGitHub }:
++
++buildGoPackage rec {
++  name = "ghq-${version}";
++  version = "0.8.0";
++
++  goPackagePath = "github.com/motemen/ghq";
++
++  src = fetchFromGitHub {
++    owner = "motemen";
++    repo = "ghq";
++    rev = "v${version}";
++    sha256 = "1gdi0sbmq9kfi8hzd0dpgmhbmcf8q93jy3x08dd8smayrhbbwmld";
++  };
++
++  goDeps = ./deps.nix;
++
++  buildFlagsArray = ''
++    -ldflags=
++      -X=main.Version=${version}
++  '';
++
++  postInstall = ''
++    install -m 444 -D ${src}/zsh/_ghq $bin/share/zsh/site-functions/_ghq
++  '';
++
++  meta = {
++    description = "Remote repository management made easy";
++    homepage = https://github.com/motemen/ghq;
++    maintainers = with stdenv.lib.maintainers; [ sigma ];
++    license = stdenv.lib.licenses.mit;
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/ghq/deps.nix b/pkgs/applications/version-management/git-and-tools/ghq/deps.nix
+new file mode 100644
+index 0000000..1df37aa
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/ghq/deps.nix
+@@ -0,0 +1,38 @@
++[
++  {
++    goPackagePath = "github.com/daviddengcn/go-colortext";
++    fetch = {
++      type = "git";
++      url = "https://github.com/daviddengcn/go-colortext";
++      rev = "805cee6e0d43c72ba1d4e3275965ff41e0da068a";
++      sha256 = "0z0ggqnprqchnd8zyrz99w53kr4sgv372lyx12z5nsh9q342pmyf";
++    };
++  }
++  {
++    goPackagePath = "github.com/mitchellh/go-homedir";
++    fetch = {
++      type = "git";
++      url = "https://github.com/mitchellh/go-homedir";
++      rev = "b8bc1bf767474819792c23f32d8286a45736f1c6";
++      sha256 = "13ry4lylalkh4g2vny9cxwvryslzyzwp9r92z0b10idhdq3wad1q";
++    };
++  }
++  {
++    goPackagePath = "github.com/motemen/go-colorine";
++    fetch = {
++      type = "git";
++      url = "https://github.com/motemen/go-colorine";
++      rev = "49ff36b8fa42db28092361cd20dcefd0b03b1472";
++      sha256 = "1rfi5gggf2sxb52whgxfl37p22r2xp27rndixbiicw6swllmml9l";
++    };
++  }
++  {
++    goPackagePath = "github.com/urfave/cli";
++    fetch = {
++      type = "git";
++      url = "https://github.com/urfave/cli";
++      rev = "f017f86fccc5a039a98f23311f34fdf78b014f78";
++      sha256 = "1biq4wl4z8l0ycinb39mfavnk13d0qnqqdplqybl7klxmk67cvhv";
++    };
++  }
++]
+diff --git a/pkgs/applications/version-management/git-and-tools/git-annex-metadata-gui/default.nix b/pkgs/applications/version-management/git-and-tools/git-annex-metadata-gui/default.nix
+new file mode 100644
+index 0000000..ba64a06
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-annex-metadata-gui/default.nix
+@@ -0,0 +1,27 @@
++{ stdenv, buildPythonApplication, fetchFromGitHub, pyqt5, git-annex-adapter }:
++
++buildPythonApplication rec {
++  name = "git-annex-metadata-gui-${version}";
++  version = "0.2.0";
++
++  src = fetchFromGitHub {
++    owner = "alpernebbi";
++    repo = "git-annex-metadata-gui";
++    rev = "v${version}";
++    sha256 = "03kch67k0q9lcs817906g864wwabkn208aiqvbiyqp1qbg99skam";
++  };
++
++  prePatch = ''
++    substituteInPlace setup.py --replace "'PyQt5', " ""
++  '';
++
++  propagatedBuildInputs = [ pyqt5 git-annex-adapter ];
++
++  meta = with stdenv.lib; {
++    homepage = https://github.com/alpernebbi/git-annex-metadata-gui;
++    description = "Graphical interface for git-annex metadata commands";
++    maintainers = with maintainers; [ dotlambda ];
++    license = licenses.gpl3Plus;
++    platforms = with platforms; linux;
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-annex-remote-b2/default.nix b/pkgs/applications/version-management/git-and-tools/git-annex-remote-b2/default.nix
+index 9f1d8e9..4d0f337 100644
+--- a/pkgs/applications/version-management/git-and-tools/git-annex-remote-b2/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git-annex-remote-b2/default.nix
+@@ -1,4 +1,4 @@
+-{ stdenv, lib, buildGoPackage, fetchgit, fetchhg, fetchbzr, fetchsvn }:
++{ stdenv, buildGoPackage, fetchgit }:
+ 
+ buildGoPackage rec {
+   name = "git-annex-remote-b2-${version}";
+diff --git a/pkgs/applications/version-management/git-and-tools/git-annex-remote-rclone/default.nix b/pkgs/applications/version-management/git-and-tools/git-annex-remote-rclone/default.nix
+new file mode 100644
+index 0000000..c368dcd
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-annex-remote-rclone/default.nix
+@@ -0,0 +1,32 @@
++{ stdenv, fetchFromGitHub, rclone, makeWrapper }:
++
++stdenv.mkDerivation rec {
++  name = "git-annex-remote-rclone-${version}";
++  version = "0.6";
++  rev = "v${version}";
++
++  src = fetchFromGitHub {
++    inherit rev;
++    owner = "DanielDent";
++    repo = "git-annex-remote-rclone";
++    sha256 = "0j0hlxji8d974fq7zd4xc02n0jpi31ylhxc7z4zp8iiwad5mkpxp";
++  };
++
++  nativeBuildInputs = [ makeWrapper ];
++
++  phases = [ "unpackPhase" "installPhase" "fixupPhase" ];
++
++  installPhase = ''
++    mkdir -p $out/bin
++    cp git-annex-remote-rclone $out/bin
++    wrapProgram "$out/bin/git-annex-remote-rclone" \
++      --prefix PATH ":" "${stdenv.lib.makeBinPath [ rclone ]}"
++  '';
++
++  meta = with stdenv.lib; {
++    homepage = https://github.com/DanielDent/git-annex-remote-rclone;
++    description = "Use rclone supported cloud storage providers with git-annex";
++    license = licenses.gpl3;
++    maintainers = [ maintainers.montag451 ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-appraise/default.nix b/pkgs/applications/version-management/git-and-tools/git-appraise/default.nix
+new file mode 100644
+index 0000000..185ed38
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-appraise/default.nix
+@@ -0,0 +1,24 @@
++{ stdenv, buildGoPackage, fetchFromGitHub }:
++
++buildGoPackage rec {
++  name = "git-appraise-unstable-${version}";
++  version = "2018-02-26";
++  rev = "2414523905939525559e4b2498c5597f86193b61";
++
++  goPackagePath = "github.com/google/git-appraise";
++
++  src = fetchFromGitHub {
++    inherit rev;
++    owner = "google";
++    repo = "git-appraise";
++    sha256 = "04xkp1jpas1dfms6i9j09bgkydih0q10nhwn75w9ds8hi2qaa3sa";
++  };
++
++  meta = {
++    description = "Distributed code review system for Git repos";
++    homepage = https://github.com/google/git-appraise;
++    license = stdenv.lib.licenses.asl20;
++    platforms = stdenv.lib.platforms.all;
++    maintainers = [ stdenv.lib.maintainers.vdemeester ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-big-picture/default.nix b/pkgs/applications/version-management/git-and-tools/git-big-picture/default.nix
+new file mode 100644
+index 0000000..6918f04
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-big-picture/default.nix
+@@ -0,0 +1,30 @@
++{ fetchFromGitHub, python2Packages, stdenv, git, graphviz }:
++
++python2Packages.buildPythonApplication rec {
++  pname = "git-big-picture";
++  version = "0.9.0";
++
++  name = "${pname}-${version}";
++
++  src = fetchFromGitHub {
++    owner = "esc";
++    repo = pname;
++    rev = "v${version}";
++    sha256 = "1h283gzs4nx8lrarmr454zza52cilmnbdrqn1n33v3cn1rayl3c9";
++  };
++
++  buildInputs = [ git graphviz ];
++
++  postFixup = ''
++    wrapProgram $out/bin/git-big-picture \
++      --prefix PATH ":" ${ stdenv.lib.makeBinPath buildInputs  }
++    '';
++
++  meta = {
++    description = "Tool for visualization of Git repositories.";
++    homepage = https://github.com/esc/git-big-picture;
++    license = stdenv.lib.licenses.gpl3;
++    platforms = stdenv.lib.platforms.linux;
++    maintainers = [ stdenv.lib.maintainers.nthorne ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-bug/default.nix b/pkgs/applications/version-management/git-and-tools/git-bug/default.nix
+new file mode 100644
+index 0000000..eabc925
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-bug/default.nix
+@@ -0,0 +1,32 @@
++{ stdenv, buildGoPackage, fetchFromGitHub }:
++
++buildGoPackage rec {
++  name = "git-bug-${version}";
++  version = "0.4.0";
++  rev = "2ab2412771d58a1b1f3bfeb5a6e9da2e683b0e12";
++  goPackagePath = "github.com/MichaelMure/git-bug";
++
++  src = fetchFromGitHub {
++    inherit rev;
++    owner = "MichaelMure";
++    repo = "git-bug";
++    sha256 = "1zyvyg0p5h71wvyxrzkr1bwddxm3x8p44n6wh9ccfdxp8d2k6k25";
++  };
++
++  goDeps = ./deps.nix;
++
++  postInstall = ''
++    cd go/src/${goPackagePath}
++    install -D -m 0644 misc/bash_completion/git-bug "$bin/etc/bash_completion.d/git-bug"
++    install -D -m 0644 misc/zsh_completion/git-bug "$bin/share/zsh/site-functions/git-bug"
++    install -D -m 0644 -t "$bin/share/man/man1" doc/man/*
++  '';
++
++  meta = with stdenv.lib; {
++    description = "Distributed bug tracker embedded in Git";
++    homepage = https://github.com/MichaelMure/git-bug;
++    license = licenses.gpl3;
++    platforms = platforms.all;
++    maintainers = with maintainers; [ royneary ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-bug/deps.nix b/pkgs/applications/version-management/git-and-tools/git-bug/deps.nix
+new file mode 100644
+index 0000000..77d7960
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-bug/deps.nix
+@@ -0,0 +1,417 @@
++# file generated from Gopkg.lock using dep2nix (https://github.com/nixcloud/dep2nix)
++[
++  {
++    goPackagePath  = "github.com/99designs/gqlgen";
++    fetch = {
++      type = "git";
++      url = "https://github.com/99designs/gqlgen";
++      rev =  "636435b68700211441303f1a5ed92f3768ba5774";
++      sha256 = "0d4sr6kpyn3zq3kpvk8lizy7hdpcw3fjmv7fbv2m1k9w8fzjawrz";
++    };
++  }
++  {
++    goPackagePath  = "github.com/agnivade/levenshtein";
++    fetch = {
++      type = "git";
++      url = "https://github.com/agnivade/levenshtein";
++      rev =  "3d21ba515fe27b856f230847e856431ae1724adc";
++      sha256 = "0dym3k3ycsj0zj0p4dhdp7gd2hm7c7pyh2wii1mdbmpdyipy99cd";
++    };
++  }
++  {
++    goPackagePath  = "github.com/cheekybits/genny";
++    fetch = {
++      type = "git";
++      url = "https://github.com/cheekybits/genny";
++      rev =  "9127e812e1e9e501ce899a18121d316ecb52e4ba";
++      sha256 = "1z57ga9c2sjnl5ngqgb1ap0zqv36sk0rarm02bbbkipz4m9yabjg";
++    };
++  }
++  {
++    goPackagePath  = "github.com/corpix/uarand";
++    fetch = {
++      type = "git";
++      url = "https://github.com/corpix/uarand";
++      rev =  "2b8494104d86337cdd41d0a49cbed8e4583c0ab4";
++      sha256 = "06ml5m8l9wbr96gvyg6z1syawn797f8kmq74nhgry3vqpngyb6yn";
++    };
++  }
++  {
++    goPackagePath  = "github.com/cpuguy83/go-md2man";
++    fetch = {
++      type = "git";
++      url = "https://github.com/cpuguy83/go-md2man";
++      rev =  "20f5889cbdc3c73dbd2862796665e7c465ade7d1";
++      sha256 = "1w22dfdamsq63b5rvalh9k2y7rbwfkkjs7vm9vd4a13h2ql70lg2";
++    };
++  }
++  {
++    goPackagePath  = "github.com/davecgh/go-spew";
++    fetch = {
++      type = "git";
++      url = "https://github.com/davecgh/go-spew";
++      rev =  "8991bc29aa16c548c550c7ff78260e27b9ab7c73";
++      sha256 = "0hka6hmyvp701adzag2g26cxdj47g21x6jz4sc6jjz1mn59d474y";
++    };
++  }
++  {
++    goPackagePath  = "github.com/dustin/go-humanize";
++    fetch = {
++      type = "git";
++      url = "https://github.com/dustin/go-humanize";
++      rev =  "9f541cc9db5d55bce703bd99987c9d5cb8eea45e";
++      sha256 = "1kqf1kavdyvjk7f8kx62pnm7fbypn9z1vbf8v2qdh3y7z7a0cbl3";
++    };
++  }
++  {
++    goPackagePath  = "github.com/fatih/color";
++    fetch = {
++      type = "git";
++      url = "https://github.com/fatih/color";
++      rev =  "5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4";
++      sha256 = "0v8msvg38r8d1iiq2i5r4xyfx0invhc941kjrsg5gzwvagv55inv";
++    };
++  }
++  {
++    goPackagePath  = "github.com/go-test/deep";
++    fetch = {
++      type = "git";
++      url = "https://github.com/go-test/deep";
++      rev =  "6592d9cc0a499ad2d5f574fde80a2b5c5cc3b4f5";
++      sha256 = "0f4rbdl6qmlq4bzh0443i634bm675bbrkyzwp8wkc1yhdl9qsij7";
++    };
++  }
++  {
++    goPackagePath  = "github.com/golang/protobuf";
++    fetch = {
++      type = "git";
++      url = "https://github.com/golang/protobuf";
++      rev =  "aa810b61a9c79d51363740d207bb46cf8e620ed5";
++      sha256 = "0kf4b59rcbb1cchfny2dm9jyznp8ri2hsb14n8iak1q8986xa0ab";
++    };
++  }
++  {
++    goPackagePath  = "github.com/google/go-cmp";
++    fetch = {
++      type = "git";
++      url = "https://github.com/google/go-cmp";
++      rev =  "3af367b6b30c263d47e8895973edcca9a49cf029";
++      sha256 = "1fbv0x27k9sn8svafc0hjwsnckk864lv4yi7bvzrxvmd3d5hskds";
++    };
++  }
++  {
++    goPackagePath  = "github.com/gorilla/context";
++    fetch = {
++      type = "git";
++      url = "https://github.com/gorilla/context";
++      rev =  "08b5f424b9271eedf6f9f0ce86cb9396ed337a42";
++      sha256 = "03p4hn87vcmfih0p9w663qbx9lpsf7i7j3lc7yl7n84la3yz63m4";
++    };
++  }
++  {
++    goPackagePath  = "github.com/gorilla/mux";
++    fetch = {
++      type = "git";
++      url = "https://github.com/gorilla/mux";
++      rev =  "e3702bed27f0d39777b0b37b664b6280e8ef8fbf";
++      sha256 = "0pvzm23hklxysspnz52mih6h1q74vfrdhjfm1l3sa9r8hhqmmld2";
++    };
++  }
++  {
++    goPackagePath  = "github.com/gorilla/websocket";
++    fetch = {
++      type = "git";
++      url = "https://github.com/gorilla/websocket";
++      rev =  "ea4d1f681babbce9545c9c5f3d5194a789c89f5b";
++      sha256 = "1bhgs2542qs49p1dafybqxfs2qc072xv41w5nswyrknwyjxxs2a1";
++    };
++  }
++  {
++    goPackagePath  = "github.com/hashicorp/golang-lru";
++    fetch = {
++      type = "git";
++      url = "https://github.com/hashicorp/golang-lru";
++      rev =  "20f1fb78b0740ba8c3cb143a61e86ba5c8669768";
++      sha256 = "12k2cp2k615fjvfa5hyb9k2alian77wivds8s65diwshwv41939f";
++    };
++  }
++  {
++    goPackagePath  = "github.com/icrowley/fake";
++    fetch = {
++      type = "git";
++      url = "https://github.com/icrowley/fake";
++      rev =  "4178557ae428460c3780a381c824a1f3aceb6325";
++      sha256 = "1mv4bxfphaqbvacy49v4lf4gf2nmadzpmjq0jbdx93wi5bnkc977";
++    };
++  }
++  {
++    goPackagePath  = "github.com/inconshreveable/mousetrap";
++    fetch = {
++      type = "git";
++      url = "https://github.com/inconshreveable/mousetrap";
++      rev =  "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75";
++      sha256 = "1mn0kg48xkd74brf48qf5hzp0bc6g8cf5a77w895rl3qnlpfw152";
++    };
++  }
++  {
++    goPackagePath  = "github.com/jroimartin/gocui";
++    fetch = {
++      type = "git";
++      url = "https://github.com/jroimartin/gocui";
++      rev =  "c055c87ae801372cd74a0839b972db4f7697ae5f";
++      sha256 = "1b1cbjg925l1c5v3ls8amni9716190yzf847cqs9wjnj82z8qa47";
++    };
++  }
++  {
++    goPackagePath  = "github.com/mattn/go-colorable";
++    fetch = {
++      type = "git";
++      url = "https://github.com/mattn/go-colorable";
++      rev =  "167de6bfdfba052fa6b2d3664c8f5272e23c9072";
++      sha256 = "1nwjmsppsjicr7anq8na6md7b1z84l9ppnlr045hhxjvbkqwalvx";
++    };
++  }
++  {
++    goPackagePath  = "github.com/mattn/go-isatty";
++    fetch = {
++      type = "git";
++      url = "https://github.com/mattn/go-isatty";
++      rev =  "0360b2af4f38e8d38c7fce2a9f4e702702d73a39";
++      sha256 = "06w45aqz2a6yrk25axbly2k5wmsccv8cspb94bfmz4izvw8h927n";
++    };
++  }
++  {
++    goPackagePath  = "github.com/mattn/go-runewidth";
++    fetch = {
++      type = "git";
++      url = "https://github.com/mattn/go-runewidth";
++      rev =  "9e777a8366cce605130a531d2cd6363d07ad7317";
++      sha256 = "0vkrfrz3fzn5n6ix4k8s0cg0b448459sldq8bp4riavsxm932jzb";
++    };
++  }
++  {
++    goPackagePath  = "github.com/mitchellh/mapstructure";
++    fetch = {
++      type = "git";
++      url = "https://github.com/mitchellh/mapstructure";
++      rev =  "fa473d140ef3c6adf42d6b391fe76707f1f243c8";
++      sha256 = "0f06q4fpzg0c370cvmpsl0iq2apl5nkbz5cd3nba5x5ysmshv1lm";
++    };
++  }
++  {
++    goPackagePath  = "github.com/nsf/termbox-go";
++    fetch = {
++      type = "git";
++      url = "https://github.com/nsf/termbox-go";
++      rev =  "5c94acc5e6eb520f1bcd183974e01171cc4c23b3";
++      sha256 = "1fi8imdgwvlsgifw2qfl3ww0lsrgkfsimkzz7bnrq41nar78s0fw";
++    };
++  }
++  {
++    goPackagePath  = "github.com/phayes/freeport";
++    fetch = {
++      type = "git";
++      url = "https://github.com/phayes/freeport";
++      rev =  "b8543db493a5ed890c5499e935e2cad7504f3a04";
++      sha256 = "1gwaan8fwmc5lfx4dzymq0jd6z2l1frg83jkmjpm4kw8ay4vr11q";
++    };
++  }
++  {
++    goPackagePath  = "github.com/pkg/errors";
++    fetch = {
++      type = "git";
++      url = "https://github.com/pkg/errors";
++      rev =  "645ef00459ed84a119197bfb8d8205042c6df63d";
++      sha256 = "001i6n71ghp2l6kdl3qq1v2vmghcz3kicv9a5wgcihrzigm75pp5";
++    };
++  }
++  {
++    goPackagePath  = "github.com/pmezard/go-difflib";
++    fetch = {
++      type = "git";
++      url = "https://github.com/pmezard/go-difflib";
++      rev =  "792786c7400a136282c1664665ae0a8db921c6c2";
++      sha256 = "0c1cn55m4rypmscgf0rrb88pn58j3ysvc2d0432dp3c6fqg6cnzw";
++    };
++  }
++  {
++    goPackagePath  = "github.com/russross/blackfriday";
++    fetch = {
++      type = "git";
++      url = "https://github.com/russross/blackfriday";
++      rev =  "55d61fa8aa702f59229e6cff85793c22e580eaf5";
++      sha256 = "0qmavm5d14kj6im6sqzpqnlhpy524428vkn4hnfwknndr9rycmn0";
++    };
++  }
++  {
++    goPackagePath  = "github.com/shurcooL/githubv4";
++    fetch = {
++      type = "git";
++      url = "https://github.com/shurcooL/githubv4";
++      rev =  "b5f70540eee0ebfb6a27b52fc5b131be76415539";
++      sha256 = "0hrjk16l8jwkhrbzcasp4dflv6hl24hcc4q2md5rn6i8f73dl18h";
++    };
++  }
++  {
++    goPackagePath  = "github.com/shurcooL/go";
++    fetch = {
++      type = "git";
++      url = "https://github.com/shurcooL/go";
++      rev =  "9e1955d9fb6e1ee2345ba1f5e71669263e719e27";
++      sha256 = "1lad9bvs75jsn61cfza19739c2c057k0bqxg2b4xz3z3l4w1mkqj";
++    };
++  }
++  {
++    goPackagePath  = "github.com/shurcooL/graphql";
++    fetch = {
++      type = "git";
++      url = "https://github.com/shurcooL/graphql";
++      rev =  "365899397c9ad12805631fe4c9b2a64be9d74818";
++      sha256 = "10n4id76zpj5g4hr1ry8d9v5cvm039rygrpgdk4ygk198vhr0gwm";
++    };
++  }
++  {
++    goPackagePath  = "github.com/shurcooL/httpfs";
++    fetch = {
++      type = "git";
++      url = "https://github.com/shurcooL/httpfs";
++      rev =  "809beceb23714880abc4a382a00c05f89d13b1cc";
++      sha256 = "1hvj5q5kjw83z7f77y03fqfg7fps7pqj2cj2c38x752m0pq4j2w3";
++    };
++  }
++  {
++    goPackagePath  = "github.com/shurcooL/vfsgen";
++    fetch = {
++      type = "git";
++      url = "https://github.com/shurcooL/vfsgen";
++      rev =  "62bca832be04bd2bcaabd3b68a6b19a7ec044411";
++      sha256 = "1lh8sw7qxs43jj8k9pfn91kfy2033p3il9bcb63whz8zhqw2a16y";
++    };
++  }
++  {
++    goPackagePath  = "github.com/skratchdot/open-golang";
++    fetch = {
++      type = "git";
++      url = "https://github.com/skratchdot/open-golang";
++      rev =  "75fb7ed4208cf72d323d7d02fd1a5964a7a9073c";
++      sha256 = "1b67imqbsdvg19vif1q1dfmapxy3v2anagacbql95fwnnw0v8jga";
++    };
++  }
++  {
++    goPackagePath  = "github.com/spf13/cobra";
++    fetch = {
++      type = "git";
++      url = "https://github.com/spf13/cobra";
++      rev =  "ef82de70bb3f60c65fb8eebacbb2d122ef517385";
++      sha256 = "1q1nsx05svyv9fv3fy6xv6gs9ffimkyzsfm49flvl3wnvf1ncrkd";
++    };
++  }
++  {
++    goPackagePath  = "github.com/spf13/pflag";
++    fetch = {
++      type = "git";
++      url = "https://github.com/spf13/pflag";
++      rev =  "583c0c0531f06d5278b7d917446061adc344b5cd";
++      sha256 = "0nr4mdpfhhk94hq4ymn5b2sxc47b29p1akxd8b0hx4dvdybmipb5";
++    };
++  }
++  {
++    goPackagePath  = "github.com/stretchr/testify";
++    fetch = {
++      type = "git";
++      url = "https://github.com/stretchr/testify";
++      rev =  "f35b8ab0b5a2cef36673838d662e249dd9c94686";
++      sha256 = "0dlszlshlxbmmfxj5hlwgv3r22x0y1af45gn1vd198nvvs3pnvfs";
++    };
++  }
++  {
++    goPackagePath  = "github.com/vektah/gqlgen";
++    fetch = {
++      type = "git";
++      url = "https://github.com/vektah/gqlgen";
++      rev =  "636435b68700211441303f1a5ed92f3768ba5774";
++      sha256 = "0d4sr6kpyn3zq3kpvk8lizy7hdpcw3fjmv7fbv2m1k9w8fzjawrz";
++    };
++  }
++  {
++    goPackagePath  = "github.com/vektah/gqlparser";
++    fetch = {
++      type = "git";
++      url = "https://github.com/vektah/gqlparser";
++      rev =  "14e83ae06ec152e6d0afb9766a00e0c0918aa8fc";
++      sha256 = "162j259402pa2wb4645z6gplx5g1a2sfk393k2svwgws3bg2bws2";
++    };
++  }
++  {
++    goPackagePath  = "golang.org/x/crypto";
++    fetch = {
++      type = "git";
++      url = "https://go.googlesource.com/crypto";
++      rev =  "0e37d006457bf46f9e6692014ba72ef82c33022c";
++      sha256 = "1fj8rvrhgv5j8pmckzphvm3sqkzhcqp3idkxvgv13qrjdfycsa5r";
++    };
++  }
++  {
++    goPackagePath  = "golang.org/x/net";
++    fetch = {
++      type = "git";
++      url = "https://go.googlesource.com/net";
++      rev =  "2f5d2388922f370f4355f327fcf4cfe9f5583908";
++      sha256 = "03s92ygxfrd2c1m4697sd6iksgbar6c007w1yf3h6wmd79vr5dxs";
++    };
++  }
++  {
++    goPackagePath  = "golang.org/x/oauth2";
++    fetch = {
++      type = "git";
++      url = "https://go.googlesource.com/oauth2";
++      rev =  "d2e6202438beef2727060aa7cabdd924d92ebfd9";
++      sha256 = "0wbn75fd10485nb93bm4kqldqifdim5xqy4v7r5sdvimvf3fyhn7";
++    };
++  }
++  {
++    goPackagePath  = "golang.org/x/sys";
++    fetch = {
++      type = "git";
++      url = "https://go.googlesource.com/sys";
++      rev =  "ac767d655b305d4e9612f5f6e33120b9176c4ad4";
++      sha256 = "1ds29n5lh4j21hmzxz7vk7hv1k6sixc7f0zsdc9xqdg0j7d212zm";
++    };
++  }
++  {
++    goPackagePath  = "golang.org/x/tools";
++    fetch = {
++      type = "git";
++      url = "https://go.googlesource.com/tools";
++      rev =  "a434f64ace81347eff0fb4a32bc80a235e0ad762";
++      sha256 = "0zngnxrxjync4caz6ikmv5v0cn895iqhqmzqg9qddfm5bvl2a2my";
++    };
++  }
++  {
++    goPackagePath  = "google.golang.org/appengine";
++    fetch = {
++      type = "git";
++      url = "https://github.com/golang/appengine";
++      rev =  "ae0ab99deb4dc413a2b4bd6c8bdd0eb67f1e4d06";
++      sha256 = "1iabxnqgxvvn1239i6fvfl375vlbvhfrc03m1x2rvalmx4d6w9c7";
++    };
++  }
++  {
++    goPackagePath  = "gopkg.in/yaml.v2";
++    fetch = {
++      type = "git";
++      url = "https://github.com/go-yaml/yaml";
++      rev =  "5420a8b6744d3b0345ab293f6fcba19c978f1183";
++      sha256 = "0dwjrs2lp2gdlscs7bsrmyc5yf6mm4fvgw71bzr9mv2qrd2q73s1";
++    };
++  }
++  {
++    goPackagePath  = "gotest.tools";
++    fetch = {
++      type = "git";
++      url = "https://github.com/gotestyourself/gotest.tools";
++      rev =  "b6e20af1ed078cd01a6413b734051a292450b4cb";
++      sha256 = "11k6hmfhaf0qxpddp3i5kfpacdx51q6pv4n1kn3jnf1hjs0yny2k";
++    };
++  }
++]
+\ No newline at end of file
+diff --git a/pkgs/applications/version-management/git-and-tools/git-bz/default.nix b/pkgs/applications/version-management/git-and-tools/git-bz/default.nix
+index d924437..c14a027 100644
+--- a/pkgs/applications/version-management/git-and-tools/git-bz/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git-bz/default.nix
+@@ -27,6 +27,7 @@ stdenv.mkDerivation rec {
+ 
+   postInstall = ''
+     wrapProgram $out/bin/git-bz \
++      --prefix PYTHONPATH : "$(toPythonPath "${pythonPackages.pycrypto}")" \
+       --prefix PYTHONPATH : "$(toPythonPath "${pythonPackages.pysqlite}")"
+   '';
+ 
+@@ -48,7 +49,6 @@ stdenv.mkDerivation rec {
+     license = licenses.gpl2Plus;
+     homepage = http://git.fishsoup.net/cgit/git-bz/;
+ 
+-    maintainers = with maintainers; [ nckx ];
+     platforms = platforms.linux;
+   };
+ }
+diff --git a/pkgs/applications/version-management/git-and-tools/git-codeowners/default.nix b/pkgs/applications/version-management/git-and-tools/git-codeowners/default.nix
+new file mode 100644
+index 0000000..206a4af
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-codeowners/default.nix
+@@ -0,0 +1,21 @@
++{ lib, rustPlatform, fetchFromGitHub }:
++rustPlatform.buildRustPackage rec {
++  name = "git-codeowners-${version}";
++  version = "0.1.2";
++
++  src = fetchFromGitHub {
++    owner = "softprops";
++    repo = "git-codeowners";
++    rev = "v${version}";
++    sha256 = "0bzq4ridzb4l1zqrj1r0vlzkjpgfaqwky5jf49cwjhz4ybwrfpkq";
++  };
++
++  cargoSha256 = "0rdmv9s86xba1zkl2j5rgix6k7pkkxqmpar03sak2fjrd7mh8iz0";
++
++  meta = with lib; {
++    homepage = "https://github.com/softprops/git-codeowners";
++    description = "a git extension to work with CODEOWNERS files";
++    license = licenses.mit;
++    maintainers = with maintainers; [ zimbatm ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-cola/default.nix b/pkgs/applications/version-management/git-and-tools/git-cola/default.nix
+index 77c2f45..4b15d03 100644
+--- a/pkgs/applications/version-management/git-and-tools/git-cola/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git-cola/default.nix
+@@ -1,30 +1,22 @@
+-{ stdenv, fetchurl, python, pythonPackages, makeWrapper, gettext }:
++{ stdenv, fetchFromGitHub, pythonPackages, gettext, git }:
+ 
+-pythonPackages.buildPythonApplication rec {
++let
++  inherit (pythonPackages) buildPythonApplication pyqt5 sip pyinotify;
++in buildPythonApplication rec {
+   name = "git-cola-${version}";
+-  version = "2.5";
++  version = "3.2";
+ 
+-  src = fetchurl {
+-    url = "https://github.com/git-cola/git-cola/archive/v${version}.tar.gz";
+-    sha256 = "0ybjmlwm1plnvqi20y91ci7sgldzwlwn86vyyn9a157h7lf4ngb8";
++  src = fetchFromGitHub {
++    owner = "git-cola";
++    repo = "git-cola";
++    rev = "v${version}";
++    sha256 = "1ivaqhvdbmlp0lmrwb2pv3kjqlcpqbxbinbvjjn3g81r4avjs7yy";
+   };
+ 
+-  buildInputs = [ makeWrapper gettext ];
+-  propagatedBuildInputs = with pythonPackages; [ pyqt4 sip pyinotify ];
++  buildInputs = [ git gettext ];
++  propagatedBuildInputs = [ pyqt5 sip pyinotify ];
+ 
+-  # HACK: wrapPythonPrograms adds 'import sys; sys.argv[0] = "git-cola"', but
+-  # "import __future__" must be placed above that. This removes the argv[0] line.
+-  postFixup = ''
+-    wrapPythonPrograms
+-
+-    sed -i "$out/bin/.git-dag-wrapped" -e '{
+-      /import sys; sys.argv/d
+-    }'
+-    
+-    sed -i "$out/bin/.git-cola-wrapped" -e '{
+-      /import sys; sys.argv/d
+-    }'
+-  '';
++  doCheck = false;
+ 
+   meta = with stdenv.lib; {
+     homepage = https://github.com/git-cola/git-cola;
+diff --git a/pkgs/applications/version-management/git-and-tools/git-crypt/default.nix b/pkgs/applications/version-management/git-and-tools/git-crypt/default.nix
+index fbe5096..2163855 100644
+--- a/pkgs/applications/version-management/git-and-tools/git-crypt/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git-crypt/default.nix
+@@ -1,26 +1,31 @@
+-{ stdenv, fetchFromGitHub, openssl, gnupg1compat, makeWrapper }:
++{ fetchFromGitHub, git, gnupg1compat, makeWrapper, openssl, stdenv }:
+ 
+ stdenv.mkDerivation rec {
+-
+-  name = "git-crypt-${meta.version}";
++  name = "git-crypt-${version}";
++  version = "0.6.0";
+ 
+   src = fetchFromGitHub {
+     owner = "AGWA";
+     repo = "git-crypt";
+-    rev = meta.version;
+-    sha256 = "4fe45f903a4b3cc06a5fe11334b914c225009fe8440d9e91a54fdf21cf4dcc4d";
++    rev = "${version}";
++    sha256 = "13m9y0m6gc3mlw3pqv9x4i0him2ycbysizigdvdanhh514kga602";
+     inherit name;
+   };
+ 
+   buildInputs = [ openssl makeWrapper ];
+ 
++  patchPhase = ''
++    substituteInPlace commands.cpp \
++      --replace '(escape_shell_arg(our_exe_path()))' '= "git-crypt"'
++  '';
++
+   installPhase = ''
+     make install PREFIX=$out
+-    wrapProgram $out/bin/* --prefix PATH : ${gnupg1compat}/bin
++    wrapProgram $out/bin/* --prefix PATH : $out/bin:${git}/bin:${gnupg1compat}/bin
+   '';
+ 
+   meta = with stdenv.lib; {
+-    homepage = "https://www.agwa.name/projects/git-crypt";
++    homepage = https://www.agwa.name/projects/git-crypt;
+     description = "Transparent file encryption in git";
+     longDescription = ''
+       git-crypt enables transparent encryption and decryption of files in a git
+@@ -35,9 +40,8 @@ stdenv.mkDerivation rec {
+     '';
+     downloadPage = "https://github.com/AGWA/git-crypt/releases";
+     license = licenses.gpl3;
+-    version = "0.5.0";
+     maintainers = [ maintainers.dochang ];
+-    platforms = platforms.linux;
++    platforms = platforms.unix;
+   };
+ 
+ }
+diff --git a/pkgs/applications/version-management/git-and-tools/git-dit/default.nix b/pkgs/applications/version-management/git-and-tools/git-dit/default.nix
+new file mode 100644
+index 0000000..9c36227
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-dit/default.nix
+@@ -0,0 +1,54 @@
++{ stdenv
++, fetchFromGitHub
++, openssl
++, zlib
++, libssh
++, cmake
++, perl
++, pkgconfig
++, rustPlatform
++, curl
++, libiconv
++, CoreFoundation
++, Security
++}:
++
++with rustPlatform;
++
++buildRustPackage rec {
++  name = "git-dit-${version}";
++  version = "0.4.0";
++
++  src = fetchFromGitHub {
++    owner = "neithernut";
++    repo = "git-dit";
++    rev = "v${version}";
++    sha256 = "1sx6sc2dj3l61gbiqz8vfyhw5w4xjdyfzn1ixz0y8ipm579yc7a2";
++  };
++
++  cargoSha256 = "08zbvjwjdpv2sbj6mh73py82inhs18jvmh8m9k4l94fcz6ykgqwr";
++
++  nativeBuildInputs = [
++    cmake
++    pkgconfig
++    perl
++  ];
++
++  buildInputs = [
++    openssl
++    libssh
++    zlib
++  ] ++ stdenv.lib.optionals (stdenv.isDarwin) [
++    curl
++    libiconv
++    CoreFoundation
++    Security
++  ];
++
++  meta = with stdenv.lib; {
++    inherit (src.meta) homepage;
++    description = "Decentralized Issue Tracking for git";
++    license = licenses.gpl2;
++    maintainers = with maintainers; [ Profpatsch ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-extras/default.nix b/pkgs/applications/version-management/git-and-tools/git-extras/default.nix
+index ba53994..7b6dd8a 100644
+--- a/pkgs/applications/version-management/git-and-tools/git-extras/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git-extras/default.nix
+@@ -2,16 +2,20 @@
+ 
+ stdenv.mkDerivation rec {
+   name = "git-extras-${version}";
+-  version = "4.1.0";
++  version = "4.6.0";
+ 
+   src = fetchurl {
+     url = "https://github.com/tj/git-extras/archive/${version}.tar.gz";
+-    sha256 = "d4c028e2fe78abde8f3e640b70f431318fb28d82894dde22772efe8ba3563f85";
++    sha256 = "1jp5wi2h4jqbrjv0iqa45s0f9h3n5k1dxs89jkhg5n5k9jjs7fp3";
+   };
+ 
+-  phases = [ "unpackPhase" "installPhase" ];
++  dontBuild = true;
+ 
+-  makeFlags = "DESTDIR=$(out) PREFIX=";
++  installFlags = [ "DESTDIR=$(out) PREFIX=" ];
++
++  postInstall = ''
++    install -D etc/git-extras-completion.zsh $out/share/zsh/site-functions/_git_extras
++  '';
+ 
+   meta = with stdenv.lib; {
+     homepage = https://github.com/tj/git-extras;
+diff --git a/pkgs/applications/version-management/git-and-tools/git-fame/Gemfile b/pkgs/applications/version-management/git-and-tools/git-fame/Gemfile
+new file mode 100644
+index 0000000..17373f0
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-fame/Gemfile
+@@ -0,0 +1,4 @@
++source 'https://rubygems.org'
++
++# Specify your gem's dependencies in git_fame.gemspec
++gem "git_fame"
+diff --git a/pkgs/applications/version-management/git-and-tools/git-fame/Gemfile.lock b/pkgs/applications/version-management/git-and-tools/git-fame/Gemfile.lock
+new file mode 100644
+index 0000000..0ac7907
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-fame/Gemfile.lock
+@@ -0,0 +1,26 @@
++GEM
++  remote: https://rubygems.org/
++  specs:
++    git_fame (2.5.2)
++      hirb (~> 0.7.3)
++      memoist (~> 0.14.0)
++      method_profiler (~> 2.0.1)
++      progressbar (~> 0.21.0)
++      scrub_rb (~> 1.0.1)
++      trollop (~> 2.1.2)
++    hirb (0.7.3)
++    memoist (0.14.0)
++    method_profiler (2.0.1)
++      hirb (>= 0.6.0)
++    progressbar (0.21.0)
++    scrub_rb (1.0.1)
++    trollop (2.1.2)
++
++PLATFORMS
++  ruby
++
++DEPENDENCIES
++  git_fame
++
++BUNDLED WITH
++   1.14.6
+diff --git a/pkgs/applications/version-management/git-and-tools/git-fame/default.nix b/pkgs/applications/version-management/git-and-tools/git-fame/default.nix
+new file mode 100644
+index 0000000..9ca7a67
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-fame/default.nix
+@@ -0,0 +1,19 @@
++{ stdenv, bundlerEnv, ruby }:
++
++bundlerEnv rec {
++  inherit ruby;
++
++  pname = "git_fame";
++
++  gemdir = ./.;
++
++  meta = with stdenv.lib; {
++    description = ''
++      A command-line tool that helps you summarize and pretty-print collaborators based on contributions
++      '';
++    homepage    = http://oleander.io/git-fame-rb;
++    license     = licenses.mit;
++    maintainers = with maintainers; [ expipiplus1 ];
++    platforms   = platforms.unix;
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-fame/gemset.nix b/pkgs/applications/version-management/git-and-tools/git-fame/gemset.nix
+new file mode 100644
+index 0000000..49b4af4
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-fame/gemset.nix
+@@ -0,0 +1,60 @@
++{
++  git_fame = {
++    dependencies = ["hirb" "memoist" "method_profiler" "progressbar" "scrub_rb" "trollop"];
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "02k5ls5zyif8skdbnym6zw9y76whlnksw2m94jsh2n1ygk98izdd";
++      type = "gem";
++    };
++    version = "2.5.2";
++  };
++  hirb = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "0mzch3c2lvmf8gskgzlx6j53d10j42ir6ik2dkrl27sblhy76cji";
++      type = "gem";
++    };
++    version = "0.7.3";
++  };
++  memoist = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "03d3h6kp16bf0crqg1cxdgp1d2iyzn53d3phbmjh4pjybqls0gcm";
++      type = "gem";
++    };
++    version = "0.14.0";
++  };
++  method_profiler = {
++    dependencies = ["hirb"];
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "1ax04qrrv7fqp5ayxaxhn72660pybdkpkvmgiwbg7bs7x5ijjzd8";
++      type = "gem";
++    };
++    version = "2.0.1";
++  };
++  progressbar = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "17haw9c6c9q6imsn83pii32jnihpg76jgd09x7y4hjqq45n3qcdh";
++      type = "gem";
++    };
++    version = "0.21.0";
++  };
++  scrub_rb = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "0dwg33w83w17aiij9kcbi7irj7lh045nh9prjgkzjya3f1j60d3x";
++      type = "gem";
++    };
++    version = "1.0.1";
++  };
++  trollop = {
++    source = {
++      remotes = ["https://rubygems.org"];
++      sha256 = "0415y63df86sqj43c0l82and65ia5h64if7n0znkbrmi6y0jwhl8";
++      type = "gem";
++    };
++    version = "2.1.2";
++  };
++}
+\ No newline at end of file
+diff --git a/pkgs/applications/version-management/git-and-tools/git-hub/default.nix b/pkgs/applications/version-management/git-and-tools/git-hub/default.nix
+index f059498..ba126bb 100644
+--- a/pkgs/applications/version-management/git-and-tools/git-hub/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git-hub/default.nix
+@@ -1,27 +1,29 @@
+-{ stdenv, fetchFromGitHub, docutils, python }:
++{ stdenv, fetchFromGitHub, gitMinimal, python2Packages }:
+ 
+ stdenv.mkDerivation rec {
+   name = "git-hub-${version}";
+-  version = "0.11.0";
++  version = "1.0.1";
+ 
+   src = fetchFromGitHub {
+-    sha256 = "1lpi373vzr6gda0gic7w37qhipfg7bjpn8nwjjgz44vf2vjlhf9k";
++    sha256 = "1lizjyi8vac1p1anbnh6qrr176rwxp5yjc1787asw437sackkwza";
+     rev = "v${version}";
+     repo = "git-hub";
+     owner = "sociomantic-tsunami";
+   };
+ 
+-  buildInputs = [ python ];
+-  nativeBuildInputs = [ docutils ];
++  buildInputs = [ python2Packages.python ];
++  nativeBuildInputs = [
++    gitMinimal        # Used during build to generate Bash completion.
++    python2Packages.docutils
++  ];
+ 
+   postPatch = ''
+-    substituteInPlace Makefile --replace rst2man rst2man.py
+     patchShebangs .
+   '';
+ 
+   enableParallelBuilding = true;
+ 
+-  installFlags = [ "prefix=$(out)" ];
++  installFlags = [ "prefix=$(out)" "sysconfdir=$(out)/etc" ];
+ 
+   postInstall = ''
+     # Remove inert ftdetect vim plugin and a README that's a man page subset:
+@@ -37,7 +39,6 @@ stdenv.mkDerivation rec {
+       directly through the Git command line.
+     '';
+     license = licenses.gpl3Plus;
+-    platforms = platforms.linux;
+-    maintainers = with maintainers; [ nckx ];
++    platforms = platforms.all;
+   };
+ }
+diff --git a/pkgs/applications/version-management/git-and-tools/git-imerge/default.nix b/pkgs/applications/version-management/git-and-tools/git-imerge/default.nix
+index 91180b3..10e7862 100644
+--- a/pkgs/applications/version-management/git-and-tools/git-imerge/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git-imerge/default.nix
+@@ -1,22 +1,20 @@
+-{ stdenv, fetchurl, pythonPackages }:
++{ stdenv, fetchFromGitHub, pythonPackages }:
+ 
+ stdenv.mkDerivation rec {
+   name = "git-imerge-${version}";
+-  version = "0.7.0";
++  version = "1.1.0";
+ 
+-  src = fetchurl {
+-    url = "https://github.com/mhagger/git-imerge/archive/${version}.tar.gz";
+-    sha256 = "00nwn3rfhf15wsv01lfji5412d7yz827ric916lnyp662d6gx206";
++  src = fetchFromGitHub {
++    owner = "mhagger";
++    repo = "git-imerge";
++    rev = "v${version}";
++    sha256 = "0vi1w3f0yk4gqhxj2hzqafqq28rihyhyfnp8x7xzib96j2si14a4";
+   };
+ 
+   buildInputs = [ pythonPackages.python pythonPackages.wrapPython ];
+ 
+-  installPhase = ''
+-    mkdir -p $out/bin
+-    make install PREFIX=$out
+-    wrapPythonPrograms
+-  '';
+-
++  makeFlags = "PREFIX= DESTDIR=$(out)" ; 
++ 
+   meta = with stdenv.lib; {
+     homepage = https://github.com/mhagger/git-imerge;
+     description = "Perform a merge between two branches incrementally";
+diff --git a/pkgs/applications/version-management/git-and-tools/git-octopus/default.nix b/pkgs/applications/version-management/git-and-tools/git-octopus/default.nix
+new file mode 100644
+index 0000000..f8d871b
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-octopus/default.nix
+@@ -0,0 +1,34 @@
++{ stdenv, fetchFromGitHub, git, perl, makeWrapper }:
++
++with stdenv.lib;
++
++stdenv.mkDerivation rec {
++  name = "git-octopus-${version}";
++  version = "1.4";
++
++  installFlags = [ "prefix=$(out)" ];
++
++  buildInputs = [ makeWrapper ];
++
++  # perl provides shasum
++  postInstall = ''
++    for f in $out/bin/*; do
++      wrapProgram $f --prefix PATH : ${makeBinPath [ git perl ]}
++    done
++  '';
++
++  src = fetchFromGitHub {
++    owner = "lesfurets";
++    repo = "git-octopus";
++    rev = "v${version}";
++    sha256 = "14p61xk7jankp6gc26xciag9fnvm7r9vcbhclcy23f4ghf4q4sj1";
++  };
++
++  meta = {
++    homepage = https://github.com/lesfurets/git-octopus;
++    description = "The continuous merge workflow";
++    license = licenses.lgpl3;
++    platforms = platforms.unix;
++    maintainers = [maintainers.mic92];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-open/default.nix b/pkgs/applications/version-management/git-and-tools/git-open/default.nix
+new file mode 100644
+index 0000000..dc3fbbe
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-open/default.nix
+@@ -0,0 +1,32 @@
++{stdenv, git, xdg_utils, gnugrep, fetchFromGitHub, makeWrapper}:
++
++stdenv.mkDerivation rec {
++  name = "git-open-${version}";
++  version = "2.0.0";
++
++  src = fetchFromGitHub {
++    owner = "paulirish";
++    repo = "git-open";
++    rev = "v${version}";
++    sha256 = "0lprzrjsqrg83gixfaiw26achgd8l7s56jknsjss4p7y0w1fxm05";
++  };
++
++  buildInputs = [ makeWrapper ];
++
++  buildPhase = null;
++
++  installPhase = ''
++    mkdir -p $out/bin
++    cp git-open $out/bin
++    wrapProgram $out/bin/git-open \
++      --prefix PATH : "${stdenv.lib.makeBinPath [ git xdg_utils gnugrep ]}"
++  '';
++
++  meta = with stdenv.lib; {
++    homepage = https://github.com/paulirish/git-open;
++    description = "Open the GitHub page or website for a repository in your browser";
++    license = licenses.mit;
++    platforms = platforms.all;
++    maintainers = [ maintainers.jlesquembre ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-radar/default.nix b/pkgs/applications/version-management/git-and-tools/git-radar/default.nix
+index f61f9fe..d72df80 100644
+--- a/pkgs/applications/version-management/git-and-tools/git-radar/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git-radar/default.nix
+@@ -2,19 +2,17 @@
+ 
+ stdenv.mkDerivation rec {
+   name = "git-radar-${version}";
+-  version = "0.3.2";
+-
+-  phases = [ "unpackPhase" "installPhase" ];
+-
+-  dontInstallSrc = true;
++  version = "0.6";
+ 
+   src = fetchFromGitHub {
+     owner = "michaeldfallen";
+     repo = "git-radar";
+     rev = "v${version}";
+-    sha256 = "1028462b4kqxx66vjv7r8nnr6bi3kw11fixpqyg2srqriha6447p";
++    sha256 = "0c3zp8s4w7m4s71qgwk1jyfc8yzw34f2hi43x1w437ypgabwg81j";
+   };
+ 
++  dontBuild = true;
++
+   installPhase = ''
+     mkdir -p $out/bin
+     cp git-radar fetch.sh prompt.bash prompt.zsh radar-base.sh $out
+@@ -24,7 +22,7 @@ stdenv.mkDerivation rec {
+   meta = with stdenv.lib; {
+     homepage = https://github.com/michaeldfallen/git-radar;
+     license = licenses.mit;
+-    description = "Git-radar is a tool you can add to your prompt to provide at-a-glance information on your git repo";
++    description = "A tool you can add to your prompt to provide at-a-glance information on your git repo";
+     platforms = with platforms; linux ++ darwin;
+     maintainers = with maintainers; [ kamilchm ];
+   };
+diff --git a/pkgs/applications/version-management/git-and-tools/git-recent/default.nix b/pkgs/applications/version-management/git-and-tools/git-recent/default.nix
+new file mode 100644
+index 0000000..c52a78f
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-recent/default.nix
+@@ -0,0 +1,35 @@
++{stdenv, git, less, fetchFromGitHub, makeWrapper
++# utillinuxMinimal is included because we need the column command
++, utillinux
++}:
++
++stdenv.mkDerivation rec {
++  name = "git-recent-${version}";
++  version = "1.1.0";
++
++  src = fetchFromGitHub {
++    owner = "paulirish";
++    repo = "git-recent";
++    rev = "v${version}";
++    sha256 = "06r1jzmzdv3d4vxdh5qyf5g5rgavxfmh2rpbs7a7byg3k7d77hpn";
++  };
++
++  buildInputs = [ makeWrapper ];
++
++  buildPhase = null;
++
++  installPhase = ''
++    mkdir -p $out/bin
++    cp git-recent $out/bin
++    wrapProgram $out/bin/git-recent \
++      --prefix PATH : "${stdenv.lib.makeBinPath [ git less utillinux ]}"
++  '';
++
++  meta = with stdenv.lib; {
++    homepage = https://github.com/paulirish/git-recent;
++    description = "See your latest local git branches, formatted real fancy";
++    license = licenses.mit;
++    platforms = platforms.all;
++    maintainers = [ maintainers.jlesquembre ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-remote-gcrypt/default.nix b/pkgs/applications/version-management/git-and-tools/git-remote-gcrypt/default.nix
+index 2ee34d3..adfdb9a 100644
+--- a/pkgs/applications/version-management/git-and-tools/git-remote-gcrypt/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git-remote-gcrypt/default.nix
+@@ -1,32 +1,32 @@
+-{ stdenv, fetchgit, docutils }:
++{ stdenv, fetchFromGitHub, docutils, makeWrapper, gnupg1compat, curl, rsync }:
+ 
+-stdenv.mkDerivation {
+-  name = "git-remote-gcrypt-20140715";
++stdenv.mkDerivation rec {
++  name = "git-remote-gcrypt-${version}";
++  version = "1.1";
++  rev = version;
+ 
+-  # Use joeyh's branch that works better with git-annex
+-  src = fetchgit {
+-    url = "https://github.com/joeyh/git-remote-gcrypt.git";
+-    rev = "5dcc77f507d497fe4023e94a47b6a7a1f1146bce";
+-    sha256 = "d509efde143cfec4898872b5bb423d52d5d1c940b6a1e21b8444c904bdb250c2";
++  src = fetchFromGitHub {
++    inherit rev;
++    owner = "spwhitton";
++    repo = "git-remote-gcrypt";
++    sha256 = "0mhz5mqnr35rk7j4wyhp7hzmqgv8r554n9qlm4iw565bz7acvq24";
+   };
+ 
+-  # Required for rst2man.py
+-  buildInputs = [ docutils ];
++  outputs = [ "out" "man" ];
+ 
+-  # The install.sh script expects rst2man, but here it's named rst2man.py
+-  patchPhase = ''
+-    sed -i 's/rst2man/rst2man.py/g' install.sh
+-  '';
++  nativeBuildInputs = [ docutils makeWrapper ];
+ 
+   installPhase = ''
+     prefix="$out" ./install.sh
++    wrapProgram "$out/bin/git-remote-gcrypt" \
++      --prefix PATH ":" "${stdenv.lib.makeBinPath [ gnupg1compat curl rsync ]}"
+   '';
+ 
+-  meta = {
+-    homepage = "https://github.com/joeyh/git-remote-gcrypt";
+-    description = "GNU Privacy Guard-encrypted git remote";
+-    license = stdenv.lib.licenses.gpl3;
+-    maintainers = with stdenv.lib.maintainers; [ ellis ];
+-    platforms = with stdenv.lib.platforms; unix;
++  meta = with stdenv.lib; {
++    homepage = https://spwhitton.name/tech/code/git-remote-gcrypt;
++    description = "A git remote helper for GPG-encrypted remotes";
++    license = licenses.gpl3;
++    maintainers = with maintainers; [ ellis montag451 ];
++    platforms = platforms.unix;
+   };
+ }
+diff --git a/pkgs/applications/version-management/git-and-tools/git-remote-hg/default.nix b/pkgs/applications/version-management/git-and-tools/git-remote-hg/default.nix
+index 68c680c..f30813c 100644
+--- a/pkgs/applications/version-management/git-and-tools/git-remote-hg/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git-remote-hg/default.nix
+@@ -23,11 +23,11 @@ stdenv.mkDerivation rec {
+ 
+   postInstall = ''
+     wrapProgram $out/bin/git-remote-hg \
+-      --prefix PYTHONPATH : "$(echo ${mercurial}/lib/python*/site-packages):$(echo ${mercurial.python}/lib/python*/site-packages)${stdenv.lib.concatMapStrings (x: ":$(echo ${x}/lib/python*/site-packages)") mercurial.pythonPackages}"
++      --prefix PYTHONPATH : "$(echo ${mercurial}/lib/python*/site-packages):$(echo ${mercurial.python}/lib/python*/site-packages)${stdenv.lib.concatMapStrings (x: ":$(echo ${x}/lib/python*/site-packages)") mercurial.pythonPackages or []}"
+   '';
+ 
+   meta = with stdenv.lib; {
+-    homepage = "https://github.com/felipec/git-remote-hg";
++    homepage = https://github.com/felipec/git-remote-hg;
+     description = "Semi-official Mercurial bridge from Git project, once installed, it allows you to clone, fetch and push to and from Mercurial repositories as if they were Git ones";
+     license = licenses.gpl2;
+     maintainers = [ maintainers.garbas ];
+diff --git a/pkgs/applications/version-management/git-and-tools/git-secret/default.nix b/pkgs/applications/version-management/git-and-tools/git-secret/default.nix
+new file mode 100644
+index 0000000..4993910
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-secret/default.nix
+@@ -0,0 +1,36 @@
++{ stdenv, lib, fetchFromGitHub, makeWrapper, git, gnupg }:
++
++let
++  version = "0.2.4";
++  repo = "git-secret";
++
++in stdenv.mkDerivation {
++  name = "${repo}-${version}";
++
++  src = fetchFromGitHub {
++    inherit repo;
++    owner = "sobolevn";
++    rev = "v${version}";
++    sha256 = "0lx2rjyhy3xh6ik755lbbl40v7a7ayyqk68jj8mnv42f2vhd66xl";
++  };
++
++  buildInputs = [ makeWrapper ];
++
++  installPhase = ''
++    install -D git-secret $out/bin/git-secret
++
++    wrapProgram $out/bin/git-secret \
++      --prefix PATH : "${lib.makeBinPath [ git gnupg ]}"
++
++    mkdir $out/share
++    cp -r man $out/share
++  '';
++
++  meta = {
++    description = "A bash-tool to store your private data inside a git repository";
++    homepage = http://git-secret.io;
++    license = stdenv.lib.licenses.mit;
++    maintainers = [ stdenv.lib.maintainers.lo1tuma ];
++    platforms = stdenv.lib.platforms.all;
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-secrets/default.nix b/pkgs/applications/version-management/git-and-tools/git-secrets/default.nix
+new file mode 100644
+index 0000000..a2f0c8a
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-secrets/default.nix
+@@ -0,0 +1,40 @@
++{ stdenv, lib, fetchFromGitHub, makeWrapper, git }:
++
++let
++  version = "1.2.1";
++  repo = "git-secrets";
++
++in stdenv.mkDerivation {
++  name = "${repo}-${version}";
++
++  src = fetchFromGitHub {
++    inherit repo;
++    owner = "awslabs";
++    rev = "${version}";
++    sha256 = "14jsm4ks3k5d9iq3jr23829izw040pqpmv7dz8fhmvx6qz8fybzg";
++  };
++
++  buildInputs = [ makeWrapper git];
++
++  # buildPhase = ''
++  #  make man # TODO: need rst2man.py
++  # '';
++  
++  installPhase = ''
++    install -D git-secrets $out/bin/git-secrets
++
++    wrapProgram $out/bin/git-secrets \
++      --prefix PATH : "${lib.makeBinPath [ git ]}"
++
++    # TODO: see above note on rst2man.py
++    # mkdir $out/share
++    # cp -r man $out/share
++  '';
++
++  meta = {
++    description = "Prevents you from committing passwords and other sensitive information to a git repository";
++    homepage = https://github.com/awslabs/git-secrets;
++    license = stdenv.lib.licenses.asl20;
++    platforms = stdenv.lib.platforms.all;
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git-sync/default.nix b/pkgs/applications/version-management/git-and-tools/git-sync/default.nix
+new file mode 100644
+index 0000000..7ba7d8e
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git-sync/default.nix
+@@ -0,0 +1,45 @@
++{ stdenv, fetchFromGitHub, coreutils, gnugrep, gnused, makeWrapper, git
++}:
++
++stdenv.mkDerivation rec {
++  name = "git-sync-${version}";
++  version = "20151024";
++
++  src = fetchFromGitHub {
++    owner = "simonthum";
++    repo = "git-sync";
++    rev = "eb9adaf2b5fd65aac1e83d6544b9076aae6af5b7";
++    sha256 = "01if8y93wa0mwbkzkzx2v1vqh47zlz4k1dysl6yh5rmppd1psknz";
++  };
++
++  buildInputs = [ makeWrapper ];
++
++  dontBuild = true;
++
++  installPhase = ''
++    mkdir -p $out/bin
++    cp -a git-sync $out/bin/git-sync
++  '';
++
++  wrapperPath = with stdenv.lib; makeBinPath [
++    coreutils
++    git
++    gnugrep
++    gnused
++  ];
++
++  fixupPhase = ''
++    patchShebangs $out/bin
++
++    wrapProgram $out/bin/git-sync \
++      --prefix PATH : "${wrapperPath}"
++  '';
++
++  meta = {
++    description = "A script to automatically synchronize a git repository";
++    homepage = https://github.com/simonthum/git-sync;
++    maintainers = with stdenv.lib.maintainers; [ imalison ];
++    license = stdenv.lib.licenses.cc0;
++    platforms = with stdenv.lib.platforms; unix;
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/git/default.nix b/pkgs/applications/version-management/git-and-tools/git/default.nix
+index b095ffa..b946d0b 100644
+--- a/pkgs/applications/version-management/git-and-tools/git/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git/default.nix
+@@ -1,17 +1,27 @@
+-{ fetchurl, stdenv, curl, openssl, zlib, expat, perl, python, gettext, cpio
+-, gnugrep, gzip, openssh
++{ fetchurl, stdenv, buildPackages
++, curl, openssl, zlib, expat, perl, python, gettext, cpio
++, gnugrep, gnused, gawk, coreutils # needed at runtime by git-filter-branch etc
++, openssh, pcre2
+ , asciidoc, texinfo, xmlto, docbook2x, docbook_xsl, docbook_xml_dtd_45
+ , libxslt, tcl, tk, makeWrapper, libiconv
+-, svnSupport, subversionClient, perlLibs, smtpPerlLibs, gitwebPerlLibs
++, svnSupport, subversionClient, perlLibs, smtpPerlLibs
++, perlSupport ? true
+ , guiSupport
+ , withManual ? true
+ , pythonSupport ? true
++, withpcre2 ? true
+ , sendEmailSupport
++, darwin
++, withLibsecret ? false
++, pkgconfig, glib, libsecret
+ }:
+ 
++assert sendEmailSupport -> perlSupport;
++assert svnSupport -> perlSupport;
++
+ let
+-  version = "2.10.0";
+-  svn = subversionClient.override { perlBindings = true; };
++  version = "2.19.1";
++  svn = subversionClient.override { perlBindings = perlSupport; };
+ in
+ 
+ stdenv.mkDerivation {
+@@ -19,16 +29,23 @@ stdenv.mkDerivation {
+ 
+   src = fetchurl {
+     url = "https://www.kernel.org/pub/software/scm/git/git-${version}.tar.xz";
+-    sha256 = "1rr9zyafb6q3wixyjar6cc7z7vdh1dqa4b5irz3gz1df02n68cy7";
++    sha256 = "1dfv43lmdnxz42504jc89sihbv1d4d6kgqcz3c5ji140kfm5cl1l";
+   };
+ 
++  outputs = [ "out" ] ++ stdenv.lib.optional perlSupport "gitweb";
++
+   hardeningDisable = [ "format" ];
+ 
++  enableParallelBuilding = true;
++
++  ## Patch
++
+   patches = [
+     ./docbook2texi.patch
+-    ./symlinks-in-bin.patch
+     ./git-sh-i18n.patch
+     ./ssh-path.patch
++    ./git-send-email-honor-PATH.patch
++    ./installCheck-path.patch
+   ];
+ 
+   postPatch = ''
+@@ -36,32 +53,73 @@ stdenv.mkDerivation {
+       substituteInPlace "$x" \
+         --subst-var-by ssh "${openssh}/bin/ssh"
+     done
++
++    # Fix references to gettext introduced by ./git-sh-i18n.patch
++    substituteInPlace git-sh-i18n.sh \
++        --subst-var-by gettext ${gettext}
+   '';
+ 
+-  buildInputs = [curl openssl zlib expat gettext cpio makeWrapper libiconv perl]
++  nativeBuildInputs = [ gettext perl ]
+     ++ stdenv.lib.optionals withManual [ asciidoc texinfo xmlto docbook2x
+-         docbook_xsl docbook_xml_dtd_45 libxslt ]
+-    ++ stdenv.lib.optionals guiSupport [tcl tk];
++         docbook_xsl docbook_xml_dtd_45 libxslt ];
++  buildInputs = [curl openssl zlib expat cpio makeWrapper libiconv]
++    ++ stdenv.lib.optionals perlSupport [ perl ]
++    ++ stdenv.lib.optionals guiSupport [tcl tk]
++    ++ stdenv.lib.optionals withpcre2 [ pcre2 ]
++    ++ stdenv.lib.optionals stdenv.isDarwin [ darwin.Security ]
++    ++ stdenv.lib.optionals withLibsecret [ pkgconfig glib libsecret ];
+ 
+   # required to support pthread_cancel()
+   NIX_LDFLAGS = stdenv.lib.optionalString (!stdenv.cc.isClang) "-lgcc_s"
+               + stdenv.lib.optionalString (stdenv.isFreeBSD) "-lthr";
+ 
+-  # without this, git fails when trying to check for /etc/gitconfig existence
+-  propagatedSandboxProfile = stdenv.lib.sandbox.allowDirectoryList "/etc";
++  configureFlags = stdenv.lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
++    "ac_cv_fread_reads_directories=yes"
++    "ac_cv_snprintf_returns_bogus=no"
++  ];
++
++  preBuild = ''
++    makeFlagsArray+=( perllibdir=$out/$(perl -MConfig -wle 'print substr $Config{installsitelib}, 1 + length $Config{siteprefixexp}') )
++  '';
++
++  makeFlags = [
++    "prefix=\${out}"
++    "SHELL_PATH=${stdenv.shell}"
++  ]
++  ++ (if perlSupport then ["PERL_PATH=${perl}/bin/perl"] else ["NO_PERL=1"])
++  ++ (if pythonSupport then ["PYTHON_PATH=${python}/bin/python"] else ["NO_PYTHON=1"])
++  ++ stdenv.lib.optionals stdenv.isSunOS ["INSTALL=install" "NO_INET_NTOP=" "NO_INET_PTON="]
++  ++ (if stdenv.isDarwin then ["NO_APPLE_COMMON_CRYPTO=1"] else ["sysconfdir=/etc/"])
++  ++ stdenv.lib.optionals stdenv.hostPlatform.isMusl ["NO_SYS_POLL_H=1" "NO_GETTEXT=YesPlease"]
++  ++ stdenv.lib.optional withpcre2 "USE_LIBPCRE2=1";
++
++
++  postBuild = ''
++    make -C contrib/subtree
++  '' + (stdenv.lib.optionalString stdenv.isDarwin ''
++    make -C contrib/credential/osxkeychain
++  '') + (stdenv.lib.optionalString withLibsecret ''
++    make -C contrib/credential/libsecret
++  '');
+ 
+-  makeFlags = "prefix=\${out} sysconfdir=/etc/ PERL_PATH=${perl}/bin/perl SHELL_PATH=${stdenv.shell} "
+-      + (if pythonSupport then "PYTHON_PATH=${python}/bin/python" else "NO_PYTHON=1")
+-      + (if stdenv.isSunOS then " INSTALL=install NO_INET_NTOP= NO_INET_PTON=" else "")
+-      + (if stdenv.isDarwin then " NO_APPLE_COMMON_CRYPTO=1" else "");
+ 
++  ## Install
+ 
+-  # FIXME: "make check" requires Sparse; the Makefile must be tweaked
+-  # so that `SPARSE_FLAGS' corresponds to the current architecture...
+-  #doCheck = true;
++  # WARNING: Do not `rm` or `mv` files from the source tree; use `cp` instead.
++  #          We need many of these files during the installCheckPhase.
+ 
+   installFlags = "NO_INSTALL_HARDLINKS=1";
+ 
++  preInstall = (stdenv.lib.optionalString stdenv.isDarwin ''
++    mkdir -p $out/bin
++    ln -s $out/share/git/contrib/credential/osxkeychain/git-credential-osxkeychain $out/bin/
++    rm -f $PWD/contrib/credential/osxkeychain/git-credential-osxkeychain.o
++  '') + (stdenv.lib.optionalString withLibsecret ''
++    mkdir -p $out/bin
++    ln -s $out/share/git/contrib/credential/libsecret/git-credential-libsecret $out/bin/
++    rm -f $PWD/contrib/credential/libsecret/git-credential-libsecret.o
++  '');
++
+   postInstall =
+     ''
+       notSupported() {
+@@ -69,15 +127,13 @@ stdenv.mkDerivation {
+       }
+ 
+       # Install git-subtree.
+-      pushd contrib/subtree
+-      make
+-      make install ${stdenv.lib.optionalString withManual "install-doc"}
+-      popd
++      make -C contrib/subtree install ${stdenv.lib.optionalString withManual "install-doc"}
+       rm -rf contrib/subtree
+ 
+       # Install contrib stuff.
+       mkdir -p $out/share/git
+-      mv contrib $out/share/git/
++      cp -a contrib $out/share/git/
++      ln -s "$out/share/git/contrib/credential/netrc/git-credential-netrc" $out/bin/
+       mkdir -p $out/share/emacs/site-lisp
+       ln -s "$out/share/git/contrib/emacs/"*.el $out/share/emacs/site-lisp/
+       mkdir -p $out/etc/bash_completion.d
+@@ -89,29 +145,49 @@ stdenv.mkDerivation {
+           --replace ' grep' ' ${gnugrep}/bin/grep' \
+           --replace ' egrep' ' ${gnugrep}/bin/egrep'
+ 
+-      # Fix references to the perl binary. Note that the tab character
+-      # in the patterns is important.
+-      sed -i -e 's|	perl -ne|	${perl}/bin/perl -ne|g' \
+-             -e 's|	perl -e|	${perl}/bin/perl -e|g' \
+-             $out/libexec/git-core/{git-am,git-submodule}
+-
+-      # Fix references to gettext.
+-      substituteInPlace $out/libexec/git-core/git-sh-i18n \
+-          --subst-var-by gettext ${gettext}
+-
+-      # gzip (and optionally bzip2, xz, zip) are runtime dependencies for
+-      # gitweb.cgi, need to patch so that it's found
+-      sed -i -e "s|'compressor' => \['gzip'|'compressor' => ['${gzip}/bin/gzip'|" \
+-          $out/share/gitweb/gitweb.cgi
+-      # Give access to CGI.pm and friends (was removed from perl core in 5.22)
+-      for p in ${stdenv.lib.concatStringsSep " " gitwebPerlLibs}; do
+-          sed -i -e "/use CGI /i use lib \"$p/lib/perl5/site_perl\";" \
+-              "$out/share/gitweb/gitweb.cgi"
+-      done
++      # Fix references to the perl, sed, awk and various coreutil binaries used by
++      # shell scripts that git calls (e.g. filter-branch)
++      SCRIPT="$(cat <<'EOS'
++        BEGIN{
++          @a=(
++            '${gnugrep}/bin/grep', '${gnused}/bin/sed', '${gawk}/bin/awk',
++            '${coreutils}/bin/cut', '${coreutils}/bin/basename', '${coreutils}/bin/dirname',
++            '${coreutils}/bin/wc', '${coreutils}/bin/tr'
++            ${stdenv.lib.optionalString perlSupport ", '${perl}/bin/perl'"}
++          );
++        }
++        foreach $c (@a) {
++          $n=(split("/", $c))[-1];
++          s|(?<=[^#][^/.-])\b''${n}(?=\s)|''${c}|g
++        }
++      EOS
++      )"
++      perl -0777 -i -pe "$SCRIPT" \
++        $out/libexec/git-core/git-{sh-setup,filter-branch,merge-octopus,mergetool,quiltimport,request-pull,stash,submodule,subtree,web--browse}
++
+ 
+       # Also put git-http-backend into $PATH, so that we can use smart
+       # HTTP(s) transports for pushing
+       ln -s $out/libexec/git-core/git-http-backend $out/bin/git-http-backend
++    '' + stdenv.lib.optionalString perlSupport ''
++      # put in separate package for simpler maintenance
++      mv $out/share/gitweb $gitweb/
++
++      # wrap perl commands
++      gitperllib=$out/lib/perl5/site_perl
++      for i in ${builtins.toString perlLibs}; do
++        gitperllib=$gitperllib:$i/lib/perl5/site_perl
++      done
++      wrapProgram $out/libexec/git-core/git-cvsimport \
++                  --set GITPERLLIB "$gitperllib"
++      wrapProgram $out/libexec/git-core/git-add--interactive \
++                  --set GITPERLLIB "$gitperllib"
++      wrapProgram $out/libexec/git-core/git-archimport \
++                  --set GITPERLLIB "$gitperllib"
++      wrapProgram $out/libexec/git-core/git-instaweb \
++                  --set GITPERLLIB "$gitperllib"
++      wrapProgram $out/libexec/git-core/git-cvsexportcommit \
++                  --set GITPERLLIB "$gitperllib"
+     ''
+ 
+    + (if svnSupport then
+@@ -141,7 +217,7 @@ stdenv.mkDerivation {
+        '')
+ 
+    + stdenv.lib.optionalString withManual ''# Install man pages and Info manual
+-       make -j $NIX_BUILD_CORES -l $NIX_BUILD_CORES PERL_PATH="${perl}/bin/perl" cmd-list.made install install-info \
++       make -j $NIX_BUILD_CORES -l $NIX_BUILD_CORES PERL_PATH="${buildPackages.perl}/bin/perl" cmd-list.made install install-info \
+          -C Documentation ''
+ 
+    + (if guiSupport then ''
+@@ -156,12 +232,82 @@ stdenv.mkDerivation {
+        for prog in bin/gitk libexec/git-core/git-gui; do
+          notSupported "$out/$prog"
+        done
+-     '');
++     '')
++   + stdenv.lib.optionalString stdenv.isDarwin ''
++    # enable git-credential-osxkeychain by default if darwin
++    cat > $out/etc/gitconfig << EOF
++[credential]
++	helper = osxkeychain
++EOF
++  '';
++
++
++  ## InstallCheck
++
++  doCheck = false;
++  doInstallCheck = true;
++
++  installCheckTarget = "test";
++
++  # see also installCheckFlagsArray
++  installCheckFlags = "DEFAULT_TEST_TARGET=prove";
++
++  preInstallCheck = ''
++    installCheckFlagsArray+=(
++      GIT_PROVE_OPTS="--jobs $NIX_BUILD_CORES --failures --state=failed,save"
++      GIT_TEST_INSTALLED=$out/bin
++      ${stdenv.lib.optionalString (!svnSupport) "NO_SVN_TESTS=y"}
++    )
++
++    function disable_test {
++      local test=$1 pattern=$2
++      if [ $# -eq 1 ]; then
++        mv t/{,skip-}$test.sh || true
++      else
++        sed -i t/$test.sh \
++          -e "/^ *test_expect_.*$pattern/,/^ *' *\$/{s/^/#/}"
++      fi
++    }
++
++    # Shared permissions are forbidden in sandbox builds.
++    disable_test t0001-init shared
++    disable_test t1301-shared-repo
++
++    # Our patched gettext never fallbacks
++    disable_test t0201-gettext-fallbacks
++
++    ${stdenv.lib.optionalString (!sendEmailSupport) ''
++      # Disable sendmail tests
++      disable_test t9001-send-email
++    ''}
++
++    # XXX: I failed to understand why this one fails.
++    # Could someone try to re-enable it on the next release ?
++    # Tested to fail: 2.18.0 and 2.19.0
++    disable_test t1700-split-index "null sha1"
++
++    # Tested to fail: 2.18.0
++    disable_test t7005-editor "editor with a space"
++    disable_test t7005-editor "core.editor with a space"
++
++    # Tested to fail: 2.18.0
++    disable_test t9902-completion "sourcing the completion script clears cached --options"
++
++    # As of 2.19.0, t5562 refers to #!/usr/bin/perl
++    patchShebangs t/t5562/invoke-with-content-length.pl
++  '' + stdenv.lib.optionalString stdenv.hostPlatform.isMusl ''
++    # Test fails (as of 2.17.0, musl 1.1.19)
++    disable_test t3900-i18n-commit
++    # Fails largely due to assumptions about BOM
++    # Tested to fail: 2.18.0
++    disable_test t0028-working-tree-encoding
++  '';
++
++  stripDebugList = [ "lib" "libexec" "bin" "share/git/contrib/credential/libsecret" ];
+ 
+-  enableParallelBuilding = true;
+ 
+   meta = {
+-    homepage = http://git-scm.com/;
++    homepage = https://git-scm.com/;
+     description = "Distributed version control system";
+     license = stdenv.lib.licenses.gpl2;
+ 
+diff --git a/pkgs/applications/version-management/git-and-tools/git/docbook2texi.patch b/pkgs/applications/version-management/git-and-tools/git/docbook2texi.patch
+index bf36b2d..ab5bb3c 100644
+--- a/pkgs/applications/version-management/git-and-tools/git/docbook2texi.patch
++++ b/pkgs/applications/version-management/git-and-tools/git/docbook2texi.patch
+@@ -2,19 +2,19 @@ This patch does two things: (1) use the right name for `docbook2texi',
+ and (2) make sure `gitman.info' isn't produced since it's broken (duplicate
+ node names).
+ 
+-diff -ru git-1.8.4-orig/Documentation/Makefile git-1.8.4/Documentation/Makefile
+---- git-1.8.4-orig/Documentation/Makefile	2013-08-23 21:38:43.000000000 +0200
+-+++ git-1.8.4/Documentation/Makefile	2013-09-30 14:48:51.532890378 +0200
+-@@ -101,7 +101,7 @@
++diff --git a/Documentation/Makefile b/Documentation/Makefile
++--- a/Documentation/Makefile
+++++ b/Documentation/Makefile
++@@ -122,7 +122,7 @@
+  
+  MAKEINFO = makeinfo
+  INSTALL_INFO = install-info
+ -DOCBOOK2X_TEXI = docbook2x-texi
+ +DOCBOOK2X_TEXI = docbook2texi
+  DBLATEX = dblatex
+- ifndef PERL_PATH
+- 	PERL_PATH = /usr/bin/perl
+-@@ -205,7 +205,7 @@
++ ASCIIDOC_DBLATEX_DIR = /etc/asciidoc/dblatex
++ DBLATEX_COMMON = -p $(ASCIIDOC_DBLATEX_DIR)/asciidoc-dblatex.xsl -s $(ASCIIDOC_DBLATEX_DIR)/asciidoc-dblatex.sty
++@@ -240,7 +240,7 @@
+  man5: $(DOC_MAN5)
+  man7: $(DOC_MAN7)
+  
+@@ -23,7 +23,7 @@ diff -ru git-1.8.4-orig/Documentation/Makefile git-1.8.4/Documentation/Makefile
+  
+  pdf: user-manual.pdf
+  
+-@@ -221,10 +221,9 @@
++@@ -256,10 +256,9 @@
+  
+  install-info: info
+  	$(INSTALL) -d -m 755 $(DESTDIR)$(infodir)
+diff --git a/pkgs/applications/version-management/git-and-tools/git/git-send-email-honor-PATH.patch b/pkgs/applications/version-management/git-and-tools/git/git-send-email-honor-PATH.patch
+new file mode 100644
+index 0000000..6b93d06
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git/git-send-email-honor-PATH.patch
+@@ -0,0 +1,26 @@
++diff --git a/Documentation/git-send-email.txt b/Documentation/git-send-email.txt
++--- a/Documentation/git-send-email.txt
+++++ b/Documentation/git-send-email.txt
++@@ -208,8 +208,7 @@ a password is obtained using 'git-credential'.
++ 	specify a full pathname of a sendmail-like program instead;
++ 	the program must support the `-i` option.  Default value can
++ 	be specified by the `sendemail.smtpServer` configuration
++-	option; the built-in default is to search for `sendmail` in
++-	`/usr/sbin`, `/usr/lib` and $PATH if such program is
+++	option; the built-in default is to search in $PATH if such program is
++ 	available, falling back to `localhost` otherwise.
++
++ --smtp-server-port=<port>::
++diff --git a/git-send-email.perl b/git-send-email.perl
++--- a/git-send-email.perl
+++++ b/git-send-email.perl
++@@ -944,8 +944,7 @@ if (defined $reply_to) {
++ }
++
++ if (!defined $smtp_server) {
++-	my @sendmail_paths = qw( /usr/sbin/sendmail /usr/lib/sendmail );
++-	push @sendmail_paths, map {"$_/sendmail"} split /:/, $ENV{PATH};
+++	my @sendmail_paths = map {"$_/sendmail"} split /:/, $ENV{PATH};
++ 	foreach (@sendmail_paths) {
++ 		if (-x $_) {
++ 			$smtp_server = $_;
+diff --git a/pkgs/applications/version-management/git-and-tools/git/git-sh-i18n.patch b/pkgs/applications/version-management/git-and-tools/git/git-sh-i18n.patch
+index 97f5006..216c0e5 100644
+--- a/pkgs/applications/version-management/git-and-tools/git/git-sh-i18n.patch
++++ b/pkgs/applications/version-management/git-and-tools/git/git-sh-i18n.patch
+@@ -6,15 +6,15 @@
+ 
+ -# First decide what scheme to use...
+ -GIT_INTERNAL_GETTEXT_SH_SCHEME=fallthrough
+--if test -n "@@USE_GETTEXT_SCHEME@@"
++-if test -n "$GIT_GETTEXT_POISON"
++-then
++-	GIT_INTERNAL_GETTEXT_SH_SCHEME=poison
++-elif test -n "@@USE_GETTEXT_SCHEME@@"
+ -then
+ -	GIT_INTERNAL_GETTEXT_SH_SCHEME="@@USE_GETTEXT_SCHEME@@"
+ -elif test -n "$GIT_INTERNAL_GETTEXT_TEST_FALLBACKS"
+ -then
+ -	: no probing necessary
+--elif test -n "$GIT_GETTEXT_POISON"
+--then
+--	GIT_INTERNAL_GETTEXT_SH_SCHEME=poison
+ -elif type gettext.sh >/dev/null 2>&1
+ -then
+ -	# GNU libintl's gettext.sh
+diff --git a/pkgs/applications/version-management/git-and-tools/git/installCheck-path.patch b/pkgs/applications/version-management/git-and-tools/git/installCheck-path.patch
+new file mode 100644
+index 0000000..8c68fb9
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/git/installCheck-path.patch
+@@ -0,0 +1,12 @@
++diff --git a/t/test-lib.sh b/t/test-lib.sh
++--- a/t/test-lib.sh
+++++ b/t/test-lib.sh
++@@ -923,7 +923,7 @@
++ then
++ 	GIT_EXEC_PATH=$($GIT_TEST_INSTALLED/git --exec-path)  ||
++ 	error "Cannot run git from $GIT_TEST_INSTALLED."
++-	PATH=$GIT_TEST_INSTALLED:$GIT_BUILD_DIR:$PATH
+++	PATH=$GIT_TEST_INSTALLED:$GIT_BUILD_DIR/t/helper:$GIT_BUILD_DIR:$PATH
++ 	GIT_EXEC_PATH=${GIT_TEST_EXEC_PATH:-$GIT_EXEC_PATH}
++ else # normal case, use ../bin-wrappers only unless $with_dashes:
++ 	git_bin_dir="$GIT_BUILD_DIR/bin-wrappers"
+diff --git a/pkgs/applications/version-management/git-and-tools/git/ssh-path.patch b/pkgs/applications/version-management/git-and-tools/git/ssh-path.patch
+index 26db3d8..addb1db 100644
+--- a/pkgs/applications/version-management/git-and-tools/git/ssh-path.patch
++++ b/pkgs/applications/version-management/git-and-tools/git/ssh-path.patch
+@@ -1,18 +1,18 @@
+ diff --git a/connect.c b/connect.c
+-index fd7ffe1..20cd992 100644
++index c3a014c5b..fbca3262b 100644
+ --- a/connect.c
+ +++ b/connect.c
+-@@ -768,7 +768,7 @@ struct child_process *git_connect(int fd[2], const char *url,
+- 
+- 				ssh = getenv("GIT_SSH");
+- 				if (!ssh)
+--					ssh = "ssh";
+-+					ssh = "@ssh@";
+- 
+- 				ssh_dup = xstrdup(ssh);
+- 				base = basename(ssh_dup);
++@@ -1010,7 +1010,7 @@ static void fill_ssh_args(struct child_process *conn, const char *ssh_host,
++
++ 		ssh = getenv("GIT_SSH");
++ 		if (!ssh)
++-			ssh = "ssh";
+++			ssh = "@ssh@";
++ 		variant = determine_ssh_variant(ssh, 0);
++ 	}
++
+ diff --git a/git-gui/lib/remote_add.tcl b/git-gui/lib/remote_add.tcl
+-index 50029d0..17b9594 100644
++index 480a6b30d..781720424 100644
+ --- a/git-gui/lib/remote_add.tcl
+ +++ b/git-gui/lib/remote_add.tcl
+ @@ -139,7 +139,7 @@ method _add {} {
+diff --git a/pkgs/applications/version-management/git-and-tools/git/symlinks-in-bin.patch b/pkgs/applications/version-management/git-and-tools/git/symlinks-in-bin.patch
+deleted file mode 100644
+index 29d537d..0000000
+--- a/pkgs/applications/version-management/git-and-tools/git/symlinks-in-bin.patch
++++ /dev/null
+@@ -1,13 +0,0 @@
+-diff -ru -x '*~' git-1.8.2.1-orig/Makefile git-1.8.2.1/Makefile
+---- git-1.8.2.1-orig/Makefile	2013-04-08 00:52:04.000000000 +0200
+-+++ git-1.8.2.1/Makefile	2013-04-22 15:46:42.906026940 +0200
+-@@ -2319,8 +2319,7 @@
+- 	{ test "$$bindir/" = "$$execdir/" || \
+- 	  for p in git$X $(filter $(install_bindir_programs),$(ALL_PROGRAMS)); do \
+- 		$(RM) "$$execdir/$$p" && \
+--		test -z "$(NO_INSTALL_HARDLINKS)$(NO_CROSS_DIRECTORY_HARDLINKS)" && \
+--		ln "$$bindir/$$p" "$$execdir/$$p" 2>/dev/null || \
+-+		ln -s "$$bindir/$$p" "$$execdir/$$p" 2>/dev/null || \
+- 		cp "$$bindir/$$p" "$$execdir/$$p" || exit; \
+- 	  done; \
+- 	} && \
+diff --git a/pkgs/applications/version-management/git-and-tools/git2cl/default.nix b/pkgs/applications/version-management/git-and-tools/git2cl/default.nix
+index afb01ff..044800f 100644
+--- a/pkgs/applications/version-management/git-and-tools/git2cl/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/git2cl/default.nix
+@@ -16,7 +16,7 @@ stdenv.mkDerivation {
+   '';
+ 
+   meta = {
+-    homepage = "http://josefsson.org/git2cl/";
++    homepage = http://josefsson.org/git2cl/;
+     description = "Convert git logs to GNU style ChangeLog files";
+     platforms = stdenv.lib.platforms.unix;
+   };
+diff --git a/pkgs/applications/version-management/git-and-tools/gitflow/default.nix b/pkgs/applications/version-management/git-and-tools/gitflow/default.nix
+index 3d411a1..698de48 100644
+--- a/pkgs/applications/version-management/git-and-tools/gitflow/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/gitflow/default.nix
+@@ -1,21 +1,31 @@
+-{ stdenv, fetchFromGitHub }:
++{ pkgs, stdenv, fetchFromGitHub }:
++
++with pkgs.lib;
+ 
+ stdenv.mkDerivation rec {
+   pname = "gitflow";
+-  version = "1.10.2";
++  version = "1.11.0";
+   name = "${pname}-${version}";
+ 
+   src = fetchFromGitHub {
+     owner = "petervanderdoes";
+     repo = pname;
+     rev = version;
+-    sha256 = "1i8bwi83qcqvi8zrkjn4mp2v8v7y11fd520wpg2jgy5hqyz34chg";
++    sha256 = "0zk53g0wd5n1zlhkwlfp124i6agx8kl0cwvy0dia3jh1p51vsc1q";
+   };
+ 
++  buildInputs = [ pkgs.makeWrapper ];
++
+   preBuild = ''
+     makeFlagsArray+=(prefix="$out")
+   '';
+ 
++  postInstall = ''
++    wrapProgram $out/bin/git-flow \
++      --set FLAGS_GETOPT_CMD ${pkgs.getopt}/bin/getopt \
++      --suffix PATH : ${pkgs.git}/bin
++  '';
++
+   meta = with stdenv.lib; {
+     homepage = https://github.com/petervanderdoes/gitflow;
+     description = "Extend git with the Gitflow branching model";
+diff --git a/pkgs/applications/version-management/git-and-tools/gitweb/default.nix b/pkgs/applications/version-management/git-and-tools/gitweb/default.nix
+new file mode 100644
+index 0000000..ce251e1
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/gitweb/default.nix
+@@ -0,0 +1,37 @@
++{ stdenv, git, gzip, perlPackages, fetchFromGitHub
++, gitwebTheme ? false }:
++
++let
++  gitwebPerlLibs = with perlPackages; [ CGI HTMLParser CGIFast FCGI FCGIProcManager HTMLTagCloud ];
++  gitwebThemeSrc = fetchFromGitHub {
++    owner = "kogakure";
++    repo = "gitweb-theme";
++    rev = "049b88e664a359f8ec25dc6f531b7e2aa60dd1a2";
++    sha256 = "0wksqma41z36dbv6w6iplkjfdm0ha3njp222fakyh4lismajr71p";
++  };
++in stdenv.mkDerivation {
++  name = "gitweb-${stdenv.lib.getVersion git}";
++
++  src = git.gitweb;
++
++  installPhase = ''
++      mkdir $out
++      mv * $out
++
++      # gzip (and optionally bzip2, xz, zip) are runtime dependencies for
++      # gitweb.cgi, need to patch so that it's found
++      sed -i -e "s|'compressor' => \['gzip'|'compressor' => ['${gzip}/bin/gzip'|" \
++          $out/gitweb.cgi
++      # Give access to CGI.pm and friends (was removed from perl core in 5.22)
++      for p in ${stdenv.lib.concatStringsSep " " gitwebPerlLibs}; do
++          sed -i -e "/use CGI /i use lib \"$p/lib/perl5/site_perl\";" \
++              "$out/gitweb.cgi"
++      done
++
++      ${stdenv.lib.optionalString gitwebTheme "cp ${gitwebThemeSrc}/* $out/static"}
++  '';
++
++  meta = git.meta // {
++    maintainers = with stdenv.lib.maintainers; [ gnidorah ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/grv/default.nix b/pkgs/applications/version-management/git-and-tools/grv/default.nix
+new file mode 100644
+index 0000000..962ddf9
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/grv/default.nix
+@@ -0,0 +1,30 @@
++{ stdenv, buildGo19Package, fetchFromGitHub, curl, libgit2_0_27, ncurses, pkgconfig, readline }:
++let
++  version = "0.2.0";
++in
++buildGo19Package {
++  name = "grv-${version}";
++
++  buildInputs = [ ncurses readline curl libgit2_0_27 ];
++  nativeBuildInputs = [ pkgconfig ];
++
++  goPackagePath = "github.com/rgburke/grv";
++
++  src = fetchFromGitHub {
++    owner = "rgburke";
++    repo = "grv";
++    rev = "v${version}";
++    sha256 = "0hlqw6b51jglqzzjgazncckpgarp25ghshl0lxv1mff80jg8wd1a";
++    fetchSubmodules = true;
++  };
++
++  buildFlagsArray = [ "-ldflags=" "-X main.version=${version}" ];
++
++  meta = with stdenv.lib; {
++    description = "GRV is a terminal interface for viewing Git repositories";
++    homepage = https://github.com/rgburke/grv;
++    license = licenses.gpl3;
++    platforms = platforms.unix;
++    maintainers = with maintainers; [ andir ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/hub/default.nix b/pkgs/applications/version-management/git-and-tools/hub/default.nix
+index a1ae5e7..113d7f7 100644
+--- a/pkgs/applications/version-management/git-and-tools/hub/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/hub/default.nix
+@@ -1,41 +1,35 @@
+-{ stdenv, fetchgit, go, Security }:
++{ stdenv, buildGoPackage, fetchFromGitHub, ronn, ruby, groff, Security, utillinux }:
+ 
+-stdenv.mkDerivation rec {
++buildGoPackage rec {
+   name = "hub-${version}";
+-  version = "2.2.3";
+-
+-  src = fetchgit {
+-    url = https://github.com/github/hub.git;
+-    rev = "refs/tags/v${version}";
+-    sha256 = "1vswkx4lm6x4s04453qkmv970gjn79ma39fmdg8mnzy7lh2swws6";
+-  };
++  version = "2.5.1";
+ 
++  goPackagePath = "github.com/github/hub";
+ 
+-  buildInputs = [ go ] ++ stdenv.lib.optional stdenv.isDarwin Security;
++  src = fetchFromGitHub {
++    owner = "github";
++    repo = "hub";
++    rev = "v${version}";
++    sha256 = "0a5i351v998vdwf883qhh39c15x56db01fr9hscz4ha7r9550pqg";
++  };
+ 
+-  phases = [ "unpackPhase" "buildPhase" "installPhase" ];
++  buildInputs = [ groff ronn ruby utillinux ] ++
++    stdenv.lib.optional stdenv.isDarwin Security;
+ 
+-  buildPhase = ''
++  postPatch = ''
++    mkdir bin
++    ln -s ${ronn}/bin/ronn bin/ronn
+     patchShebangs .
+-    sh script/build
+   '';
+ 
+-  installPhase = ''
+-    mkdir -p "$out/bin"
+-    cp hub "$out/bin/"
+-
+-    mkdir -p "$out/share/man/man1"
+-    cp "man/hub.1" "$out/share/man/man1/"
+-
+-    mkdir -p "$out/share/zsh/site-functions"
+-    cp "etc/hub.zsh_completion" "$out/share/zsh/site-functions/_hub"
+-
+-# Broken: https://github.com/github/hub/issues/592
+-#    mkdir -p "$out/etc/bash_completion.d"
+-#    cp "etc/hub.bash_completion.sh" "$out/etc/bash_completion.d/"
++  postInstall = ''
++    cd go/src/${goPackagePath}
++    install -D etc/hub.zsh_completion "$bin/share/zsh/site-functions/_hub"
++    install -D etc/hub.bash_completion.sh "$bin/etc/bash_completion.d/hub.bash_completion.sh"
++    install -D etc/hub.fish_completion  "$bin/share/fish/vendor_completions.d/hub.fish"
+ 
+-# Should we also install provided git-hooks?
+-# ?
++    make man-pages
++    cp -r share/man $bin/share/man
+   '';
+ 
+   meta = with stdenv.lib; {
+diff --git a/pkgs/applications/version-management/git-and-tools/pass-git-helper/default.nix b/pkgs/applications/version-management/git-and-tools/pass-git-helper/default.nix
+new file mode 100644
+index 0000000..d0d60b1
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/pass-git-helper/default.nix
+@@ -0,0 +1,22 @@
++{ stdenv, buildPythonApplication, fetchFromGitHub, pyxdg }:
++
++buildPythonApplication rec {
++  pname   = "pass-git-helper";
++  version = "0.4";
++
++  src = fetchFromGitHub {
++    owner  = "languitar";
++    repo   = "pass-git-helper";
++    rev    = "${version}";
++    sha256 = "1zccbmq5l6asl9qm1f90vg9467y3spmv3ayrw07qizrj43yfd9ap";
++  };
++
++  propagatedBuildInputs = [ pyxdg ];
++
++  meta = with stdenv.lib; {
++    homepage = "https://github.com/languitar/pass-git-helper";
++    description = "A git credential helper interfacing with pass, the standard unix password manager";
++    license = licenses.gpl3Plus;
++    maintainers = with maintainers; [ vanzef ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/pre-commit/default.nix b/pkgs/applications/version-management/git-and-tools/pre-commit/default.nix
+index 013e4dc..331b020 100644
+--- a/pkgs/applications/version-management/git-and-tools/pre-commit/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/pre-commit/default.nix
+@@ -1,12 +1,11 @@
+-{ stdenv, pythonPackages, fetchurl }:
+-with pythonPackages; buildPythonApplication rec {
++{ stdenv, python3Packages }:
++with python3Packages; buildPythonApplication rec {
+   pname = "pre_commit";
+-  version = "1.10.4";
+-  name = "${pname}-${version}";
++  version = "1.11.1";
+ 
+-  src = fetchurl {
+-    url = "mirror://pypi/p/${pname}/${name}.tar.gz";
+-    sha256 = "1kn8h9k9ca330m5n7r4cvxp679y3sc95m1x23a3qhzgam09n7jwr";
++  src = fetchPypi {
++    inherit pname version;
++    sha256 = "1kjrq8z78b6aqhyyw07dlwf6cqls88kik6f5l07hs71fj5ddvs9w";
+   };
+ 
+   propagatedBuildInputs = [
+@@ -15,7 +14,6 @@ with pythonPackages; buildPythonApplication rec {
+     cfgv
+     identify
+     nodeenv
+-    pyyaml
+     six
+     toml
+     virtualenv
+diff --git a/pkgs/applications/version-management/git-and-tools/qgit/default.nix b/pkgs/applications/version-management/git-and-tools/qgit/default.nix
+index b8d001e..0a88fbd 100644
+--- a/pkgs/applications/version-management/git-and-tools/qgit/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/qgit/default.nix
+@@ -1,27 +1,26 @@
+-{ stdenv, fetchurl, qt4, qmake4Hook, libXext, libX11 }:
++{ stdenv, fetchFromGitHub, cmake, qtbase }:
+ 
+ stdenv.mkDerivation rec {
+-  name = "qgit-2.5";
++  name = "qgit-2.8";
+ 
+-  src = fetchurl {
+-    url = "http://libre.tibirna.org/attachments/download/9/${name}.tar.gz";
+-    sha256 = "25f1ca2860d840d87b9919d34fc3a1b05d4163671ed87d29c3e4a8a09e0b2499";
++  src = fetchFromGitHub {
++    owner = "tibirna";
++    repo = "qgit";
++    rev = name;
++    sha256 = "01l6mz2f333x3zbfr68mizwpsh6sdsnadcavpasidiych1m5ry8f";
+   };
+ 
+-  hardeningDisable = [ "format" ];
++  buildInputs = [ qtbase ];
+ 
+-  buildInputs = [ qt4 libXext libX11 ];
++  nativeBuildInputs = [ cmake ];
+ 
+-  nativeBuildInputs = [ qmake4Hook ];
++  enableParallelBuilding = true;
+ 
+-  installPhase = ''
+-    install -s -D -m 755 bin/qgit "$out/bin/qgit"
+-  '';
+-
+-  meta = {
+-    license = stdenv.lib.licenses.gpl2;
+-    homepage = "http://libre.tibirna.org/projects/qgit/wiki/QGit";
++  meta = with stdenv.lib; {
++    license = licenses.gpl2;
++    homepage = http://libre.tibirna.org/projects/qgit/wiki/QGit;
+     description = "Graphical front-end to Git";
+-    inherit (qt4.meta) platforms;
++    maintainers = with maintainers; [ peterhoeg ];
++    inherit (qtbase.meta) platforms;
+   };
+ }
+diff --git a/pkgs/applications/version-management/git-and-tools/qgit/qgit-git.nix b/pkgs/applications/version-management/git-and-tools/qgit/qgit-git.nix
+deleted file mode 100644
+index c3d3c77..0000000
+--- a/pkgs/applications/version-management/git-and-tools/qgit/qgit-git.nix
++++ /dev/null
+@@ -1,21 +0,0 @@
+-{ stdenv, fetchurl, qt4, qmake4Hook, libXext, libX11, sourceFromHead }:
+-
+-stdenv.mkDerivation rec {
+-  name = "qgit-git";
+-
+-  meta =
+-  {
+-    license = stdenv.lib.licenses.gpl2;
+-    homepage = "http://digilander.libero.it/mcostalba/";
+-    description = "Graphical front-end to Git";
+-  };
+-
+-  # REGION AUTO UPDATE:    { name="qgit"; type="git"; url="git://git.kernel.org/pub/scm/qgit/qgit4.git"; }
+-  src = sourceFromHead "qgit-a0252ed2a6a72b50e65d027adce8afa22e874277.tar.gz"
+-               (fetchurl { url = "http://mawercer.de/~nix/repos/qgit-a0252ed2a6a72b50e65d027adce8afa22e874277.tar.gz"; sha256 = "17e4727ac68b4f2e8503289d5b6a2c042547e7be133e7f8195b79e33eab61b93"; });
+-  # END
+-
+-  buildInputs = [ qt4 libXext libX11 ];
+-
+-  nativeBuildInputs = [ qmake4Hook ];
+-}
+diff --git a/pkgs/applications/version-management/git-and-tools/stgit/default.nix b/pkgs/applications/version-management/git-and-tools/stgit/default.nix
+index f572dbc..4cc1a6f 100644
+--- a/pkgs/applications/version-management/git-and-tools/stgit/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/stgit/default.nix
+@@ -1,17 +1,20 @@
+-{ stdenv, fetchurl, python, git }:
++{ stdenv, fetchFromGitHub, python2, git }:
+ 
+ let
+-  name = "stgit-0.17.1";
++  name = "stgit-${version}";
++  version = "0.18";
+ in
+ stdenv.mkDerivation {
+   inherit name;
+ 
+-  src = fetchurl {
+-    url = "http://download.gna.org/stgit/${name}.tar.gz";
+-    sha256 = "1pka0ns9x0kabn036zsf0mwmwiynckhnva51kgxsch9fqah6acyl";
++  src = fetchFromGitHub {
++    owner = "ctmarinas";
++    repo = "stgit";
++    rev = "v${version}";
++    sha256 = "0ydgg744m671nkhg7h4q2z3b9vpbc9914rbc0wcgimqfqsxkxx2y";
+   };
+ 
+-  buildInputs = [ python git ];
++  buildInputs = [ python2 git ];
+ 
+   makeFlags = "prefix=$$out";
+ 
+@@ -23,12 +26,11 @@ stdenv.mkDerivation {
+   doCheck = false;
+   checkTarget = "test";
+ 
+-  meta = {
+-    homepage = "http://procode.org/stgit/";
++  meta = with stdenv.lib; {
+     description = "A patch manager implemented on top of Git";
+-    license = "GPL";
+-
+-    maintainers = with stdenv.lib.maintainers; [ the-kenny ];
+-    platforms = stdenv.lib.platforms.unix;
++    homepage = http://procode.org/stgit/;
++    license = licenses.gpl2;
++    maintainers = with maintainers; [ the-kenny ];
++    platforms = platforms.unix;
+   };
+ }
+diff --git a/pkgs/applications/version-management/git-and-tools/subgit/default.nix b/pkgs/applications/version-management/git-and-tools/subgit/default.nix
+index 0774bbc..7b36a14 100644
+--- a/pkgs/applications/version-management/git-and-tools/subgit/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/subgit/default.nix
+@@ -1,7 +1,7 @@
+ { stdenv, fetchurl, unzip, makeWrapper, jre }:
+ 
+-stdenv.mkDerivation {
+-  name = "subgit-3.1.0";
++stdenv.mkDerivation rec {
++  name = "subgit-3.2.4";
+ 
+   meta = {
+     description = "A tool for a smooth, stress-free SVN to Git migration";
+@@ -11,7 +11,7 @@ stdenv.mkDerivation {
+     platforms = stdenv.lib.platforms.all;
+   };
+ 
+-  buildInputs = [ unzip makeWrapper ];
++  nativeBuildInputs = [ unzip makeWrapper ];
+ 
+   installPhase = ''
+     mkdir $out;
+@@ -20,7 +20,7 @@ stdenv.mkDerivation {
+   '';
+ 
+   src = fetchurl {
+-    url = http://old.subgit.com/download/subgit-3.1.0.zip;
+-    sha256 = "08qhpg6y2ziwplm0z1ghh1wfp607sw4hyb53a7qzfn759j5kcdrg";
++    url = "http://subgit.com/download/${name}.zip";
++    sha256 = "13r6hi2zk46bs3j17anfc85kszlwliv2yc16qx834b3v4w68hajw";
+   };
+-}
+\ No newline at end of file
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/svn-all-fast-export/default.nix b/pkgs/applications/version-management/git-and-tools/svn-all-fast-export/default.nix
+new file mode 100644
+index 0000000..35c6d33
+--- /dev/null
++++ b/pkgs/applications/version-management/git-and-tools/svn-all-fast-export/default.nix
+@@ -0,0 +1,32 @@
++{ stdenv, fetchFromGitHub, qmake, qtbase, qttools, subversion, apr }:
++
++let
++  version = "1.0.13";
++in
++stdenv.mkDerivation {
++  name = "svn-all-fast-export-${version}";
++
++  src = fetchFromGitHub {
++    owner = "svn-all-fast-export";
++    repo = "svn2git";
++    rev = version;
++    sha256 = "0f1qj0c4cdq46mz54wcy17g7rq1fy2q0bq3sswhr7r5a2s433x4f";
++  };
++
++  nativeBuildInputs = [ qmake qttools ];
++  buildInputs = [ apr.dev subversion.dev qtbase ];
++
++  qmakeFlags = [
++    "VERSION=${version}"
++    "APR_INCLUDE=${apr.dev}/include/apr-1"
++    "SVN_INCLUDE=${subversion.dev}/include/subversion-1"
++  ];
++
++  meta = with stdenv.lib; {
++    homepage = https://github.com/svn-all-fast-export/svn2git;
++    description = "A fast-import based converter for an svn repo to git repos";
++    license = licenses.gpl3;
++    platforms = platforms.all;
++    maintainers = [ maintainers.flokli ];
++  };
++}
+diff --git a/pkgs/applications/version-management/git-and-tools/svn2git-kde/default.nix b/pkgs/applications/version-management/git-and-tools/svn2git-kde/default.nix
+deleted file mode 100644
+index e52fdb6..0000000
+--- a/pkgs/applications/version-management/git-and-tools/svn2git-kde/default.nix
++++ /dev/null
+@@ -1,28 +0,0 @@
+-{ stdenv, fetchgit, qt4, qmake4Hook, subversion, apr }:
+-
+-stdenv.mkDerivation rec {
+-  name = "svn2git-kde-1.0.5";
+-
+-  src = fetchgit {
+-    url = http://git.gitorious.org/svn2git/svn2git.git;
+-    rev = "149d6c6e14a1724c96999328683a9264fc508264";
+-    sha256 = "0gjxhnraizlwyidn66rczwc01f6sfx4ndmsj86ssqml3p0d4sl6q";
+-  };
+-
+-  NIX_CFLAGS_COMPILE = [ "-I${apr.dev}/include/apr-1" "-I${subversion.dev}/include/subversion-1" "-DVER=\"${src.rev}\"" ];
+-
+-  patchPhase = ''
+-    sed -i 's|/bin/cat|cat|' ./src/repository.cpp
+-  '';
+-
+-  installPhase = ''
+-    mkdir -p $out/bin
+-    cp svn-all-fast-export $out/bin
+-  '';
+-
+-  buildInputs = [ subversion apr qt4 ];
+-
+-  nativeBuildInputs = [ qmake4Hook ];
+-
+-  meta.broken = true;
+-}
+diff --git a/pkgs/applications/version-management/git-and-tools/svn2git/default.nix b/pkgs/applications/version-management/git-and-tools/svn2git/default.nix
+index d613e97..d00fdd0 100644
+--- a/pkgs/applications/version-management/git-and-tools/svn2git/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/svn2git/default.nix
+@@ -1,14 +1,14 @@
+ { stdenv, fetchurl, ruby, makeWrapper, git }:
+ 
+ let
+-  version = "2.3.2";
++  version = "2.4.0";
+ in
+ stdenv.mkDerivation {
+   name = "svn2git-${version}";
+ 
+   src = fetchurl {
+     url = "https://github.com/nirvdrum/svn2git/archive/v${version}.tar.gz";
+-    sha256 = "1484mpcabqf9kr6xdpdgb1npkqav1bcah3w5lxj2djjx4bjf2g3y";
++    sha256 = "0ly2vrv6q31n0xhciwb7a1ilr5c6ndyi3bg81yfp4axiypps7l41";
+   };
+ 
+   buildInputs = [ ruby makeWrapper ];
+diff --git a/pkgs/applications/version-management/git-and-tools/tig/default.nix b/pkgs/applications/version-management/git-and-tools/tig/default.nix
+index f953bba..a407f6e 100644
+--- a/pkgs/applications/version-management/git-and-tools/tig/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/tig/default.nix
+@@ -1,20 +1,29 @@
+-{ stdenv, fetchurl, ncurses, asciidoc, xmlto, docbook_xsl, docbook_xml_dtd_45
+-, readline, makeWrapper, git, libiconv
++{ stdenv, fetchFromGitHub, ncurses, asciidoc, xmlto, docbook_xsl, docbook_xml_dtd_45
++, readline, makeWrapper, git, libiconv, autoreconfHook, findXMLCatalogs, pkgconfig
+ }:
+ 
+ stdenv.mkDerivation rec {
+-  name = "tig-2.2";
+-
+-  src = fetchurl {
+-    url = "http://jonas.nitro.dk/tig/releases/${name}.tar.gz";
+-    sha256 = "0k3m894vfkgkj7xbr0j6ph91351dl6id5f0hk2ksjp5lmg9i6llg";
++  pname = "tig";
++  version = "2.4.1";
++  name = "${pname}-${version}";
++
++  src = fetchFromGitHub {
++    owner = "jonas";
++    repo = pname;
++    rev = name;
++    sha256 = "0i26yfn2vjgsg1kdvhhv55jwzds7ih7cnad1xqvilqm83zh47ksd";
+   };
+ 
+-  buildInputs = [ ncurses asciidoc xmlto docbook_xsl readline git makeWrapper ]
++  nativeBuildInputs = [ makeWrapper autoreconfHook asciidoc xmlto docbook_xsl docbook_xml_dtd_45 findXMLCatalogs pkgconfig ];
++
++  autoreconfFlags = "-I tools -v";
++
++  buildInputs = [ ncurses readline git ]
+     ++ stdenv.lib.optionals stdenv.isDarwin [ libiconv ];
+ 
+-  preConfigure = ''
+-    export XML_CATALOG_FILES='${docbook_xsl}/xml/xsl/docbook/catalog.xml ${docbook_xml_dtd_45}/xml/dtd/docbook/catalog.xml'
++  # those files are inherently impure, we'll handle the corresponding dependencies.
++  postPatch = ''
++      rm -f contrib/config.make-*
+   '';
+ 
+   enableParallelBuilding = true;
+@@ -22,15 +31,20 @@ stdenv.mkDerivation rec {
+   installPhase = ''
+     make install
+     make install-doc
+-    mkdir -p $out/etc/bash_completion.d/
+-    cp contrib/tig-completion.bash $out/etc/bash_completion.d/
++
++    substituteInPlace contrib/tig-completion.zsh \
++      --replace 'e=$(dirname ''${funcsourcetrace[1]%:*})/tig-completion.bash' "e=$out/etc/bash_completion.d/tig-completion.bash"
++
++    install -D contrib/tig-completion.bash $out/etc/bash_completion.d/tig-completion.bash
++    install -D contrib/tig-completion.zsh $out/share/zsh/site-functions/_tig
++    cp contrib/vim.tigrc $out/etc/
+ 
+     wrapProgram $out/bin/tig \
+       --prefix PATH ':' "${git}/bin"
+   '';
+ 
+   meta = with stdenv.lib; {
+-    homepage = "http://jonas.nitro.dk/tig/";
++    homepage = https://jonas.github.io/tig/;
+     description = "Text-mode interface for git";
+     maintainers = with maintainers; [ garbas bjornfor domenkozar qknight ];
+     license = licenses.gpl2;
+diff --git a/pkgs/applications/version-management/git-and-tools/topgit/default.nix b/pkgs/applications/version-management/git-and-tools/topgit/default.nix
+index 441c28b..c183bbd 100644
+--- a/pkgs/applications/version-management/git-and-tools/topgit/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/topgit/default.nix
+@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
+   '';
+ 
+   meta = {
+-    homepage = "https://github.com/greenrd/topgit";
++    homepage = https://github.com/greenrd/topgit;
+     description = "TopGit manages large amount of interdependent topic branches";
+     license = stdenv.lib.licenses.gpl2;
+     platforms = stdenv.lib.platforms.unix;
+diff --git a/pkgs/applications/version-management/git-and-tools/transcrypt/default.nix b/pkgs/applications/version-management/git-and-tools/transcrypt/default.nix
+index 2f42705..35e9c17 100644
+--- a/pkgs/applications/version-management/git-and-tools/transcrypt/default.nix
++++ b/pkgs/applications/version-management/git-and-tools/transcrypt/default.nix
+@@ -1,20 +1,26 @@
+-{ stdenv, fetchurl, git, openssl }:
++{ stdenv, fetchFromGitHub, git, makeWrapper, openssl }:
+ 
+ stdenv.mkDerivation rec {
+-  name = "transcrypt-0.9.7";
++  name = "transcrypt-${version}";
++  version = "1.1.0";
+ 
+-  src = fetchurl {
+-    url = https://github.com/elasticdog/transcrypt/archive/v0.9.7.tar.gz;
+-    sha256 = "0pgrf74wdc7whvwz7lkkq6qfk38n37dc5668baq7czgckibvjqdh";
++  src = fetchFromGitHub {
++    owner = "elasticdog";
++    repo = "transcrypt";
++    rev = "v${version}";
++    sha256 = "1dkr69plk16wllk5bzlkchrzw63pk239dgbjhrb3mb61i065jdam";
+   };
+ 
+-  buildInputs = [ git openssl ];
++  buildInputs = [ git makeWrapper openssl ];
+ 
+   installPhase = ''
+     install -m 755 -D transcrypt $out/bin/transcrypt
+     install -m 644 -D man/transcrypt.1 $out/share/man/man1/transcrypt.1
+     install -m 644 -D contrib/bash/transcrypt $out/share/bash-completion/completions/transcrypt
+     install -m 644 -D contrib/zsh/_transcrypt $out/share/zsh/site-functions/_transcrypt
++
++    wrapProgram $out/bin/transcrypt \
++      --prefix PATH : "${stdenv.lib.makeBinPath [ git openssl ]}"
+   '';
+ 
+   meta = with stdenv.lib; {

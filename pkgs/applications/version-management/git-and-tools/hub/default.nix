@@ -1,41 +1,35 @@
-{ stdenv, fetchgit, go, Security }:
+{ stdenv, buildGoPackage, fetchFromGitHub, ronn, ruby, groff, Security, utillinux }:
 
-stdenv.mkDerivation rec {
+buildGoPackage rec {
   name = "hub-${version}";
-  version = "2.2.3";
+  version = "2.5.1";
 
-  src = fetchgit {
-    url = https://github.com/github/hub.git;
-    rev = "refs/tags/v${version}";
-    sha256 = "1vswkx4lm6x4s04453qkmv970gjn79ma39fmdg8mnzy7lh2swws6";
+  goPackagePath = "github.com/github/hub";
+
+  src = fetchFromGitHub {
+    owner = "github";
+    repo = "hub";
+    rev = "v${version}";
+    sha256 = "0a5i351v998vdwf883qhh39c15x56db01fr9hscz4ha7r9550pqg";
   };
 
+  buildInputs = [ groff ronn ruby utillinux ] ++
+    stdenv.lib.optional stdenv.isDarwin Security;
 
-  buildInputs = [ go ] ++ stdenv.lib.optional stdenv.isDarwin Security;
-
-  phases = [ "unpackPhase" "buildPhase" "installPhase" ];
-
-  buildPhase = ''
+  postPatch = ''
+    mkdir bin
+    ln -s ${ronn}/bin/ronn bin/ronn
     patchShebangs .
-    sh script/build
   '';
 
-  installPhase = ''
-    mkdir -p "$out/bin"
-    cp hub "$out/bin/"
+  postInstall = ''
+    cd go/src/${goPackagePath}
+    install -D etc/hub.zsh_completion "$bin/share/zsh/site-functions/_hub"
+    install -D etc/hub.bash_completion.sh "$bin/etc/bash_completion.d/hub.bash_completion.sh"
+    install -D etc/hub.fish_completion  "$bin/share/fish/vendor_completions.d/hub.fish"
 
-    mkdir -p "$out/share/man/man1"
-    cp "man/hub.1" "$out/share/man/man1/"
-
-    mkdir -p "$out/share/zsh/site-functions"
-    cp "etc/hub.zsh_completion" "$out/share/zsh/site-functions/_hub"
-
-# Broken: https://github.com/github/hub/issues/592
-#    mkdir -p "$out/etc/bash_completion.d"
-#    cp "etc/hub.bash_completion.sh" "$out/etc/bash_completion.d/"
-
-# Should we also install provided git-hooks?
-# ?
+    make man-pages
+    cp -r share/man $bin/share/man
   '';
 
   meta = with stdenv.lib; {

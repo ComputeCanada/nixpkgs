@@ -1,36 +1,40 @@
 { stdenv, fetchurl, openssl, zlib, asciidoc, libxml2, libxslt
-, docbook_xml_xslt, pkgconfig, luajit
-, gzip, bzip2, xz
+, docbook_xsl, pkgconfig, luajit
+, groff, gzip, bzip2, xz
+, python, wrapPython, pygments, markdown
 }:
 
 stdenv.mkDerivation rec {
   name = "cgit-${version}";
-  version = "0.12";
+  version = "1.2.1";
 
   src = fetchurl {
-    url = "http://git.zx2c4.com/cgit/snapshot/${name}.tar.xz";
-    sha256 = "1dx54hgfyabmg9nm5qp6d01f54nlbqbbdwhwl0llb9imjf237qif";
+    url = "https://git.zx2c4.com/cgit/snapshot/${name}.tar.xz";
+    sha256 = "1gw2j5xc5qdx2hwiwkr8h6kgya7v9d9ff9j32ga1dys0cca7qm1w";
   };
 
   # cgit is tightly coupled with git and needs a git source tree to build.
   # IMPORTANT: Remember to check which git version cgit needs on every version
-  # bump (look in the Makefile).
-  # NOTE: as of 0.10.1, the git version is compatible from 1.9.0 to
-  # 1.9.2 (see the repository history)
+  # bump (look for "GIT_VER" in the top-level Makefile).
   gitSrc = fetchurl {
-    url    = "mirror://kernel/software/scm/git/git-2.7.0.tar.xz";
-    sha256 = "03bvb8s5j8i54qbi3yayl42bv0wf2fpgnh1a2lkhbj79zi7b77zs";
+    url    = "mirror://kernel/software/scm/git/git-2.18.0.tar.xz";
+    sha256 = "14hfwfkrci829a9316hnvkglnqqw1p03cw9k56p4fcb078wbwh4b";
   };
 
+  nativeBuildInputs = [ pkgconfig ] ++ [ python wrapPython ];
   buildInputs = [
-    openssl zlib asciidoc libxml2 libxslt docbook_xml_xslt pkgconfig luajit
+    openssl zlib asciidoc libxml2 libxslt docbook_xsl luajit
   ];
+  pythonPath = [ pygments markdown ];
 
   postPatch = ''
     sed -e 's|"gzip"|"${gzip}/bin/gzip"|' \
         -e 's|"bzip2"|"${bzip2.bin}/bin/bzip2"|' \
         -e 's|"xz"|"${xz.bin}/bin/xz"|' \
         -i ui-snapshot.c
+
+    substituteInPlace filters/html-converters/man2html \
+      --replace 'groff' '${groff}/bin/groff'
   '';
 
   # Give cgit a git source tree and pass configuration parameters (as make
@@ -51,10 +55,12 @@ stdenv.mkDerivation rec {
     a2x --no-xmllint -f manpage cgitrc.5.txt
     mkdir -p "$out/share/man/man5"
     cp cgitrc.5 "$out/share/man/man5"
+
+    wrapPythonProgramsIn "$out/lib/cgit/filters" "$out $pythonPath"
   '';
 
   meta = {
-    homepage = http://git.zx2c4.com/cgit/about/;
+    homepage = https://git.zx2c4.com/cgit/about/;
     repositories.git = git://git.zx2c4.com/cgit;
     description = "Web frontend for git repositories";
     license = stdenv.lib.licenses.gpl2;
