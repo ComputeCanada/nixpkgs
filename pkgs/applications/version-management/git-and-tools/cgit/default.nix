@@ -1,7 +1,7 @@
 { stdenv, fetchurl, openssl, zlib, asciidoc, libxml2, libxslt
 , docbook_xsl, pkgconfig, luajit
 , groff, gzip, bzip2, xz
-, python, wrapPython, pygments, markdown
+, python
 }:
 
 stdenv.mkDerivation rec {
@@ -21,11 +21,10 @@ stdenv.mkDerivation rec {
     sha256 = "14hfwfkrci829a9316hnvkglnqqw1p03cw9k56p4fcb078wbwh4b";
   };
 
-  nativeBuildInputs = [ pkgconfig ] ++ [ python wrapPython ];
+  nativeBuildInputs = [ pkgconfig ];
   buildInputs = [
     openssl zlib asciidoc libxml2 libxslt docbook_xsl luajit
   ];
-  pythonPath = [ pygments markdown ];
 
   postPatch = ''
     sed -e 's|"gzip"|"${gzip}/bin/gzip"|' \

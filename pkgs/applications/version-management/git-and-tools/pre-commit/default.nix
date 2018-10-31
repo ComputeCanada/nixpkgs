@@ -1,7 +1,8 @@
-{ stdenv, python3Packages }:
-with python3Packages; buildPythonApplication rec {
+{ stdenv, pythonPackages }:
+with pythonPackages; buildPythonApplication rec {
   pname = "pre_commit";
   version = "1.11.1";
+  name = "${pname}-${version}";
 
   src = fetchPypi {
     inherit pname version;
