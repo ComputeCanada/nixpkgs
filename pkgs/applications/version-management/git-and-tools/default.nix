@@ -96,8 +96,6 @@ let
 
   hubUnstable = throw "use gitAndTools.hub instead";
 
-  pre-commit = callPackage ./pre-commit { };
-
   qgit = qt5.callPackage ./qgit { };
 
   stgit = callPackage ./stgit {
