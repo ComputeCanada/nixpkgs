@@ -8,9 +8,8 @@ let
     baseName="glusterfs";
     version="3.8.1";
     name="${baseName}-${version}";
-    hash="1j3r2wnk1pwwwn02pfnrrgh1if92b5cl51dqg7284qxrkjiafb2k";
-    url="http://download.gluster.org/pub/gluster/glusterfs/3.8/3.8.1/glusterfs-3.8.1.tar.gz";
-    sha256="1j3r2wnk1pwwwn02pfnrrgh1if92b5cl51dqg7284qxrkjiafb2k";
+    url="https://github.com/gluster/glusterfs/archive/v${version}.tar.gz";
+    sha256="e2d37c4d250ebdfe545aa490ae1355f8d0492d60a684089083c9b198d8344817";
   };
   buildInputs = [
     fuse bison flex_2_5_35 openssl python ncurses readline
