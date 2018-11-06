@@ -9,8 +9,8 @@ stdenv.mkDerivation rec {
   };
 
   patches = [(fetchurl {
-    url = "https://anonscm.debian.org/cgit/pkg-phototools/libgphoto2.git/plain"
-      + "/debian/patches/libjpeg_turbo_1.5.0_fix.patch?id=8ce79a2a02d";
+    url = "https://salsa.debian.org/debian-phototools-team/libgphoto2/raw/debian/2.5.10-3"
+      + "/debian/patches/libjpeg_turbo_1.5.0_fix.patch";
     sha256 = "114iyhk6idxz2jhnzpf1glqm6d0x0y8cqfpqxz9i96q9j7x3wwin";
   })];
 
