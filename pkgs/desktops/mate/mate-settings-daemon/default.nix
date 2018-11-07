@@ -28,6 +28,7 @@ stdenv.mkDerivation rec {
     polkit
     gnome3.gtk
     gnome3.dconf
+    gnome3.gvfs
     mate.mate-desktop
     mate.libmatekbd
     mate.libmatemixer

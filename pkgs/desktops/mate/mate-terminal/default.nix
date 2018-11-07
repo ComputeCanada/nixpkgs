@@ -21,6 +21,7 @@ stdenv.mkDerivation rec {
      gnome3.vte
      gnome3.gtk
      gnome3.dconf
+     gnome3.gvfs
   ];
 
   nativeBuildInputs = [

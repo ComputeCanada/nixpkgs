@@ -27,6 +27,7 @@ stdenv.mkDerivation rec {
     hicolor_icon_theme
     gnome3.gtk
     gnome3.dconf
+    gnome3.gvfs
     mate.libmateweather
     mate.mate-desktop
     mate.mate-menus

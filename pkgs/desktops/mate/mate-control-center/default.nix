@@ -31,6 +31,7 @@ stdenv.mkDerivation rec {
     libappindicator-gtk3
     gnome3.gtk
     gnome3.dconf
+    gnome3.gvfs
     hicolor_icon_theme
     mate.mate-desktop
     mate.libmatekbd

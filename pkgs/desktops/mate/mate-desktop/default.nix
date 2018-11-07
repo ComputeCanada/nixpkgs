@@ -20,6 +20,7 @@ stdenv.mkDerivation rec {
   buildInputs = [
     gnome3.dconf
     gnome3.gtk
+    gnome3.gvfs
   ];
 
   meta = with stdenv.lib; {
