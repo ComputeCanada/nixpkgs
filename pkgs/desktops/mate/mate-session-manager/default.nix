@@ -32,6 +32,17 @@ stdenv.mkDerivation rec {
     hicolor_icon_theme
   ];
 
+  postFixup = ''
+    sed -i 's!^exec !export GTK_DATA_PREFIX=$NIXUSER_PROFILE\nexec !' $out/bin/mate-session
+    sed -i 's!^exec !export GTK_PATH=$NIXUSER_PROFILE/lib/gtk-3.0:$NIXUSER_PROFILE/lib/gtk-2.0\nexec !' $out/bin/mate-session
+    sed -i 's!^exec !export XDG_MENU_PREFIX=mate-\nexec !' $out/bin/mate-session
+    sed -i 's!^exec !export XCURSOR_PATH=~/.icons:$NIXUSER_PROFILE/share/icons\nexec !' $out/bin/mate-session
+    sed -i 's!^exec !export CAJA_EXTENSION_DIRS=$CAJA_EXTENSION_DIRS''${CAJA_EXTENSION_DIRS:+:}$NIXUSER_PROFILE/lib/caja/extensions-2.0\nexec !' $out/bin/mate-session
+    sed -i 's!^exec !export MATE_PANEL_APPLETS_DIR=$MATE_PANEL_APPLETS_DIR''${MATE_PANEL_APPLETS_DIR:+:}$NIXUSER_PROFILE/share/mate-panel/applets\nexec !' $out/bin/mate-session
+    sed -i 's!^exec !export MATE_PANEL_EXTRA_MODULES=$MATE_PANEL_EXTRA_MODULES''${MATE_PANEL_EXTRA_MODULES:+:}$NIXUSER_PROFILE/lib/mate-panel/applets\nexec !' $out/bin/mate-session
+    sed -i 's!^exec !xdg-user-dirs-update\nexec !' $out/bin/mate-session
+  '';
+
   meta = with stdenv.lib; {
     description = "MATE Desktop session manager";
     homepage = https://github.com/mate-desktop/mate-session-manager;
