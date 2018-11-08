@@ -30,7 +30,7 @@ stdenv.mkDerivation rec {
 
   configureFlags = "--without-console-kit";
 
-  makeFlags = "DBUS_SESSION_SERVICE_DIR=$(out)/etc";
+  makeFlags = "DBUS_SESSION_SERVICE_DIR=$(out)/etc CPPFLAGS=-DPAM_SERVICE_NAME=\\\"system-auth\\\"";
 
   meta = with stdenv.lib; {
     description = "Screen saver and locker for the MATE desktop";
