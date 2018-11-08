@@ -38,6 +38,9 @@ stdenv.mkDerivation rec {
     sed -i 's!^exec !export XDG_MENU_PREFIX=mate-\nexec !' $out/bin/mate-session
     sed -i 's!^exec !export XCURSOR_PATH=~/.icons:$NIXUSER_PROFILE/share/icons\nexec !' $out/bin/mate-session
     sed -i 's!^exec !export CAJA_EXTENSION_DIRS=$CAJA_EXTENSION_DIRS''${CAJA_EXTENSION_DIRS:+:}$NIXUSER_PROFILE/lib/caja/extensions-2.0\nexec !' $out/bin/mate-session
+    sed -i 's!^exec !export XDG_DATA_DIRS=$XDG_DATA_DIRS''${XDG_DATA_DIRS:+:}$NIXUSER_PROFILE/share/gsettings-schemas/caja-extensions-1.18.2\nexec !' $out/bin/mate-session
+    sed -i 's!^exec !export GI_TYPELIB_PATH=$GI_TYPELIB_PATH''${GI_TYPELIB_PATH:+:}$NIXUSER_PROFILE/lib/girepository-1.0\nexec !' $out/bin/mate-session
+    sed -i 's!^exec !export LD_LIBRARY_PATH=$LD_LIBRARY_PATH''${LD_LIBRARY_PATH:+:}$NIXUSER_PROFILE/lib/caja/extensions-2.0\nexec !' $out/bin/mate-session
     sed -i 's!^exec !export MATE_PANEL_APPLETS_DIR=$MATE_PANEL_APPLETS_DIR''${MATE_PANEL_APPLETS_DIR:+:}$NIXUSER_PROFILE/share/mate-panel/applets\nexec !' $out/bin/mate-session
     sed -i 's!^exec !export MATE_PANEL_EXTRA_MODULES=$MATE_PANEL_EXTRA_MODULES''${MATE_PANEL_EXTRA_MODULES:+:}$NIXUSER_PROFILE/lib/mate-panel/applets\nexec !' $out/bin/mate-session
     sed -i 's!^exec !xdg-user-dirs-update\nexec !' $out/bin/mate-session
