@@ -48,7 +48,7 @@ stdenv.mkDerivation rec {
     configureFlags="$configureFlags --includedir=$out/include/security"
   '';
 
-  makeFlags = "CFLAGS=-DDEFAULT_MODULE_PATH=\\\"/lib64/security\\\"";
+  makeFlags = "CFLAGS=-DDEFAULT_MODULE_PATH=\\\"/lib64/security/\\\"";
 
   meta = {
     homepage = http://ftp.kernel.org/pub/linux/libs/pam/;
