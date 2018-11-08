@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, pkgconfig, intltool, xtrans, dbus_glib, systemd,
+{ stdenv, fetchurl, pkgconfig, intltool, xtrans, dbus_glib, systemd, gvfs,
   libSM, libXtst, gtk3, mate-desktop, hicolor_icon_theme,
   wrapGAppsHook
 }:
@@ -24,6 +24,7 @@ stdenv.mkDerivation rec {
   buildInputs = [
     dbus_glib
     systemd
+    gvfs
     libSM
     libXtst
     gtk3
