@@ -1,5 +1,5 @@
 { stdenv, fetchurl
-, odbcSupport ? false, unixODBC ? null }:
+, odbcSupport ? true, unixODBC ? null }:
 
 assert odbcSupport -> unixODBC != null;
 
