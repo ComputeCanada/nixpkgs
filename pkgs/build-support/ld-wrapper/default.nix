@@ -47,7 +47,10 @@ stdenv.mkDerivation {
 
   buildCommand =
     ''
-      mkdir -p $out/bin $out/nix-support
+      mkdir -p $out/bin $out/nix-support $out/etc
+
+      echo "/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09/lib" > $out/etc/ld.so.conf
+      echo "/usr/lib64/nvidia" >> $out/etc/ld.so.conf
 
       wrap() {
         local dst="$1"

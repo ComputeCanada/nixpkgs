@@ -54,9 +54,11 @@ stdenv.mkDerivation rec {
   hardeningDisable = [ "stackprotector" ];
 
   preConfigure = ''
-    # Clear the default library search path.
+    # Set default library search path to our prefix.
     if test "$noSysDirs" = "1"; then
-        echo 'NATIVE_LIB_DIRS=' >> ld/configure.tgt
+        echo 'NATIVE_LIB_DIRS=/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09/lib' >> ld/configure.tgt
+        # this takes care of /etc/ld.so.conf
+        sed -i -r "s,\"/etc,\"/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09/etc," ld/emultempl/elf32.em
     fi
 
     # Use symlinks instead of hard links to save space ("strip" in the
