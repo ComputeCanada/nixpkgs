@@ -111,7 +111,7 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
             "${1:0:${#EASYBUILD_DIR}}" != "$EASYBUILD_DIR" ]; then
             return 0
         fi
-        # this gets explicitly added at the end only using -rpath-link
+        # this never gets explicitly added, only via $NIXUSER_PROFILE/etc/ld.so.conf
         if [ "$1" == "$NIXUSER_PROFILE/lib" -a -z "$2" ]; then
             return 0
         fi
@@ -166,11 +166,11 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
             path="$(dirname "$p")";
             addToRPath "${path}"
         else
-	    for suffix in 1 i n; do
-		if [ "$p" = crt$suffix.o -a ! -f "$p" ]; then
+	    for crtfile in crt1 crti crtn gcrt1 Mcrt1 Scrt1; do
+		if [ "$p" = $crtfile.o -a ! -f "$p" ]; then
 		    params[$n]=$NIXUSER_PROFILE/lib/$p
-		elif [ "$p" = /usr/lib64/crt$suffix.o ]; then
-		    params[$n]=$NIXUSER_PROFILE/lib/crt$suffix.o
+		elif [ "$p" = /usr/lib64/$crtfile.o ]; then
+		    params[$n]=$NIXUSER_PROFILE/lib/$crtfile.o
 		fi
 	    done
         fi
@@ -209,10 +209,6 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
     for i in $rpath; do
         extra+=(-rpath $i)
     done
-    case $rpath in
-        *\ $NIXUSER_PROFILE/lib\ *) ;;
-        *) extra+=(-rpath-link $NIXUSER_PROFILE/lib) ;;
-    esac
 fi
 
 # Optionally print debug info.

@@ -28,6 +28,7 @@ stdenv.mkDerivation rec {
     sed -i -e 's,$(includedir)/pixman-1,${if stdenv ? cross then pixman.crossDrv else pixman}/include/pixman-1,' unix/xserver/hw/vnc/Makefile.am
     sed -i -e '/^$pidFile/a$ENV{XKB_BINDIR}="${if stdenv ? cross then xorg.xkbcomp.crossDrv else xorg.xkbcomp}/bin";' unix/vncserver
     sed -i -e '/^\$cmd \.= " -pn";/a$cmd .= " -xkbdir ${if stdenv ? cross then xkeyboard_config.crossDrv else xkeyboard_config}/etc/X11/xkb";' unix/vncserver
+    sed -i -e 's/twm/mate-session/' unix/vncserver
     fontPath=
     for i in $fontDirectories; do
       for j in $(find $i -name fonts.dir); do
@@ -53,7 +54,7 @@ stdenv.mkDerivation rec {
         --disable-xorg --disable-xnest --disable-xvfb --disable-dmx \
         --disable-xwin --disable-xephyr --disable-kdrive --with-pic \
         --disable-xorgcfg --disable-xprint --disable-static \
-        --disable-composite --disable-xtrap --enable-xcsecurity \
+        --enable-composite --disable-xtrap --enable-xcsecurity \
         --disable-{a,c,m}fb \
         --disable-xwayland \
         --disable-config-dbus --disable-config-udev --disable-config-hal \

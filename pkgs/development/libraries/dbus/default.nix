@@ -29,7 +29,7 @@ self =  stdenv.mkDerivation {
       substituteInPlace ./dbus/dbus-sysdeps-unix.c \
         --replace 'DBUS_BINDIR "/dbus-launch"' "\"$lib/bin/dbus-launch\""
       substituteInPlace ./tools/dbus-launch.c \
-        --replace 'DBUS_DAEMONDIR"/dbus-daemon"' '"/run/current-system/sw/bin/dbus-daemon"'
+        --replace 'DBUS_DAEMONDIR"/dbus-daemon"' '"/bin/dbus-daemon"'
     '';
 
     outputs = [ "out" "dev" "lib" "doc" ];
@@ -50,7 +50,7 @@ self =  stdenv.mkDerivation {
       "--with-systemduserunitdir=$(out)/etc/systemd/user"
       "--enable-user-session"
       # this package installs nothing into those dirs and they create a dependency
-      "--datadir=/run/current-system/sw/share"
+      "--datadir=/usr/share"
       "--libexecdir=$(out)/libexec" # we don't need dbus-daemon-launch-helper
     ] ++ lib.optional (!x11Support) "--without-x";
 

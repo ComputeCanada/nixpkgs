@@ -16581,9 +16581,7 @@ in
 
     in makeOverridable makePackages extra;
 
-  mate = recurseIntoAttrs (callPackage ../desktops/mate {
-    callPackage = newScope pkgs.mate;
-  });
+  mate = recurseIntoAttrs (callPackage ../desktops/mate { });
 
   pantheon = recurseIntoAttrs rec {
     callPackage = newScope pkgs.pantheon;
