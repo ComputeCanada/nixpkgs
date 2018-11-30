@@ -119,7 +119,7 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
             return 0
         fi
         # also exclude stub libraries like for CUDA
-        if [ "$1%%/stubs" != "$1" ]; then
+        if [ "${1%%/stubs}" != "$1" ]; then
             return 0
         fi
         case $rpath in
