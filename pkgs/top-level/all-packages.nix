@@ -2469,6 +2469,8 @@ in
 
   libx86emu = callPackage ../development/libraries/libx86emu { };
 
+  libibcm_mlnx = callPackage ../development/libraries/libibcm/mlnx.nix { };
+
   librdmacm = callPackage ../development/libraries/librdmacm { };
 
   librdmacm_mlnx = callPackage ../development/libraries/librdmacm/mlnx.nix { };
