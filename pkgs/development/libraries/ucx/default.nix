@@ -17,7 +17,8 @@ stdenv.mkDerivation rec {
 
   preConfigure = "./autogen.sh";
   configureScript = "./contrib/configure-release";
-  configureFlags = [ "--with-verbs=${rdma-core}" "--with-rdmacm=${rdma-core}" "--with-knem=${knem}" ];
+  configureFlags = [ "--with-verbs=${rdma-core}" "--with-rdmacm=${rdma-core}" "--with-knem=${knem}"
+                     "--disable-optimizations" ];
 
   hardeningDisable = [ "bindnow" ];
 
