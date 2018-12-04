@@ -35,6 +35,6 @@ in stdenv.mkDerivation {
     homepage = https://github.com/linux-rdma/rdma-core;
     license = licenses.gpl2;
     platforms = platforms.linux;
-    maintainers = with maintainers; [ markuskowa ];
+    #maintainers = with maintainers; [ markuskowa ];
   };
 }
