@@ -1,18 +1,21 @@
-{ stdenv, fetchurl, pkgconfig, graphviz, numactl, binutils, libiberty, libibverbs, zlib, knem, doxygen, perl, texlive }:
+{ stdenv, fetchurl, pkgconfig, graphviz, numactl, binutils, libiberty, libibverbs, librdmacm, zlib, knem, doxygen, perl, texlive }:
 
 stdenv.mkDerivation rec {
-  version = "1.3.1";
+  version = "1.4.0";
   name = "ucx-${version}";
 
   src = fetchurl {
     url = "https://github.com/openucx/ucx/releases/download/v${version}/${name}.tar.gz";
-    sha256 = "14l9gbg7jhcvigjhmwkd3rnavljw23palfhyvgcm0bqdhgnchn70";
+    sha256 = "99891a98476bcadc6ac4ef9c9f083bc6ffb188a96b3c3bc89c8bbca64de2c76e";
   };
 
   nativeBuildInputs = [ pkgconfig ];
-  buildInputs = [ numactl graphviz binutils libiberty libibverbs zlib knem doxygen perl texlive.combined.scheme-basic ];
+  buildInputs = [ numactl graphviz binutils libiberty libibverbs librdmacm zlib knem doxygen perl texlive.combined.scheme-basic ];
 
-  configureFlags = [ "--with-verbs=${libibverbs}" "--with-knem=${knem}" ];
+  configureScript = "./contrib/configure-release";
+  configureFlags = [ "--with-verbs=${libibverbs}" "--with-rdmacm=${librdmacm}" "--with-knem=${knem}" ];
+
+  hardeningDisable = [ "bindnow" ];
 
   meta = with stdenv.lib; {
     homepage = https://www.openucx.org/;
