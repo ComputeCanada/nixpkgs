@@ -2471,6 +2471,8 @@ in
 
   librdmacm = callPackage ../development/libraries/librdmacm { };
 
+  librdmacm_mlnx = callPackage ../development/libraries/librdmacm/mlnx.nix { };
+
   libreswan = callPackage ../tools/networking/libreswan { };
 
   libwebsockets = callPackage ../development/libraries/libwebsockets { };
