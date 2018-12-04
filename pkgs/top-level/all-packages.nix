@@ -2009,6 +2009,8 @@ in
 
   hardinfo = callPackage ../tools/system/hardinfo { };
 
+  hcoll = callPackage ../development/libraries/hcoll { };
+
   hdapsd = callPackage ../os-specific/linux/hdapsd { };
 
   hddtemp = callPackage ../tools/misc/hddtemp { };
