@@ -1,5 +1,5 @@
 { stdenv, fetchurl, pkgconfig, graphviz, numactl, binutils, libiberty,
-  libibverbs_mlnx, librdmacm_mlnx, libibcm_mlnx, zlib, knem, doxygen, perl, texlive }:
+  rdma-core, zlib, knem, doxygen, perl, texlive }:
 
 stdenv.mkDerivation rec {
   version = "1.4.0";
@@ -11,11 +11,11 @@ stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = [ pkgconfig ];
-  buildInputs = [ numactl graphviz binutils libiberty libibverbs_mlnx librdmacm_mlnx libibcm_mlnx zlib knem
+  buildInputs = [ numactl graphviz binutils libiberty rdma-core zlib knem
                   doxygen perl texlive.combined.scheme-basic ];
 
   configureScript = "./contrib/configure-release";
-  configureFlags = [ "--with-verbs=${libibverbs_mlnx}" "--with-rdmacm=${librdmacm_mlnx}" "--with-knem=${knem}" ];
+  configureFlags = [ "--with-verbs=${rdma-core}" "--with-rdmacm=${rdma-core}" "--with-knem=${knem}" ];
 
   hardeningDisable = [ "bindnow" ];
 
