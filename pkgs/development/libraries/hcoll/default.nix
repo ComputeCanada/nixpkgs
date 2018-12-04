@@ -32,7 +32,7 @@ stdenv.mkDerivation rec {
     for i in $out/lib/lib*.so.*.*; do
       patchelf --set-rpath $out/lib:${rdma-core}/lib $i
     done
-    find include/ -type f -exec install -Dm 755 "{}" $out/include/ \;
+    find include/ -type f -exec install -Dm 755 "{}" $out/"{}" \;
     install -m644 etc/* $out/etc/hcoll
     install -m644 share/hcoll/* $out/share/hcoll
     install -m644 share/doc/hcoll/* $out/share/doc/hcoll
