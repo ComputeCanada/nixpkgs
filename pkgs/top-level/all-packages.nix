@@ -2461,6 +2461,8 @@ in
 
   libibverbs = callPackage ../development/libraries/libibverbs { };
 
+  libibverbs_mlnx = callPackage ../development/libraries/libibverbs/mlnx.nix { };
+
   libscif = callPackage ../development/libraries/libscif { };
 
   libxcomp = callPackage ../development/libraries/libxcomp { };
