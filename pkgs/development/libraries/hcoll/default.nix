@@ -1,4 +1,4 @@
-{ stdenv, requireFile, patchelf, rdma-core }:
+{ stdenv, requireFile, patchelf, rdma-core, ucx }:
 
 stdenv.mkDerivation rec {
   version = "4.2.2554";
@@ -10,7 +10,7 @@ stdenv.mkDerivation rec {
     sha256 = "98f0348932c4d5e9e709267d78ba470989e8b0141a6dd6f994b1e1e8a13661cc";
   };
 
-  buildInputs = [ patchelf rdma-core ];
+  buildInputs = [ patchelf rdma-core ucx ];
 
   unpackCmd = ''
     mkdir ${name};
@@ -25,12 +25,12 @@ stdenv.mkDerivation rec {
     install -m755 bin/* $out/bin
     for i in $out/bin/*; do
       patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $i
-      patchelf --set-rpath $out/lib:${rdma-core}/lib $i
+      patchelf --set-rpath $out/lib:${rdma-core}/lib:${ucx}/lib $i
     done
     install -m755 lib/lib*.a lib/lib*.so.*.* $out/lib
     install -m755 lib/hcoll/* $out/lib/hcoll
     for i in $out/lib/lib*.so.*.*; do
-      patchelf --set-rpath $out/lib:${rdma-core}/lib $i
+      patchelf --set-rpath $out/lib:${rdma-core}/lib:${ucx}/lib $i
     done
     find include/ -type f -exec install -Dm 755 "{}" $out/"{}" \;
     install -m644 etc/* $out/etc/hcoll
