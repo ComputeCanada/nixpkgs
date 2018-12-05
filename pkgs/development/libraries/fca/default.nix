@@ -34,7 +34,7 @@ stdenv.mkDerivation rec {
     ln -sf libfca.so.0 $out/lib/libfca.so
     ln -sf libfca.so.0.0.0 $out/lib/libfca.so.0
     for i in $out/lib/*.so; do
-      patchelf --set-rpath ${rdma-core}/lib:${librdmacm}/lib:${libibmad}/lib $i
+      patchelf --set-rpath ${rdma-core}/lib:${libibmad}/lib $i
     done
     install -m644 include/fca/*.h $out/include/fca
     install -m644 include/fca/config/* $out/include/fca/config
