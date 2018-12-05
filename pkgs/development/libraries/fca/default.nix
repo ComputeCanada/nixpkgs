@@ -1,4 +1,4 @@
-{ stdenv, requireFile, rpmextract, patchelf, libibverbs, librdmacm, libibmad, libibumad }:
+{ stdenv, requireFile, rpmextract, patchelf, rdma-core, libibmad }:
 
 stdenv.mkDerivation rec {
   version = "2.5.2431-1";
@@ -10,7 +10,7 @@ stdenv.mkDerivation rec {
     sha256 = "8de87c72dc021c234fa1e11db4d78ffea25ccac6c8ac5b18e6b71b05000c139f";
   };
 
-  buildInputs = [ rpmextract patchelf libibverbs librdmacm libibmad libibumad ];
+  buildInputs = [ rpmextract patchelf rdma-core libibmad ];
 
   unpackCmd = ''
     mkdir ${name};
@@ -27,14 +27,14 @@ stdenv.mkDerivation rec {
       if [ $i != "$out/bin/shm_loop.sh" ]; then
         echo $i
         patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $i
-        patchelf --set-rpath $out/lib:${libibverbs}/lib:${librdmacm}/lib:${libibmad}/lib:${libibumad}/lib $i
+        patchelf --set-rpath $out/lib:${rdma-core}/lib:${libibmad}/lib $i
       fi
     done
     install -m755 lib/lib*.a lib/lib*.so* $out/lib
     ln -sf libfca.so.0 $out/lib/libfca.so
     ln -sf libfca.so.0.0.0 $out/lib/libfca.so.0
     for i in $out/lib/*.so; do
-      patchelf --set-rpath ${libibverbs}/lib:${librdmacm}/lib:${libibmad}/lib:${libibumad}/lib $i
+      patchelf --set-rpath ${rdma-core}/lib:${librdmacm}/lib:${libibmad}/lib $i
     done
     install -m644 include/fca/*.h $out/include/fca
     install -m644 include/fca/config/* $out/include/fca/config
