@@ -7,7 +7,7 @@ stdenv.mkDerivation rec {
   src = requireFile {
     name = "${name}.tar.gz";
     url = "file:///localhost";
-    sha256 = "98f0348932c4d5e9e709267d78ba470989e8b0141a6dd6f994b1e1e8a13661cc";
+    sha256 = "bcad27e21e1bede2886e73462c384c48bb8b3a6dfb894f196ab991f44698b797";
   };
 
   buildInputs = [ patchelf rdma-core ucx ];
