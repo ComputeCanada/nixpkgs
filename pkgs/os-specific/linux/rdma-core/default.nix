@@ -15,6 +15,8 @@ in stdenv.mkDerivation {
     sha256 = "0q4hdm14f1xz2h0m5d821fdyp7i917rvmkas5axmfr1myv5422fl";
   };
 
+  patches = [ ./libibcm.patch ];
+
   nativeBuildInputs = [ cmake pkgconfig pandoc ];
   buildInputs = [ libnl ethtool iproute udev python perl ];
 
