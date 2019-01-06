@@ -48,9 +48,9 @@ stdenv.mkDerivation rec {
     ''
       fixCmakeFiles .
       substituteInPlace Modules/Platform/UnixPaths.cmake \
-        --subst-var-by glibc_bin ${getBin glibc} \
-        --subst-var-by glibc_dev ${getDev glibc} \
-        --subst-var-by glibc_lib ${getLib glibc}
+        --subst-var-by glibc_bin /cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09 \
+        --subst-var-by glibc_dev /cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09 \
+        --subst-var-by glibc_lib /cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09
       substituteInPlace Modules/FindCxxTest.cmake \
         --replace "$""{PYTHON_EXECUTABLE}" ${stdenv.shell}
       substituteInPlace Modules/FindBLAS.cmake \
