@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, libscif, librdmacm, libibverbs }:
+{ stdenv, fetchurl, libscif, rdma-core }:
 
 stdenv.mkDerivation rec {
   name = "dapl-2.1.10";
@@ -8,7 +8,7 @@ stdenv.mkDerivation rec {
     sha256 = "8eb6df3b47fcaad8ea6d35453ffc884b1ef2148f7a0984a3556795bab650fa9b";
   };
 
-  buildInputs = [ libscif librdmacm libibverbs ];
+  buildInputs = [ libscif rdma-core ];
 
   # libdat dynamically loads the libraries in $out/lib
   postFixup = ''

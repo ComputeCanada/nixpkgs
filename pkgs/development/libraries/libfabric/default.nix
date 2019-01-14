@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, infinipath-psm, opa-psm2, libibverbs, librdmacm, libnl, ucx }:
+{ stdenv, fetchurl, infinipath-psm, opa-psm2, rdma-core, libnl, ucx }:
 
 stdenv.mkDerivation rec {
   name = "libfabric-1.6.1";
@@ -8,7 +8,7 @@ stdenv.mkDerivation rec {
     sha256 = "33215a91450e2234ebdc7c467f041b6757f76f5ba926425e89d80c27b3fd7da2";
   };
 
-  buildInputs = [ infinipath-psm opa-psm2 libibverbs librdmacm libnl ucx ];
+  buildInputs = [ infinipath-psm opa-psm2 rdma-core libnl ucx ];
 
   configureFlags = [ "--with-libnl=${libnl.dev}" "--enable-psm=dl" "--enable-psm2=dl"
                      "--enable-verbs=dl" "--enable-mlx=dl" ];

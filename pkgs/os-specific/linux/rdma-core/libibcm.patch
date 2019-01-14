@@ -1,0 +1,5754 @@
+Restore recently removed libibcm.
+Necessary for compatibility with Mellanox hpcx binaries.
+diff -urN rdma-core-21.orig/CMakeLists.txt rdma-core-21/CMakeLists.txt
+--- rdma-core-21.orig/CMakeLists.txt	2018-11-15 00:24:06.000000000 +0000
++++ rdma-core-21/CMakeLists.txt	2018-12-05 12:00:11.285968745 +0000
+@@ -525,6 +525,7 @@
+ add_subdirectory(libibverbs/man)
+ add_subdirectory(librdmacm)
+ add_subdirectory(librdmacm/man)
++add_subdirectory(libibcm)
+ 
+ # Providers
+ if (HAVE_COHERENT_DMA)
+@@ -554,6 +555,7 @@
+ if (NOT NL_KIND EQUAL 0)
+   add_subdirectory(iwpmd)
+ endif()
++add_subdirectory(libibcm/examples)
+ add_subdirectory(libibumad/tests)
+ add_subdirectory(libibverbs/examples)
+ add_subdirectory(librdmacm/examples)
+diff -urN rdma-core-21.orig/CMakeLists.txt.orig rdma-core-21/CMakeLists.txt.orig
+--- rdma-core-21.orig/CMakeLists.txt.orig	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/CMakeLists.txt.orig	2018-11-15 00:24:06.000000000 +0000
+@@ -0,0 +1,636 @@
++# COPYRIGHT (c) 2016 Obsidian Research Corporation. See COPYING file
++# Run cmake as:
++#  mkdir build
++#  cmake -GNinja ..
++#  ninja
++#
++# Common options passed to cmake are:
++#  -DIN_PLACE=1
++#      Configure the build to be run from the build directory, this results in something
++#      that is not installable.
++#  -DCMAKE_EXPORT_COMPILE_COMMANDS=1
++#      Write a compile_commands.json file for clang tooling
++#  -DCMAKE_BUILD_TYPE=RelWithDebInfo
++#      Change the optimization level, Debug disables optimization,
++#      Release is for packagers
++#  -DENABLE_VALGRIND=0 (default enabled)
++#      Disable valgrind notations, this has a tiny positive performance impact
++#  -DENABLE_RESOLVE_NEIGH=0 (default enabled)
++#      Do not link to libnl and do not resolve neighbours internally for Ethernet,
++#      and do not build iwpmd.
++#  -DENABLE_STATIC=1 (default disabled)
++#      Produce static libraries along with the usual shared libraries.
++#  -DVERBS_PROVIDER_DIR='' (default /usr/lib.../libibverbs)
++#      Use the historical search path for providers, in the standard system library.
++#  -DNO_COMPAT_SYMS=1 (default disabled)
++#      Do not generate backwards compatibility symbols in the shared
++#      libraries. This may is necessary if using a dynmic linker that does
++#      not support symbol versions, such as uclibc.
++#  -DIOCTL_MODE=both (default write)
++#      Enable new kABI ioctl() support and support for the legacy write
++#      path. May also be 'ioctl' to disable fallback to write.
++#  -DIBACM_SERVER_MODE_DEFAULT (default unix)
++#      Selects how clients can connect to this server:
++#      open) Allow incoming connections from any TCP client (internal or external).
++#      loop) Limit incoming connections for server_port to 127.0.0.1.
++#      unix) Use unix-domain sockets, hence limits service to the same machine.
++#  -DIBACM_ACME_PLUS_KERNEL_ONLY_DEFAULT (default 0)
++#      If non-zero, limit incoming requests to kernel or the ib_acme utility
++#      (i.e. do not serve librdmacm requests)
++
++cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
++project(rdma-core C)
++
++# CMake likes to use -rdynamic too much, they fixed it in 3.4.
++if(POLICY CMP0065)
++  cmake_policy(SET CMP0065 NEW)
++else()
++  # .. but we really do want to opt out.
++  string(REPLACE "-rdynamic" "" CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "${CMAKE_SHARED_LIBRARY_LINK_C_FLAGS}")
++endif()
++
++# Make RDMA_CHECK_C_LINKER_FLAG work better
++if(POLICY CMP0056)
++  cmake_policy(SET CMP0056 NEW)
++endif()
++
++set(PACKAGE_NAME "RDMA")
++
++# See Documentation/versioning.md
++set(PACKAGE_VERSION "21.0")
++# When this is changed the values in these files need changing too:
++#   debian/libibverbs1.symbols
++set(IBVERBS_PABI_VERSION "21")
++set(IBVERBS_PROVIDER_SUFFIX "-rdmav${IBVERBS_PABI_VERSION}.so")
++
++#-------------------------
++# Basic standard paths
++
++# Override the CMAKE_INSTALL_ dirs to be under the build/ directory
++if (IN_PLACE)
++  set(CMAKE_INSTALL_SYSCONFDIR "${CMAKE_BINARY_DIR}/etc")
++  set(CMAKE_INSTALL_BINDIR "${CMAKE_BINARY_DIR}/bin")
++  set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}")
++  set(CMAKE_INSTALL_LIBDIR "lib")
++  set(CMAKE_INSTALL_INCLUDEDIR "include")
++endif()
++
++include(GNUInstallDirs)
++# C include root
++set(BUILD_INCLUDE ${CMAKE_BINARY_DIR}/include)
++# Executables
++set(BUILD_BIN ${CMAKE_BINARY_DIR}/bin)
++# Libraries
++set(BUILD_LIB ${CMAKE_BINARY_DIR}/lib)
++# Static library pre-processing
++set(BUILD_STATIC_LIB ${CMAKE_BINARY_DIR}/lib/statics)
++# Used for IN_PLACE configuration
++set(BUILD_ETC ${CMAKE_BINARY_DIR}/etc)
++
++set(CMAKE_INSTALL_INITDDIR "${CMAKE_INSTALL_SYSCONFDIR}/init.d"
++  CACHE PATH "Location for init.d files")
++set(CMAKE_INSTALL_SYSTEMD_SERVICEDIR "${CMAKE_INSTALL_PREFIX}/lib/systemd/system"
++  CACHE PATH "Location for systemd service files")
++set(CMAKE_INSTALL_SYSTEMD_BINDIR "/lib/systemd"
++  CACHE PATH "Location for systemd extra binaries")
++
++set(ACM_PROVIDER_DIR "${CMAKE_INSTALL_FULL_LIBDIR}/ibacm"
++  CACHE PATH "Location for ibacm provider plugin shared library files.")
++
++# Location to find the provider plugin shared library files
++set(VERBS_PROVIDER_DIR "${CMAKE_INSTALL_FULL_LIBDIR}/libibverbs"
++  CACHE PATH "Location for provider plugin shared library files. If set to empty the system search path is used.")
++
++# Allow the 'run' dir to be configurable, this historically has been /var/run, but
++# some systems now use /run/
++set(CMAKE_INSTALL_RUNDIR "var/run"
++  CACHE PATH "Location for runtime information, typically /var/run, or /run")
++if(NOT IS_ABSOLUTE ${CMAKE_INSTALL_RUNDIR})
++  set(CMAKE_INSTALL_FULL_RUNDIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_RUNDIR}")
++else()
++  set(CMAKE_INSTALL_FULL_RUNDIR "${CMAKE_INSTALL_RUNDIR}")
++endif()
++
++# Allow the udev rules.d dir to be configurable, this has historically been
++# /lib/udev/rules.d/, but some systems now prefix /usr/
++set(CMAKE_INSTALL_UDEV_RULESDIR "lib/udev/rules.d"
++  CACHE PATH "Location for system udev rules, typically /lib/udev/rules.d or /usr/lib/udev/rules.d")
++if(NOT IS_ABSOLUTE ${CMAKE_INSTALL_UDEV_RULESDIR})
++  set(CMAKE_INSTALL_FULL_UDEV_RULESDIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_UDEV_RULESDIR}")
++else()
++  set(CMAKE_INSTALL_FULL_UDEV_RULESDIR "${CMAKE_INSTALL_UDEV_RULESDIR}")
++endif()
++
++# Location to place provider .driver files
++if (IN_PLACE)
++  set(CONFIG_DIR "${BUILD_ETC}/libibverbs.d")
++  set(VERBS_PROVIDER_DIR "${BUILD_LIB}")
++  set(ACM_PROVIDER_DIR "${BUILD_LIB}/ibacm")
++else()
++  set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/libibverbs.d")
++endif()
++
++set(DISTRO_FLAVOUR "None" CACHE
++  STRING "Flavour of distribution to install for. This primarily impacts the init.d scripts installed.")
++
++#-------------------------
++# Load CMake components
++set(BUILDLIB "${CMAKE_SOURCE_DIR}/buildlib")
++set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${BUILDLIB}")
++
++include(CMakeParseArguments)
++include(CheckCCompilerFlag)
++include(CheckIncludeFile)
++include(CheckTypeSize)
++include(RDMA_EnableCStd)
++include(RDMA_Sparse)
++include(RDMA_BuildType)
++include(RDMA_DoFixup)
++include(publish_headers)
++include(rdma_functions)
++include(rdma_man)
++
++if (NOT DEFINED ENABLE_STATIC)
++  set(ENABLE_STATIC "OFF" CACHE BOOL "Produce static linking libraries as well as shared libraries.")
++endif()
++
++#-------------------------
++# Setup the basic C compiler
++RDMA_BuildType()
++include_directories(${BUILD_INCLUDE})
++
++RDMA_CheckSparse()
++
++# Require GNU99 mode
++RDMA_EnableCStd()
++
++# Extra warnings. Turn on -Wextra to keep aware of interesting developments from gcc,
++# but turn off some that are not terribly useful for this source.
++# FIXME: I wonder how many of the signed compares are bugs?
++RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WARNINGS
++  "-Wall -Wextra -Wno-sign-compare -Wno-unused-parameter")
++RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WMISSING_PROTOTYPES "-Wmissing-prototypes")
++RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WMISSING_DECLARATIONS "-Wmissing-declarations")
++RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WWRITE_STRINGS "-Wwrite-strings")
++RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WFORMAT_2 "-Wformat=2")
++RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WCAST_FUNCTION "-Wcast-function-type")
++
++# At some point after 4.4 gcc fixed shadow to ignore function vs variable
++# conflicts
++set(SAFE_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
++  set(CMAKE_REQUIRED_FLAGS "-Wshadow")
++CHECK_C_SOURCE_COMPILES("
++ #include <unistd.h>
++ int main(int argc,const char *argv[]) { int access = 1; return access; }"
++  HAVE_C_WORKING_SHADOW
++  FAIL_REGEX "warning")
++if (HAVE_C_WORKING_SHADOW)
++  RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WORKING_SHADOW "-Wshadow")
++endif()
++set(CMAKE_REQUIRED_FLAGS "${SAFE_CMAKE_REQUIRED_FLAGS}")
++
++# At some point around 5.4 gcc fixed missing-field-initializers to ignore this
++# common idiom we use extensively. Since this is a useful warning for
++# developers try and leave it on if the compiler supports it.
++CHECK_C_SOURCE_COMPILES("
++ struct foo { int a; int b; };
++ int main(int argc,const char *argv[]) { struct foo tmp = {}; return tmp.a; }"
++  HAVE_C_WORKING_MISSING_FIELD_INITIALIZERS
++  FAIL_REGEX "warning")
++if (NOT HAVE_C_WORKING_MISSING_FIELD_INITIALIZERS)
++  RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WNO_MISSING_FIELD_INITIALIZERS "-Wno-missing-field-initializers")
++endif()
++
++# Check that the compiler supports -fno-strict-aliasing.
++# The use of this flag in the source is discouraged
++set(NO_STRICT_ALIASING_FLAGS "")
++RDMA_AddOptCFlag(NO_STRICT_ALIASING_FLAGS HAVE_NO_STRICT_ALIASING
++  "-fno-strict-aliasing")
++
++CHECK_C_SOURCE_COMPILES("
++ #include <unistd.h>
++
++ void entry(void);
++
++ static void do_entry(void) {}
++ void entry(void) __attribute__((ifunc(\"resolve_entry\")));
++ typedef void (*fn_t)(void);
++ static fn_t resolve_entry(void) {return &do_entry;}
++
++ int main(int argc,const char *argv[]) { entry(); }"
++  HAVE_FUNC_ATTRIBUTE_IFUNC
++  FAIL_REGEX "warning")
++
++# The code does not do the racy fcntl if the various CLOEXEC's are not
++# supported so it really doesn't work right if this isn't available. Thus hard
++# require it.
++CHECK_C_SOURCE_COMPILES("
++ #include <sys/types.h>
++ #include <sys/stat.h>
++ #include <sys/socket.h>
++ #include <fcntl.h>
++ int main(int argc,const char *argv[]) {
++    open(\".\",O_RDONLY | O_CLOEXEC);
++    socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
++    return 0;
++ }" HAS_CLOEXEC)
++
++if (NOT HAS_CLOEXEC)
++# At least uclibc wrongly hides this POSIX constant behind _GNU_SOURCE
++CHECK_C_SOURCE_COMPILES("
++ #define _GNU_SOURCE
++ #include <sys/types.h>
++ #include <sys/stat.h>
++ #include <sys/socket.h>
++ #include <fcntl.h>
++ int main(int argc,const char *argv[]) {
++    open(\".\",O_RDONLY | O_CLOEXEC);
++    socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
++    return 0;
++ }" HAS_CLOEXEC_GNU_SOURCE)
++  if (HAS_CLOEXEC_GNU_SOURCE)
++    set(HAS_CLOEXEC 1)
++    add_definitions("-D_GNU_SOURCE=")
++  endif()
++endif()
++
++if (NOT HAS_CLOEXEC)
++  message(FATAL_ERROR "O_CLOEXEC/SOCK_CLOEXEC/fopen(..,\"e\") support is required but not found")
++endif()
++
++# always_inline is supported
++CHECK_C_SOURCE_COMPILES("
++ int foo(void);
++ inline __attribute__((always_inline)) int foo(void) {return 0;}
++ int main(int argc,const char *argv[]) { return foo(); }"
++  HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
++  FAIL_REGEX "warning")
++
++# Linux __u64 is an unsigned long long
++CHECK_C_SOURCE_COMPILES("
++#include <linux/types.h>
++ int main(int argc,const char *argv[]) { __u64 tmp = 0; unsigned long long *tmp2 = &tmp; return *tmp2; }"
++  HAVE_LONG_LONG_U64
++  FAIL_REGEX "warning")
++
++if (NOT HAVE_LONG_LONG_U64)
++  # Modern Linux has switched to use ull in all cases, but to avoid disturbing
++  # userspace some platforms continued to use unsigned long by default. This
++  # define will cause kernel headers to consistently use unsigned long long
++  add_definitions("-D__SANE_USERSPACE_TYPES__")
++endif()
++
++# glibc and kernel uapi headers can co-exist
++CHECK_C_SOURCE_COMPILES("
++ #include <sys/socket.h>
++ #include <netinet/in.h>
++ #include <linux/in.h>
++ #include <linux/in6.h>
++ int main(int argc,const char *argv[]) { return 0; }"
++  HAVE_GLIBC_UAPI_COMPAT)
++RDMA_DoFixup("${HAVE_GLIBC_UAPI_COMPAT}" "linux/in.h")
++RDMA_DoFixup("${HAVE_GLIBC_UAPI_COMPAT}" "linux/in6.h")
++
++# The compiler has working -fstrict-aliasing support, old gcc's do not. If
++# broken then globally disable strict aliasing.
++RDMA_Check_Aliasing(HAVE_WORKING_STRICT_ALIASING)
++if (NOT HAVE_WORKING_STRICT_ALIASING)
++  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${NO_STRICT_ALIASING_FLAGS}")
++endif()
++
++# Check if off_t is 64 bits, eg large file support is enabled
++CHECK_C_SOURCE_COMPILES("
++#include <sys/types.h>
++ #define BUILD_ASSERT_OR_ZERO(cond) (sizeof(char [1 - 2*!(cond)]) - 1)
++ int main(int argc,const char *argv[]) { return BUILD_ASSERT_OR_ZERO(sizeof(off_t) >= 8); }"
++  HAVE_LARGE_FILES)
++
++if (NOT HAVE_LARGE_FILES)
++  CHECK_C_SOURCE_COMPILES("
++#define _FILE_OFFSET_BITS 64
++#include <sys/types.h>
++ #define BUILD_ASSERT_OR_ZERO(cond) (sizeof(char [1 - 2*!(cond)]) - 1)
++ int main(int argc,const char *argv[]) { return BUILD_ASSERT_OR_ZERO(sizeof(off_t) >= 8); }"
++    HAVE_LARGE_FILES2)
++  if (NOT HAVE_LARGE_FILES2)
++    message(FATAL_ERROR "Could not enable large file support")
++  endif()
++  add_definitions("-D_FILE_OFFSET_BITS=64")
++endif()
++
++# Provide a shim if C11 stdatomic.h is not supported.
++if (NOT HAVE_SPARSE)
++  CHECK_INCLUDE_FILE("stdatomic.h" HAVE_STDATOMIC)
++  RDMA_DoFixup("${HAVE_STDATOMIC}" "stdatomic.h")
++endif()
++
++RDMA_Check_SSE(HAVE_TARGET_SSE)
++
++# Enable development support features
++# Prune unneeded shared libraries during linking
++RDMA_AddOptLDFlag(CMAKE_EXE_LINKER_FLAGS SUPPORTS_AS_NEEDED "-Wl,--as-needed")
++RDMA_AddOptLDFlag(CMAKE_SHARED_LINKER_FLAGS SUPPORTS_AS_NEEDED "-Wl,--as-needed")
++RDMA_AddOptLDFlag(CMAKE_MODULE_LINKER_FLAGS SUPPORTS_AS_NEEDED "-Wl,--as-needed")
++
++# Ensure all shared ELFs have fully described linking
++RDMA_AddOptLDFlag(CMAKE_EXE_LINKER_FLAGS SUPPORTS_NO_UNDEFINED "-Wl,--no-undefined")
++RDMA_AddOptLDFlag(CMAKE_SHARED_LINKER_FLAGS SUPPORTS_NO_UNDEFINED "-Wl,--no-undefined")
++
++# Enable gold linker - gold has different linking checks
++#RDMA_AddOptLDFlag(CMAKE_EXE_LINKER_FLAGS SUPPORTS_NO_UNDEFINED "-fuse-ld=gold")
++#RDMA_AddOptLDFlag(CMAKE_SHARED_LINKER_FLAGS SUPPORTS_NO_UNDEFINED "-fuse-ld=gold")
++#RDMA_AddOptLDFlag(CMAKE_MODULE_LINKER_FLAGS SUPPORTS_NO_UNDEFINED "-fuse-ld=gold")
++
++# Verify that GNU --version-script and asm(".symver") works
++find_package(LDSymVer REQUIRED)
++if (NO_COMPAT_SYMS)
++  set(HAVE_LIMITED_SYMBOL_VERSIONS 1)
++else()
++  set(HAVE_FULL_SYMBOL_VERSIONS 1)
++endif()
++
++# Look for Python
++FIND_PACKAGE(PythonInterp REQUIRED)
++
++# Look for pandoc
++FIND_PACKAGE(pandoc)
++
++#-------------------------
++# Find libraries
++# pthread
++FIND_PACKAGE (Threads REQUIRED)
++
++FIND_PACKAGE(PkgConfig REQUIRED)
++
++# libnl
++if (NOT DEFINED ENABLE_RESOLVE_NEIGH)
++  set(ENABLE_RESOLVE_NEIGH "ON" CACHE BOOL "Enable internal resolution of neighbours for Etherent")
++endif()
++if (ENABLE_RESOLVE_NEIGH)
++  # FIXME use of pkgconfig is discouraged
++  pkg_check_modules(NL libnl-3.0 libnl-route-3.0 REQUIRED)
++  include_directories(${NL_INCLUDE_DIRS})
++  set(NL_KIND 3)
++else()
++  set(NL_KIND 0)
++  set(NL_LIBRARIES "")
++endif()
++
++# Older stuff blows up if these headers are included together
++if (NOT NL_KIND EQUAL 0)
++  set(SAFE_CMAKE_REQUIRED_INCLUDES "${CMAKE_REQUIRED_INCLUDES}")
++  set(CMAKE_REQUIRED_INCLUDES "${NL_INCLUDE_DIRS}")
++  CHECK_C_SOURCE_COMPILES("
++#include <netlink/route/link.h>
++#include <net/if.h>
++ int main(int argc,const char *argv[]) {return 0;}"
++    HAVE_WORKING_IF_H)
++  set(CMAKE_REQUIRED_INCLUDES "${SAFE_CMAKE_REQUIRED_INCLUDES}")
++endif()
++
++# udev
++find_package(UDev)
++include_directories(${UDEV_INCLUDE_DIRS})
++
++# Statically determine sizeof(long), this is largely unnecessary, no new code
++# should rely on this.
++check_type_size("long" SIZEOF_LONG BUILTIN_TYPES_ONLY LANGUAGE C)
++
++# Determine if this arch supports cache coherent DMA. This isn't really an
++# arch specific property, but for our purposes arches that do not support it
++# also do not define wmb/etc which breaks our compile.
++CHECK_C_SOURCE_COMPILES("
++#include \"${CMAKE_CURRENT_SOURCE_DIR}/util/udma_barrier.h\"
++ int main(int argc,const char *argv[]) {return 0;}"
++  HAVE_COHERENT_DMA)
++
++find_package(Systemd)
++include_directories(${SYSTEMD_INCLUDE_DIRS})
++RDMA_DoFixup("${SYSTEMD_FOUND}" "systemd/sd-daemon.h")
++
++#-------------------------
++# Apply fixups
++
++# We prefer to build with valgrind memcheck.h present, but if not, or the user
++# requested valgrind disabled, then replace it with our dummy stub.
++if (NOT DEFINED ENABLE_VALGRIND)
++  set(ENABLE_VALGRIND "ON" CACHE BOOL "Enable use of valgrind annotations")
++endif()
++if (ENABLE_VALGRIND)
++  CHECK_INCLUDE_FILE("valgrind/memcheck.h" HAVE_VALGRIND_MEMCHECK)
++  CHECK_INCLUDE_FILE("valgrind/drd.h" HAVE_VALGRIND_DRD)
++else()
++  set(HAVE_VALGRIND_MEMCHECK 0)
++  set(HAVE_VALGRIND_DRD 0)
++endif()
++RDMA_DoFixup("${HAVE_VALGRIND_MEMCHECK}" "valgrind/memcheck.h")
++RDMA_DoFixup("${HAVE_VALGRIND_DRD}" "valgrind/drd.h")
++
++# Older glibc does not include librt
++CHECK_C_SOURCE_COMPILES("
++#include <time.h>
++int main(int argc,const char *argv[]) {
++   clock_gettime(CLOCK_MONOTONIC,0);
++   clock_nanosleep(CLOCK_MONOTONIC,0,0,0);
++   return 0;
++};" LIBC_HAS_LIBRT)
++if (NOT LIBC_HAS_LIBRT)
++  set(RT_LIBRARIES "rt")
++endif()
++
++# Check for static_assert
++CHECK_C_SOURCE_COMPILES("
++#include <assert.h>
++static_assert(1, \"failed\");
++int main(int argc,const char *argv[]) {
++   static_assert(1, \"failed\");
++   return 0;
++};" HAVE_STATIC_ASSERT)
++RDMA_DoFixup("${HAVE_STATIC_ASSERT}" "assert.h")
++
++#-------------------------
++# Final warning flags
++
++# Old version of cmake used 'main(){..}' as their test program which breaks with -Werror.
++# So set this flag last.
++RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WSTRICT_PROTOTYPES "-Wstrict-prototypes")
++RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WOLD_STYLE_DEFINITION "-Wold-style-definition")
++
++# Old versions of libnl have a duplicated rtnl_route_put, disbale the warning on those
++# systems
++if (NOT NL_KIND EQUAL 0)
++  set(SAFE_CMAKE_REQUIRED_INCLUDES "${CMAKE_REQUIRED_INCLUDES}")
++  set(SAFE_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
++  set(CMAKE_REQUIRED_INCLUDES "${NL_INCLUDE_DIRS}")
++  set(CMAKE_REQUIRED_FLAGS "-Wredundant-decls")
++  CHECK_C_SOURCE_COMPILES("
++ #include <netlink/route/route.h>
++ int main(int argc,const char *argv[]) { return 0; }"
++  HAVE_C_WREDUNDANT_DECLS
++  FAIL_REGEX "warning")
++  set(CMAKE_REQUIRED_INCLUDES "${SAFE_CMAKE_REQUIRED_INCLUDES}")
++  set(CMAKE_REQUIRED_FLAGS "${SAFE_CMAKE_REQUIRED_FLAGS}")
++endif()
++RDMA_AddOptCFlag(CMAKE_C_FLAGS HAVE_C_WREDUNDANT_DECLS "-Wredundant-decls")
++
++#-------------------------
++# Build Prep
++# Write out a git ignore file to the build directory if it isn't the source
++# directory. For developer convenience
++if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
++  file(WRITE ${CMAKE_BINARY_DIR}/.gitignore "*")
++endif()
++
++if ("${IOCTL_MODE}" STREQUAL "both")
++  set(IOCTL_MODE_NUM 3)
++elseif ("${IOCTL_MODE}" STREQUAL "write")
++  set(IOCTL_MODE_NUM 2)
++elseif ("${IOCTL_MODE}" STREQUAL "ioctl")
++  set(IOCTL_MODE_NUM 1)
++elseif ("${IOCTL_MODE}" STREQUAL "")
++  set(IOCTL_MODE_NUM 2)
++else()
++  message(FATAL_ERROR "-DIOCTL_MODE=${IOCTL_MODE} is not a valid choice")
++endif()
++
++# Configuration defaults
++
++if ("${IBACM_SERVER_MODE_DEFAULT}" STREQUAL "open")
++  set(IBACM_SERVER_MODE_DEFAULT "IBACM_SERVER_MODE_OPEN")
++elseif ("${IBACM_SERVER_MODE_DEFAULT}" STREQUAL "loop")
++  set(IBACM_SERVER_MODE_DEFAULT "IBACM_SERVER_MODE_LOOP")
++else()
++  set(IBACM_SERVER_MODE_DEFAULT "IBACM_SERVER_MODE_UNIX")
++endif()
++
++if (IBACM_ACME_PLUS_KERNEL_ONLY_DEFAULT)
++  set(IBACM_ACME_PLUS_KERNEL_ONLY_DEFAULT 1)
++else()
++  set(IBACM_ACME_PLUS_KERNEL_ONLY_DEFAULT 0)
++endif()
++
++configure_file("${BUILDLIB}/config.h.in" "${BUILD_INCLUDE}/config.h" ESCAPE_QUOTES @ONLY)
++
++#-------------------------
++# Sub-directories
++add_subdirectory(ccan)
++add_subdirectory(util)
++add_subdirectory(Documentation)
++add_subdirectory(kernel-boot)
++add_subdirectory(kernel-headers)
++# Libraries
++add_subdirectory(libibumad)
++add_subdirectory(libibumad/man)
++add_subdirectory(libibverbs)
++add_subdirectory(libibverbs/man)
++add_subdirectory(librdmacm)
++add_subdirectory(librdmacm/man)
++
++# Providers
++if (HAVE_COHERENT_DMA)
++add_subdirectory(providers/bnxt_re)
++add_subdirectory(providers/cxgb3) # NO SPARSE
++add_subdirectory(providers/cxgb4) # NO SPARSE
++add_subdirectory(providers/hns)
++add_subdirectory(providers/i40iw) # NO SPARSE
++add_subdirectory(providers/mlx4)
++add_subdirectory(providers/mlx4/man)
++add_subdirectory(providers/mlx5)
++add_subdirectory(providers/mlx5/man)
++add_subdirectory(providers/mthca)
++add_subdirectory(providers/nes) # NO SPARSE
++add_subdirectory(providers/ocrdma)
++add_subdirectory(providers/qedr)
++add_subdirectory(providers/vmw_pvrdma)
++endif()
++
++add_subdirectory(providers/hfi1verbs)
++add_subdirectory(providers/ipathverbs)
++add_subdirectory(providers/rxe)
++add_subdirectory(providers/rxe/man)
++
++# Binaries
++add_subdirectory(ibacm) # NO SPARSE
++if (NOT NL_KIND EQUAL 0)
++  add_subdirectory(iwpmd)
++endif()
++add_subdirectory(libibumad/tests)
++add_subdirectory(libibverbs/examples)
++add_subdirectory(librdmacm/examples)
++if (UDEV_FOUND)
++  add_subdirectory(rdma-ndd)
++endif()
++add_subdirectory(srp_daemon)
++
++ibverbs_finalize()
++rdma_finalize_libs()
++
++#-------------------------
++# Display a summary
++# Only report things that are non-ideal.
++message(STATUS "Missing Optional Items:")
++if (NOT HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE)
++  message(STATUS " Compiler attribute always_inline NOT supported")
++endif()
++if (NOT HAVE_FUNC_ATTRIBUTE_IFUNC)
++  message(STATUS " Compiler attribute ifunc NOT supported")
++endif()
++if (NOT HAVE_COHERENT_DMA)
++  message(STATUS " Architecture NOT able to do coherent DMA (check util/udma_barrier.h) some providers disabled!")
++endif()
++if (NOT HAVE_STDATOMIC)
++  message(STATUS " C11 stdatomic.h NOT available (old compiler)")
++endif()
++if (NOT HAVE_STATIC_ASSERT)
++  message(STATUS " C11 static_assert NOT available (old compiler)")
++endif()
++if (NOT HAVE_WORKING_STRICT_ALIASING)
++  message(STATUS " Compiler cannot do strict aliasing")
++endif()
++if (NOT HAVE_VALGRIND_MEMCHECK)
++  message(STATUS " Valgrind memcheck.h NOT enabled")
++endif()
++if (NOT HAVE_VALGRIND_DRD)
++  message(STATUS " Valgrind drd.h NOT enabled")
++endif()
++if (NL_KIND EQUAL 0)
++  message(STATUS " neighbour resolution NOT enabled")
++else()
++  if (NOT HAVE_WORKING_IF_H)
++    message(STATUS " netlink/route/link.h and net/if.h NOT co-includable (old headers)")
++  endif()
++endif()
++if (NOT PANDOC_FOUND)
++  if (NOT EXISTS "${CMAKE_SOURCE_DIR}/buildlib/pandoc-prebuilt")
++    message(STATUS " pandoc NOT found and NO prebuilt man pages. 'install' disabled")
++  else()
++    message(STATUS " pandoc NOT found (using prebuilt man pages)")
++  endif()
++endif()
++if (NOT SYSTEMD_FOUND)
++  message(STATUS " libsystemd NOT found (disabling features)")
++endif()
++if (NOT UDEV_FOUND)
++  message(STATUS " libudev NOT found (disabling features)")
++endif()
++if (NOT HAVE_C_WARNINGS)
++  message(STATUS " extended C warnings NOT supported")
++endif()
++if (NOT HAVE_NO_STRICT_ALIASING)
++  message(STATUS " -fno-strict-aliasing NOT supported")
++endif()
++if (NOT HAVE_C_WORKING_MISSING_FIELD_INITIALIZERS)
++  message(STATUS " -Wmissing-field-initializers does NOT work")
++endif()
++if (NOT HAVE_C_WORKING_SHADOW)
++  message(STATUS " -Wshadow does NOT work")
++endif()
++if (NOT HAVE_C_WREDUNDANT_DECLS)
++  message(STATUS " -Wredundant-decls does NOT work")
++endif()
++if (NOT HAVE_GLIBC_UAPI_COMPAT)
++  message(STATUS " libc netinet/in.h and linux/in.h do NOT coexist")
++endif()
++if (NOT HAVE_TARGET_SSE)
++  message(STATUS " attribute(target(\"sse\")) does NOT work")
++endif()
+diff -urN rdma-core-21.orig/debian/control rdma-core-21/debian/control
+--- rdma-core-21.orig/debian/control	2018-11-15 00:24:06.000000000 +0000
++++ rdma-core-21/debian/control	2018-12-05 12:00:11.285968745 +0000
+@@ -186,6 +186,45 @@
+  libibverbs1. They will automatically be used by gdb for debugging
+  libibverbs-related issues.
+ 
++Package: libibcm-dev
++Section: libdevel
++Architecture: linux-any
++Multi-Arch: same
++Depends: libibcm1 (= ${binary:Version}), libibverbs-dev, ${misc:Depends}
++Description: Development files for the libibcm library
++ libibcm provides a userspace implementation of an InfiniBand
++ Communication Manager (CM). The CM handles both connection
++ establishment as well as service ID resolution.
++ .
++ This package is needed to compile programs against libibcm1.
++ It contains the header files and static libraries (optionally)
++ needed for compiling.
++
++Package: libibcm1
++Architecture: linux-any
++Multi-Arch: same
++Section: libs
++Depends: ${misc:Depends}, ${shlibs:Depends}
++Description: InfiniBand Communication Manager (CM) library
++ libibcm provides a userspace implementation of an InfiniBand
++ Communication Manager (CM). The CM handles both connection
++ establishment as well as service ID resolution.
++ .
++ This package contains the shared library.
++
++Package: libibcm1-dbg
++Section: debug
++Architecture: linux-any
++Depends: libibcm1 (= ${binary:Version}), ${misc:Depends}
++Description: Debug symbols for the libibcm1 library
++ libibcm provides a userspace implementation of an InfiniBand
++ Communication Manager (CM). The CM handles both connection
++ establishment as well as service ID resolution.
++ .
++ This package contains the debug symbols associated with
++ libibcm1. They will automatically be used by gdb for debugging
++ libibcm-related issues.
++
+ Package: libibumad-dev
+ Section: libdevel
+ Architecture: linux-any
+diff -urN rdma-core-21.orig/debian/control.orig rdma-core-21/debian/control.orig
+--- rdma-core-21.orig/debian/control.orig	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/debian/control.orig	2018-11-15 00:24:06.000000000 +0000
+@@ -0,0 +1,326 @@
++Source: rdma-core
++Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
++Uploaders: Benjamin Drung <benjamin.drung@profitbricks.com>,
++           Talat Batheesh <talatb@mellanox.com>
++Section: net
++Priority: optional
++Build-Depends: cmake (>= 2.8.11),
++               debhelper (>= 9),
++               debhelper (>= 9.20160709) | dh-systemd,
++               dpkg-dev (>= 1.17),
++               libnl-3-dev,
++               libnl-route-3-dev,
++               libsystemd-dev,
++               libudev-dev,
++               ninja-build,
++               pandoc,
++               pkg-config,
++               python,
++               valgrind [amd64 arm64 armhf i386 mips mips64el mipsel powerpc ppc64 ppc64el s390x]
++Standards-Version: 4.1.4
++Vcs-Git: https://github.com/linux-rdma/rdma-core.git
++Vcs-Browser: https://github.com/linux-rdma/rdma-core
++Homepage: https://github.com/linux-rdma/rdma-core
++
++Package: rdma-core
++Architecture: linux-any
++Depends: lsb-base (>= 3.2-14~),
++         udev,
++         ${misc:Depends},
++         ${perl:Depends},
++         ${shlibs:Depends}
++Recommends: dmidecode, ethtool, iproute2
++Breaks: infiniband-diags (<< 2.0.0)
++Replaces: infiniband-diags (<< 2.0.0)
++Description: RDMA core userspace infrastructure and documentation
++ This package provides the basic boot time support for systems that use the
++ Linux kernel's remote direct memory access (RDMA) subystem which includes
++ InfiniBand, iWARP, and RDMA over Converged Ethernet (RoCE).
++ .
++ Several kernel RDMA support daemons are included:
++  - The rdma-ndd daemon which watches for RDMA device changes and/or hostname
++    changes and updates the Node Description of the RDMA devices based on
++    those changes.
++  - The iWARP Port Mapper Daemon (iwpmd) which provides a kernel support
++    service in userspace for iWARP drivers to claim TCP ports through the
++    standard socket interface.
++
++Package: ibacm
++Architecture: linux-any
++Depends: lsb-base (>= 3.2-14~),
++         rdma-core (>= 15),
++         ${misc:Depends},
++         ${shlibs:Depends}
++Description: InfiniBand Communication Manager Assistant (ACM)
++ The IB ACM implements and provides a framework for name, address, and
++ route (path) resolution services over InfiniBand.
++ It is intended to address connection setup scalability issues running
++ MPI applications on large clusters.  The IB ACM provides information
++ needed to establish a connection, but does not implement the CM protocol.
++ A primary user of the ibacm service is the librdmacm library.
++
++Package: ibverbs-providers
++Architecture: linux-any
++Multi-Arch: same
++Depends: ${misc:Depends}, ${shlibs:Depends}
++Provides: libcxgb3-1, libipathverbs1, libmlx4-1, libmlx5-1, libmthca1, libnes1
++Replaces: libcxgb3-1 (<< 15),
++          libipathverbs1 (<< 15),
++          libmlx4-1 (<< 15),
++          libmlx5-1 (<< 15),
++          libmthca1 (<< 15),
++          libnes1 (<< 15)
++Breaks: libcxgb3-1 (<< 15),
++        libipathverbs1 (<< 15),
++        libmlx4-1 (<< 15),
++        libmlx5-1 (<< 15),
++        libmthca1 (<< 15),
++        libnes1 (<< 15)
++Description: User space provider drivers for libibverbs
++ libibverbs is a library that allows userspace processes to use RDMA
++ "verbs" as described in the InfiniBand Architecture Specification and
++ the RDMA Protocol Verbs Specification.  iWARP ethernet NICs support
++ RDMA over hardware-offloaded TCP/IP, while InfiniBand is a
++ high-throughput, low-latency networking technology.  InfiniBand host
++ channel adapters (HCAs) and iWARP NICs commonly support direct
++ hardware access from userspace (kernel bypass), and libibverbs
++ supports this when available.
++ .
++ A RDMA driver consists of a kernel portion and a user space portion.
++ This package contains the user space verbs drivers:
++ .
++  - bnxt_re: Broadcom NetXtreme-E RoCE HCAs
++  - cxgb3: Chelsio T3 iWARP HCAs
++  - cxgb4: Chelsio T4 iWARP HCAs
++  - hfi1verbs: Intel Omni-Path HFI
++  - hns: HiSilicon Hip06 SoC
++  - i40iw: Intel Ethernet Connection X722 RDMA
++  - ipathverbs: QLogic InfiniPath HCAs
++  - mlx4: Mellanox ConnectX-3 InfiniBand HCAs
++  - mlx5: Mellanox Connect-IB/X-4+ InfiniBand HCAs
++  - mthca: Mellanox InfiniBand HCAs
++  - nes: Intel NetEffect NE020-based iWARP adapters
++  - ocrdma: Emulex OneConnect RDMA/RoCE device
++  - qedr: QLogic QL4xxx RoCE HCAs
++  - rxe: A software implementation of the RoCE protocol
++  - vmw_pvrdma: VMware paravirtual RDMA device
++
++Package: ibverbs-utils
++Architecture: linux-any
++Depends: ${misc:Depends}, ${shlibs:Depends}
++Description: Examples for the libibverbs library
++ libibverbs is a library that allows userspace processes to use RDMA
++ "verbs" as described in the InfiniBand Architecture Specification and
++ the RDMA Protocol Verbs Specification.  iWARP ethernet NICs support
++ RDMA over hardware-offloaded TCP/IP, while InfiniBand is a
++ high-throughput, low-latency networking technology.  InfiniBand host
++ channel adapters (HCAs) and iWARP NICs commonly support direct
++ hardware access from userspace (kernel bypass), and libibverbs
++ supports this when available.
++ .
++ This package contains useful libibverbs1 example programs such as
++ ibv_devinfo, which displays information about InfiniBand devices.
++
++Package: libibverbs-dev
++Section: libdevel
++Architecture: linux-any
++Multi-Arch: same
++Depends: ibverbs-providers (= ${binary:Version}),
++         libibverbs1 (= ${binary:Version}),
++         libnl-3-dev,
++         libnl-route-3-dev,
++         ${misc:Depends}
++Description: Development files for the libibverbs library
++ libibverbs is a library that allows userspace processes to use RDMA
++ "verbs" as described in the InfiniBand Architecture Specification and
++ the RDMA Protocol Verbs Specification.  iWARP ethernet NICs support
++ RDMA over hardware-offloaded TCP/IP, while InfiniBand is a
++ high-throughput, low-latency networking technology.  InfiniBand host
++ channel adapters (HCAs) and iWARP NICs commonly support direct
++ hardware access from userspace (kernel bypass), and libibverbs
++ supports this when available.
++ .
++ This package is needed to compile programs against libibverbs1.
++ It contains the header files and static libraries (optionally)
++ needed for compiling.
++
++Package: libibverbs1
++Architecture: linux-any
++Multi-Arch: same
++Section: libs
++Pre-Depends: ${misc:Pre-Depends}
++Depends: adduser, ${misc:Depends}, ${shlibs:Depends}
++Recommends: ibverbs-providers
++Breaks: ibverbs-providers (<< 21~)
++Description: Library for direct userspace use of RDMA (InfiniBand/iWARP)
++ libibverbs is a library that allows userspace processes to use RDMA
++ "verbs" as described in the InfiniBand Architecture Specification and
++ the RDMA Protocol Verbs Specification.  iWARP ethernet NICs support
++ RDMA over hardware-offloaded TCP/IP, while InfiniBand is a
++ high-throughput, low-latency networking technology.  InfiniBand host
++ channel adapters (HCAs) and iWARP NICs commonly support direct
++ hardware access from userspace (kernel bypass), and libibverbs
++ supports this when available.
++ .
++ For this library to be useful, a device-specific plug-in module
++ should also be installed.
++ .
++ This package contains the shared library.
++
++Package: libibverbs1-dbg
++Section: debug
++Architecture: linux-any
++Multi-Arch: same
++Depends: libibverbs1 (= ${binary:Version}), ${misc:Depends}
++Description: Debug symbols for the libibverbs library
++ libibverbs is a library that allows userspace processes to use RDMA
++ "verbs" as described in the InfiniBand Architecture Specification and
++ the RDMA Protocol Verbs Specification.  iWARP ethernet NICs support
++ RDMA over hardware-offloaded TCP/IP, while InfiniBand is a
++ high-throughput, low-latency networking technology.  InfiniBand host
++ channel adapters (HCAs) and iWARP NICs commonly support direct
++ hardware access from userspace (kernel bypass), and libibverbs
++ supports this when available.
++ .
++ This package contains the debug symbols associated with
++ libibverbs1. They will automatically be used by gdb for debugging
++ libibverbs-related issues.
++
++Package: libibumad-dev
++Section: libdevel
++Architecture: linux-any
++Multi-Arch: same
++Depends: libibumad3 (= ${binary:Version}), ${misc:Depends}
++Description: Development files for libibumad
++ libibumad provides userspace Infiniband Management Datagram (uMAD)
++ functions which sit on top of the uMAD modules in the kernel.
++ These are used by InfiniBand diagnostic and management tools.
++ .
++ This package is needed to compile programs against libibumad.
++ It contains the header files and static libraries (optionally)
++ needed for compiling.
++
++Package: libibumad3
++Architecture: linux-any
++Multi-Arch: same
++Section: libs
++Pre-Depends: ${misc:Pre-Depends}
++Depends: ${misc:Depends}, ${shlibs:Depends}
++Description: InfiniBand Userspace Management Datagram (uMAD) library
++ libibumad provides userspace Infiniband Management Datagram (uMAD)
++ functions which sit on top of the uMAD modules in the kernel.
++ These are used by InfiniBand diagnostic and management tools.
++ .
++ This package contains the shared library.
++
++Package: libibumad3-dbg
++Section: debug
++Architecture: linux-any
++Depends: libibumad3 (= ${binary:Version}), ${misc:Depends}
++Description: Debug symbols for the libibumad3 library
++ libibumad provides userspace Infiniband Management Datagram (uMAD)
++ functions which sit on top of the uMAD modules in the kernel.
++ These are used by InfiniBand diagnostic and management tools.
++ .
++ This package contains the debug symbols associated with
++ libibumad3. They will automatically be used by gdb for debugging
++ libibumad-related issues.
++
++Package: librdmacm-dev
++Section: libdevel
++Architecture: linux-any
++Multi-Arch: same
++Depends: libibverbs-dev, librdmacm1 (= ${binary:Version}), ${misc:Depends}
++Description: Development files for the librdmacm library
++ librdmacm is a library that allows applications to set up reliable
++ connected and unreliable datagram transfers when using RDMA adapters.
++ It provides a transport-neutral interface in the sense that the same
++ code can be used for both InfiniBand and iWARP adapters.  The
++ interface is based on sockets, but adapted for queue pair (QP) based
++ semantics: communication must use a specific RDMA device, and data
++ transfers are message-based.
++ .
++ librdmacm only provides communication management (connection setup
++ and tear-down) and works in conjunction with the verbs interface
++ provided by libibverbs, which provides the interface used to actually
++ transfer data.
++ .
++ This package is needed to compile programs against librdmacm1.
++ It contains the header files and static libraries (optionally)
++ needed for compiling.
++
++Package: librdmacm1
++Architecture: linux-any
++Multi-Arch: same
++Section: libs
++Pre-Depends: ${misc:Pre-Depends}
++Depends: ${misc:Depends}, ${shlibs:Depends}
++Description: Library for managing RDMA connections
++ librdmacm is a library that allows applications to set up reliable
++ connected and unreliable datagram transfers when using RDMA adapters.
++ It provides a transport-neutral interface in the sense that the same
++ code can be used for both InfiniBand and iWARP adapters.  The
++ interface is based on sockets, but adapted for queue pair (QP) based
++ semantics: communication must use a specific RDMA device, and data
++ transfers are message-based.
++ .
++ librdmacm only provides communication management (connection setup
++ and tear-down) and works in conjunction with the verbs interface
++ provided by libibverbs, which provides the interface used to actually
++ transfer data.
++ .
++ This package contains the shared library.
++
++Package: librdmacm1-dbg
++Section: debug
++Architecture: linux-any
++Depends: librdmacm1 (= ${binary:Version}), ${misc:Depends}
++Description: Debug symbols for the librdmacm library
++ librdmacm is a library that allows applications to set up reliable
++ connected and unreliable datagram transfers when using RDMA adapters.
++ It provides a transport-neutral interface in the sense that the same
++ code can be used for both InfiniBand and iWARP adapters.  The
++ interface is based on sockets, but adapted for queue pair (QP) based
++ semantics: communication must use a specific RDMA device, and data
++ transfers are message-based.
++ .
++ librdmacm only provides communication management (connection setup
++ and tear-down) and works in conjunction with the verbs interface
++ provided by libibverbs, which provides the interface used to actually
++ transfer data.
++ .
++ This package contains the debug symbols associated with
++ librdmacm1. They will automatically be used by gdb for debugging
++ librdmacm-related issues.
++
++Package: rdmacm-utils
++Architecture: linux-any
++Depends: ${misc:Depends}, ${shlibs:Depends}
++Description: Examples for the librdmacm library
++ librdmacm is a library that allows applications to set up reliable
++ connected and unreliable datagram transfers when using RDMA adapters.
++ It provides a transport-neutral interface in the sense that the same
++ code can be used for both InfiniBand and iWARP adapters.  The
++ interface is based on sockets, but adapted for queue pair (QP) based
++ semantics: communication must use a specific RDMA device, and data
++ transfers are message-based.
++ .
++ librdmacm only provides communication management (connection setup
++ and tear-down) and works in conjunction with the verbs interface
++ provided by libibverbs, which provides the interface used to actually
++ transfer data.
++ .
++ This package contains useful librdmacm1 example programs such as
++ rping and udaddy.
++
++Package: srptools
++Architecture: linux-any
++Depends: lsb-base (>= 3.2-14~),
++         rdma-core (>= 15),
++         udev,
++         ${misc:Depends},
++         ${shlibs:Depends}
++Description: Tools for Infiniband attached storage (SRP)
++ In conjunction with the kernel ib_srp driver, srptools allows you to
++ discover and use Infiniband attached storage devices which use the
++ SCSI RDMA Protocol (SRP).
+diff -urN rdma-core-21.orig/debian/copyright rdma-core-21/debian/copyright
+--- rdma-core-21.orig/debian/copyright	2018-11-15 00:24:06.000000000 +0000
++++ rdma-core-21/debian/copyright	2018-12-05 12:00:11.286968736 +0000
+@@ -85,6 +85,12 @@
+ Copyright: disclaimed
+ License: GPL-2 or BSD-3-clause
+ 
++Files: libibcm/*
++Copyright: 2004-2006, Intel Corporation.
++           2004-2005, Topspin Communications.
++           2004, Voltaire Corporation.
++License: BSD-MIT or GPL-2
++
+ Files: libibumad/*
+ Copyright: 2004-2017, Mellanox Technologies Ltd.
+            2004, Infinicon Corporation.
+diff -urN rdma-core-21.orig/debian/copyright.orig rdma-core-21/debian/copyright.orig
+--- rdma-core-21.orig/debian/copyright.orig	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/debian/copyright.orig	2018-11-15 00:24:06.000000000 +0000
+@@ -0,0 +1,665 @@
++Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
++Upstream-Name: rdma-core
++Upstream-Contact: Doug Ledford <dledford@redhat.com>,
++                  Leon Romanovsky <Leon@kernel.org>
++Source: https://github.com/linux-rdma/rdma-core
++
++Files: *
++Copyright: disclaimed
++License: BSD-MIT or GPL-2
++
++Files: debian/*
++Copyright: 2008, Genome Research Ltd
++           2014, Ana Beatriz Guerrero Lopez <ana@debian.org>
++           2015-2016, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
++           2016-2017, Benjamin Drung <benjamin.drung@profitbricks.com>
++           2016-2017, Talat Batheesh <talatb@mellanox.com>
++License: GPL-2+
++ This program is free software; you can redistribute it and/or modify
++ it under the terms of the GNU General Public License as published by
++ the Free Software Foundation; either version 2 of the License, or
++ (at your option) any later version.
++ .
++ This program is distributed in the hope that it will be useful,
++ but WITHOUT ANY WARRANTY; without even the implied warranty of
++ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ GNU General Public License for more details.
++ .
++ You should have received a copy of the GNU General Public License along
++ with this program; if not, write to the Free Software Foundation, Inc.,
++ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ .
++ On Debian systems, the full text of the GNU General Public License
++ version 2 can be found in the file `/usr/share/common-licenses/GPL-2'.
++
++Files: CMakeLists.txt
++Copyright: 2015-2017, Obsidian Research Corporation.
++License: BSD-MIT or GPL-2
++
++Files: buildlib/*
++Copyright: 2015-2017, Obsidian Research Corporation.
++           2016-2017 Mellanox Technologies, Inc
++License: BSD-MIT or GPL-2
++
++Files: buildlib/fixup-include/stdatomic.h
++Copyright: 2011 Ed Schouten <ed@FreeBSD.org>
++                David Chisnall <theraven@FreeBSD.org>
++License: BSD-2-clause
++
++Files: ccan/*
++Copyright: unspecified
++License: CC0
++
++Files: ccan/list.*
++Copyright: unspecified
++License: MIT
++
++Files: ibacm/*
++Copyright: 2009-2014, Intel Corporation.
++           2013, Mellanox Technologies LTD.
++License: BSD-MIT
++
++Files: ibacm/man/*
++       ibacm/ibacm.init.in
++Copyright: disclaimed
++License: BSD-2-clause
++
++Files: ibacm/CMakeLists.txt
++       ibacm/ibacm_hosts.data
++Copyright: disclaimed
++License: BSD-MIT or GPL-2
++
++Files: iwpmd/*
++Copyright: 2013-2016, Intel Corporation.
++License: BSD-MIT or GPL-2
++
++Files: kernel-headers/*
++Copyright: disclaimed
++License: GPL-2 or BSD-2-clause
++
++Files: kernel-headers/rdma/rdma_netlink.h
++Copyright: disclaimed
++License: GPL-2
++
++Files: kernel-headers/rdma/hfi/*
++Copyright: disclaimed
++License: GPL-2 or BSD-3-clause
++
++Files: libibumad/*
++Copyright: 2004-2017, Mellanox Technologies Ltd.
++           2004, Infinicon Corporation.
++           2004-2014, Intel Corporation.
++           2004, Topspin Corporation.
++           2004-2009, Voltaire Inc.
++           2013 Lawrence Livermore National Security
++           2013, Oracle and/or its affiliates.
++License: BSD-MIT or GPL-2
++
++Files: libibumad/man/*
++Copyright: disclaimed
++License: BSD-2-clause
++
++Files: libibverbs/*
++Copyright: 2004-2012, Intel Corporation.
++           2004-2005, Topspin Communications.
++           2005-2007, Cisco Systems, Inc.
++           2005, PathScale, Inc.
++           2005, Mellanox Technologies Ltd.
++           2005, Voltaire, Inc.
++           2008, Lawrence Livermore National Laboratory.
++License: BSD-MIT or GPL-2
++
++Files: libibverbs/man/*
++       libibverbs/neigh.h
++       libibverbs/nl1_compat.h
++       libibverbs/neigh.c
++Copyright: disclaimed
++License: BSD-2-clause
++
++Files: librdmacm/*
++Copyright: 2005-2014, Intel Corporation.
++           2005, Ammasso, Inc.
++           2005, Voltaire Inc.
++           2006, Open Grid Computing, Inc.
++           2014-2015, Mellanox Technologies LTD.
++License: BSD-MIT or GPL-2
++
++Files: librdmacm/examples/cmtime.c
++       librdmacm/examples/rcopy.c
++       librdmacm/examples/rdma_client.c
++       librdmacm/examples/rdma_server.c
++       librdmacm/examples/rdma_xclient.c
++       librdmacm/examples/rdma_xserver.c
++       librdmacm/examples/riostream.c
++       librdmacm/examples/rstream.c
++       librdmacm/examples/udpong.c
++Copyright: 2005-2014, Intel Corporation.
++           2014-2015, Mellanox Technologies LTD.
++License: BSD-MIT
++
++Files: librdmacm/docs/rsocket
++Copyright: disclaimed
++License: BSD-2-clause
++
++Files: librdmacm/man/*
++Copyright: disclaimed
++License: BSD-2-clause
++
++Files: providers/bnxt_re/*
++Copyright: 2015-2017, Broadcom Limited and/or its subsidiaries
++License: BSD-2-clause or GPL-2
++
++Files: providers/cxgb3/*
++       providers/cxgb4/*
++Copyright: 2003-2016, Chelsio Communications, Inc.
++License: BSD-MIT or GPL-2
++
++Files: providers/hfi1verbs/*
++Copyright: 2005 PathScale, Inc.
++           2006-2009 QLogic Corporation
++           2015 Intel Corporation
++License: BSD-3-clause or GPL-2
++
++Files: providers/hns/*
++Copyright: 2016, Hisilicon Limited.
++License: BSD-MIT or GPL-2
++
++Files: providers/i40iw/*
++Copyright: 2015-2016, Intel Corporation.
++License: BSD-MIT or GPL-2
++
++Files: providers/ipathverbs/*
++Copyright: 2006-2010, QLogic Corp.
++           2005, PathScale, Inc.
++           2013, Intel Corporation
++License: BSD-MIT or GPL-2
++
++Files: providers/mlx4/*
++Copyright: 2004-2005, Topspin Communications.
++           2005-2007, Cisco, Inc.
++           2005-2017, Mellanox Technologies Ltd.
++License: BSD-MIT or GPL-2
++
++Files: providers/mlx5/*
++Copyright: 2010-2017, Mellanox Technologies, Inc.
++License: BSD-MIT or GPL-2
++
++Files: providers/mlx5/man/*.3
++       providers/mlx5/man/*.7
++Copyright: disclaimed
++License: BSD-MIT
++
++Files: providers/mthca/*
++Copyright: 2004-2005, Topspin Communications.
++           2005-2006, Cisco Systems.
++           2005, Mellanox Technologies Ltd.
++License: BSD-MIT or GPL-2
++
++Files: providers/nes/*
++Copyright: 2006-2010, Intel Corporation.
++           2006, Open Grid Computing, Inc.
++License: BSD-MIT or GPL-2
++
++Files: providers/ocrdma/*
++Copyright: 2008-2013, Emulex.
++License: BSD-2-clause or GPL-2
++
++Files: providers/qedr/*
++Copyright: 2015-2016, QLogic Corporation.
++License: BSD-MIT or GPL-2
++
++Files: providers/rxe/*
++Copyright: 2009-2011, System Fabric Works, Inc.
++           2009-2011, Mellanox Technologies Ltd.
++           2006-2007, QLogic Corporation.
++           2005, PathScale, Inc.
++License: BSD-MIT or GPL-2
++
++Files: providers/vmw_pvrdma/*
++Copyright: 2012-2016 VMware, Inc.
++License: BSD-2-clause or GPL-2
++
++Files: rdma-ndd/*
++Copyright: 2004-2016, Intel Corporation.
++License: BSD-MIT or GPL-2
++
++Files: redhat/*
++Copyright: 1996-2013, Red Hat, Inc.
++License: GPL-2
++
++Files: srp_daemon/*
++Copyright: 2005, Topspin Communications.
++           2006, Cisco Systems, Inc.
++           2006, Mellanox Technologies Ltd.
++License: BSD-MIT or GPL-2
++
++Files: srp_daemon/srp_daemon.1.in
++Copyright: 2006 Mellanox Technologies.
++License: CPL-1.0 or BSD-2-clause or GPL-2
++
++Files: srp_daemon/srpd.in
++       srp_daemon/ibsrpdm.1
++Copyright: disclaimed
++License: BSD-2-clause
++
++Files: util/udma_barrier.h
++Copyright: 2005 Topspin Communications.
++License: BSD-MIT or GPL-2
++
++License: BSD-MIT
++              OpenIB.org BSD license (MIT variant)
++ .
++ Redistribution and use in source and binary forms, with or without
++ modification, are permitted provided that the following conditions are met:
++ .
++   - Redistributions of source code must retain the above copyright notice,
++     this list of conditions and the following disclaimer.
++ .
++   - Redistributions in binary form must reproduce the above copyright notice,
++     this list of conditions and the following disclaimer in the documentation
++     and/or other materials provided with the distribution.
++ .
++ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ SOFTWARE.
++
++License: BSD-2-clause
++            OpenIB.org BSD license (FreeBSD Variant)
++ .
++ Redistribution and use in source and binary forms, with or without
++ modification, are permitted provided that the following conditions are met:
++ .
++   - Redistributions of source code must retain the above copyright notice,
++     this list of conditions and the following disclaimer.
++ .
++   - Redistributions in binary form must reproduce the above copyright notice,
++     this list of conditions and the following disclaimer in the documentation
++     and/or other materials provided with the distribution.
++ .
++ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
++ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
++ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
++ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++
++License: BSD-3-clause
++ Redistribution and use in source and binary forms, with or without
++ modification, are permitted provided that the following conditions
++ are met:
++ .
++   * Redistributions of source code must retain the above copyright
++     notice, this list of conditions and the following disclaimer.
++   * Redistributions in binary form must reproduce the above copyright
++     notice, this list of conditions and the following disclaimer in
++     the documentation and/or other materials provided with the
++     distribution.
++   * Neither the name of Intel Corporation nor the names of its
++     contributors may be used to endorse or promote products derived
++     from this software without specific prior written permission.
++ .
++ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++
++License: GPL-2
++ This program is free software; you can redistribute it and/or modify
++ it under the terms of the GNU General Public License as published by
++ the Free Software Foundation; version 2 of the License.
++ .
++ This program is distributed in the hope that it will be useful,
++ but WITHOUT ANY WARRANTY; without even the implied warranty of
++ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ GNU General Public License for more details.
++ .
++ You should have received a copy of the GNU General Public License along
++ with this program; if not, write to the Free Software Foundation, Inc.,
++ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ .
++ On Debian systems, the full text of the GNU General Public License
++ version 2 can be found in the file `/usr/share/common-licenses/GPL-2'.
++
++License: CC0
++ The laws of most jurisdictions throughout the world automatically confer
++ exclusive Copyright and Related Rights (defined below) upon the creator and
++ subsequent owner(s) (each and all, an "owner") of an original work of
++ authorship and/or a database (each, a "Work").
++ .
++ Certain owners wish to permanently relinquish those rights to a Work for the
++ purpose of contributing to a commons of creative, cultural and scientific works
++ ("Commons") that the public can reliably and without fear of later claims of
++ infringement build upon, modify, incorporate in other works, reuse and
++ redistribute as freely as possible in any form whatsoever and for any purposes,
++ including without limitation commercial purposes. These owners may contribute
++ to the Commons to promote the ideal of a free culture and the further
++ production of creative, cultural and scientific works, or to gain reputation or
++ greater distribution for their Work in part through the use and efforts of
++ others.
++ .
++ For these and/or other purposes and motivations, and without any expectation of
++ additional consideration or compensation, the person associating CC0 with a
++ Work (the "Affirmer"), to the extent that he or she is an owner of Copyright
++ and Related Rights in the Work, voluntarily elects to apply CC0 to the Work and
++ publicly distribute the Work under its terms, with knowledge of his or her
++ Copyright and Related Rights in the Work and the meaning and intended legal
++ effect of CC0 on those rights.
++ .
++ 1. Copyright and Related Rights. A Work made available under CC0 may be
++ protected by copyright and related or neighboring rights ("Copyright and
++ Related Rights"). Copyright and Related Rights include, but are not limited to,
++ the following:
++ .
++     the right to reproduce, adapt, distribute, perform, display, communicate,
++ and translate a Work; moral rights retained by the original author(s) and/or
++ performer(s); publicity and privacy rights pertaining to a person's image or
++ likeness depicted in a Work; rights protecting against unfair competition in
++ regards to a Work, subject to the limitations in paragraph 4(a), below; rights
++ protecting the extraction, dissemination, use and reuse of data in a Work;
++ database rights (such as those arising under Directive 96/9/EC of the European
++ Parliament and of the Council of 11 March 1996 on the legal protection of
++ databases, and under any national implementation thereof, including any amended
++ or successor version of such directive); and other similar, equivalent or
++ corresponding rights throughout the world based on applicable law or treaty,
++ and any national implementations thereof.
++ .
++ 2. Waiver. To the greatest extent permitted by, but not in contravention of,
++ applicable law, Affirmer hereby overtly, fully, permanently, irrevocably and
++ unconditionally waives, abandons, and surrenders all of Affirmer's Copyright
++ and Related Rights and associated claims and causes of action, whether now
++ known or unknown (including existing as well as future claims and causes of
++ action), in the Work (i) in all territories worldwide, (ii) for the maximum
++ duration provided by applicable law or treaty (including future time
++ extensions), (iii) in any current or future medium and for any number of
++ copies, and (iv) for any purpose whatsoever, including without limitation
++ commercial, advertising or promotional purposes (the "Waiver"). Affirmer makes
++ the Waiver for the benefit of each member of the public at large and to the
++ detriment of Affirmer's heirs and successors, fully intending that such Waiver
++ shall not be subject to revocation, rescission, cancellation, termination, or
++ any other legal or equitable action to disrupt the quiet enjoyment of the Work
++ by the public as contemplated by Affirmer's express Statement of Purpose.
++ .
++ 3. Public License Fallback. Should any part of the Waiver for any reason be
++ judged legally invalid or ineffective under applicable law, then the Waiver
++ shall be preserved to the maximum extent permitted taking into account
++ Affirmer's express Statement of Purpose. In addition, to the extent the Waiver
++ is so judged Affirmer hereby grants to each affected person a royalty-free, non
++ transferable, non sublicensable, non exclusive, irrevocable and unconditional
++ license to exercise Affirmer's Copyright and Related Rights in the Work (i) in
++ all territories worldwide, (ii) for the maximum duration provided by applicable
++ law or treaty (including future time extensions), (iii) in any current or
++ future medium and for any number of copies, and (iv) for any purpose
++ whatsoever, including without limitation commercial, advertising or promotional
++ purposes (the "License"). The License shall be deemed effective as of the date
++ CC0 was applied by Affirmer to the Work. Should any part of the License for any
++ reason be judged legally invalid or ineffective under applicable law, such
++ partial invalidity or ineffectiveness shall not invalidate the remainder of the
++ License, and in such case Affirmer hereby affirms that he or she will not (i)
++ exercise any of his or her remaining Copyright and Related Rights in the Work
++ or (ii) assert any associated claims and causes of action with respect to the
++ Work, in either case contrary to Affirmer's express Statement of Purpose.
++ .
++ 4. Limitations and Disclaimers.
++ .
++     No trademark or patent rights held by Affirmer are waived, abandoned,
++ surrendered, licensed or otherwise affected by this document.  Affirmer offers
++ the Work as-is and makes no representations or warranties of any kind
++ concerning the Work, express, implied, statutory or otherwise, including
++ without limitation warranties of title, merchantability, fitness for a
++ particular purpose, non infringement, or the absence of latent or other
++ defects, accuracy, or the present or absence of errors, whether or not
++ discoverable, all to the greatest extent permissible under applicable law.
++ Affirmer disclaims responsibility for clearing rights of other persons that may
++ apply to the Work or any use thereof, including without limitation any person's
++ Copyright and Related Rights in the Work. Further, Affirmer disclaims
++ responsibility for obtaining any necessary consents, permissions or other
++ rights required for any use of the Work.  Affirmer understands and acknowledges
++ that Creative Commons is not a party to this document and has no duty or
++ obligation with respect to this CC0 or use of the Work.
++
++License: MIT
++ Permission is hereby granted, free of charge, to any person obtaining a copy
++ of this software and associated documentation files (the "Software"), to deal
++ in the Software without restriction, including without limitation the rights
++ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ copies of the Software, and to permit persons to whom the Software is
++ furnished to do so, subject to the following conditions:
++ .
++ The above copyright notice and this permission notice shall be included in
++ all copies or substantial portions of the Software.
++ .
++ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++ THE SOFTWARE.
++
++License: CPL-1.0
++ THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS COMMON PUBLIC
++ LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM
++ CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
++ .
++ 1. DEFINITIONS
++ .
++ "Contribution" means:
++ .
++ a) in the case of the initial Contributor, the initial code and
++ documentation distributed under this Agreement, and
++ .
++ b) in the case of each subsequent Contributor:
++ .
++ i) changes to the Program, and
++ .
++ ii) additions to the Program;
++ .
++ where such changes and/or additions to the Program originate from and are
++ distributed by that particular Contributor. A Contribution 'originates' from a
++ Contributor if it was added to the Program by such Contributor itself or anyone
++ acting on such Contributor's behalf. Contributions do not include additions to
++ the Program which: (i) are separate modules of software distributed in
++ conjunction with the Program under their own license agreement, and (ii) are not
++ derivative works of the Program.
++ .
++ "Contributor" means any person or entity that distributes the Program.
++ .
++ "Licensed Patents " mean patent claims licensable by a Contributor which are
++ necessarily infringed by the use or sale of its Contribution alone or when
++ combined with the Program.
++ .
++ "Program" means the Contributions distributed in accordance with this Agreement.
++ .
++ "Recipient" means anyone who receives the Program under this Agreement,
++ including all Contributors.
++ .
++ 2. GRANT OF RIGHTS
++ .
++ a) Subject to the terms of this Agreement, each Contributor hereby grants
++ Recipient a non-exclusive, worldwide, royalty-free copyright license to
++ reproduce, prepare derivative works of, publicly display, publicly perform,
++ distribute and sublicense the Contribution of such Contributor, if any, and such
++ derivative works, in source code and object code form.
++ .
++ b) Subject to the terms of this Agreement, each Contributor hereby grants
++ Recipient a non-exclusive, worldwide, royalty-free patent license under Licensed
++ Patents to make, use, sell, offer to sell, import and otherwise transfer the
++ Contribution of such Contributor, if any, in source code and object code form.
++ This patent license shall apply to the combination of the Contribution and the
++ Program if, at the time the Contribution is added by the Contributor, such
++ addition of the Contribution causes such combination to be covered by the
++ Licensed Patents. The patent license shall not apply to any other combinations
++ which include the Contribution. No hardware per se is licensed hereunder.
++ .
++ c) Recipient understands that although each Contributor grants the licenses
++ to its Contributions set forth herein, no assurances are provided by any
++ Contributor that the Program does not infringe the patent or other intellectual
++ property rights of any other entity. Each Contributor disclaims any liability to
++ Recipient for claims brought by any other entity based on infringement of
++ intellectual property rights or otherwise. As a condition to exercising the
++ rights and licenses granted hereunder, each Recipient hereby assumes sole
++ responsibility to secure any other intellectual property rights needed, if any.
++ For example, if a third party patent license is required to allow Recipient to
++ distribute the Program, it is Recipient's responsibility to acquire that license
++ before distributing the Program.
++ .
++ d) Each Contributor represents that to its knowledge it has sufficient
++ copyright rights in its Contribution, if any, to grant the copyright license set
++ forth in this Agreement.
++ .
++ 3. REQUIREMENTS
++ .
++ A Contributor may choose to distribute the Program in object code form under its
++ own license agreement, provided that:
++ .
++ a) it complies with the terms and conditions of this Agreement; and
++ .
++ b) its license agreement:
++ .
++ i) effectively disclaims on behalf of all Contributors all warranties and
++ conditions, express and implied, including warranties or conditions of title and
++ non-infringement, and implied warranties or conditions of merchantability and
++ fitness for a particular purpose;
++ .
++ ii) effectively excludes on behalf of all Contributors all liability for
++ damages, including direct, indirect, special, incidental and consequential
++ damages, such as lost profits;
++ .
++ iii) states that any provisions which differ from this Agreement are offered
++ by that Contributor alone and not by any other party; and
++ .
++ iv) states that source code for the Program is available from such
++ Contributor, and informs licensees how to obtain it in a reasonable manner on or
++ through a medium customarily used for software exchange.
++ .
++ When the Program is made available in source code form:
++ .
++ a) it must be made available under this Agreement; and
++ .
++ b) a copy of this Agreement must be included with each copy of the Program.
++ .
++ Contributors may not remove or alter any copyright notices contained within the
++ Program.
++ .
++ Each Contributor must identify itself as the originator of its Contribution, if
++ any, in a manner that reasonably allows subsequent Recipients to identify the
++ originator of the Contribution.
++ .
++ 4. COMMERCIAL DISTRIBUTION
++ .
++ Commercial distributors of software may accept certain responsibilities with
++ respect to end users, business partners and the like. While this license is
++ intended to facilitate the commercial use of the Program, the Contributor who
++ includes the Program in a commercial product offering should do so in a manner
++ which does not create potential liability for other Contributors. Therefore, if
++ a Contributor includes the Program in a commercial product offering, such
++ Contributor ("Commercial Contributor") hereby agrees to defend and indemnify
++ every other Contributor ("Indemnified Contributor") against any losses, damages
++ and costs (collectively "Losses") arising from claims, lawsuits and other legal
++ actions brought by a third party against the Indemnified Contributor to the
++ extent caused by the acts or omissions of such Commercial Contributor in
++ connection with its distribution of the Program in a commercial product
++ offering. The obligations in this section do not apply to any claims or Losses
++ relating to any actual or alleged intellectual property infringement. In order
++ to qualify, an Indemnified Contributor must: a) promptly notify the Commercial
++ Contributor in writing of such claim, and b) allow the Commercial Contributor to
++ control, and cooperate with the Commercial Contributor in, the defense and any
++ related settlement negotiations. The Indemnified Contributor may participate in
++ any such claim at its own expense.
++ .
++ For example, a Contributor might include the Program in a commercial product
++ offering, Product X. That Contributor is then a Commercial Contributor. If that
++ Commercial Contributor then makes performance claims, or offers warranties
++ related to Product X, those performance claims and warranties are such
++ Commercial Contributor's responsibility alone. Under this section, the
++ Commercial Contributor would have to defend claims against the other
++ Contributors related to those performance claims and warranties, and if a court
++ requires any other Contributor to pay any damages as a result, the Commercial
++ Contributor must pay those damages.
++ .
++ 5. NO WARRANTY
++ .
++ EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, THE PROGRAM IS PROVIDED ON AN
++ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR
++ IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF TITLE,
++ NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Each
++ Recipient is solely responsible for determining the appropriateness of using and
++ distributing the Program and assumes all risks associated with its exercise of
++ rights under this Agreement, including but not limited to the risks and costs of
++ program errors, compliance with applicable laws, damage to or loss of data,
++ programs or equipment, and unavailability or interruption of operations.
++ .
++ 6. DISCLAIMER OF LIABILITY
++ .
++ EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, NEITHER RECIPIENT NOR ANY
++ CONTRIBUTORS SHALL HAVE ANY LIABILITY FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING WITHOUT LIMITATION LOST
++ PROFITS), HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ OUT OF THE USE OR DISTRIBUTION OF THE PROGRAM OR THE EXERCISE OF ANY RIGHTS
++ GRANTED HEREUNDER, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
++ .
++ 7. GENERAL
++ .
++ If any provision of this Agreement is invalid or unenforceable under applicable
++ law, it shall not affect the validity or enforceability of the remainder of the
++ terms of this Agreement, and without further action by the parties hereto, such
++ provision shall be reformed to the minimum extent necessary to make such
++ provision valid and enforceable.
++ .
++ If Recipient institutes patent litigation against a Contributor with respect to
++ a patent applicable to software (including a cross-claim or counterclaim in a
++ lawsuit), then any patent licenses granted by that Contributor to such Recipient
++ under this Agreement shall terminate as of the date such litigation is filed. In
++ addition, if Recipient institutes patent litigation against any entity
++ (including a cross-claim or counterclaim in a lawsuit) alleging that the Program
++ itself (excluding combinations of the Program with other software or hardware)
++ infringes such Recipient's patent(s), then such Recipient's rights granted under
++ Section 2(b) shall terminate as of the date such litigation is filed.
++ .
++ All Recipient's rights under this Agreement shall terminate if it fails to
++ comply with any of the material terms or conditions of this Agreement and does
++ not cure such failure in a reasonable period of time after becoming aware of
++ such noncompliance. If all Recipient's rights under this Agreement terminate,
++ Recipient agrees to cease use and distribution of the Program as soon as
++ reasonably practicable. However, Recipient's obligations under this Agreement
++ and any licenses granted by Recipient relating to the Program shall continue and
++ survive.
++ .
++ Everyone is permitted to copy and distribute copies of this Agreement, but in
++ order to avoid inconsistency the Agreement is copyrighted and may only be
++ modified in the following manner. The Agreement Steward reserves the right to
++ publish new versions (including revisions) of this Agreement from time to time.
++ No one other than the Agreement Steward has the right to modify this Agreement.
++ IBM is the initial Agreement Steward. IBM may assign the responsibility to serve
++ as the Agreement Steward to a suitable separate entity. Each new version of the
++ Agreement will be given a distinguishing version number. The Program (including
++ Contributions) may always be distributed subject to the version of the Agreement
++ under which it was received. In addition, after a new version of the Agreement
++ is published, Contributor may elect to distribute the Program (including its
++ Contributions) under the new version. Except as expressly stated in Sections
++ 2(a) and 2(b) above, Recipient receives no rights or licenses to the
++ intellectual property of any Contributor under this Agreement, whether
++ expressly, by implication, estoppel or otherwise. All rights in the Program not
++ expressly granted under this Agreement are reserved.
++ .
++ This Agreement is governed by the laws of the State of New York and the
++ intellectual property laws of the United States of America. No party to this
++ Agreement will bring a legal action under this Agreement more than one year
++ after the cause of action arose. Each party waives its rights to a jury trial in
++ any resulting litigation.
+diff -urN rdma-core-21.orig/debian/libibcm1.install rdma-core-21/debian/libibcm1.install
+--- rdma-core-21.orig/debian/libibcm1.install	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/debian/libibcm1.install	2018-12-05 12:00:11.286968736 +0000
+@@ -0,0 +1,2 @@
++usr/lib/*/libibcm*.so.*
++usr/share/doc/rdma-core/libibcm.md usr/share/doc/libibcm1/
+diff -urN rdma-core-21.orig/debian/libibcm1.symbols rdma-core-21/debian/libibcm1.symbols
+--- rdma-core-21.orig/debian/libibcm1.symbols	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/debian/libibcm1.symbols	2018-12-05 12:00:11.286968736 +0000
+@@ -0,0 +1,23 @@
++libibcm.so.1 libibcm1 #MINVER#
++ IBCM_1.0@IBCM_1.0 12
++ ib_cm_ack_event@IBCM_1.0 12
++ ib_cm_attr_id@IBCM_1.0 12
++ ib_cm_close_device@IBCM_1.0 12
++ ib_cm_create_id@IBCM_1.0 12
++ ib_cm_destroy_id@IBCM_1.0 12
++ ib_cm_get_event@IBCM_1.0 12
++ ib_cm_init_qp_attr@IBCM_1.0 12
++ ib_cm_listen@IBCM_1.0 12
++ ib_cm_notify@IBCM_1.0 12
++ ib_cm_open_device@IBCM_1.0 12
++ ib_cm_send_apr@IBCM_1.0 12
++ ib_cm_send_drep@IBCM_1.0 12
++ ib_cm_send_dreq@IBCM_1.0 12
++ ib_cm_send_lap@IBCM_1.0 12
++ ib_cm_send_mra@IBCM_1.0 12
++ ib_cm_send_rej@IBCM_1.0 12
++ ib_cm_send_rep@IBCM_1.0 12
++ ib_cm_send_req@IBCM_1.0 12
++ ib_cm_send_rtu@IBCM_1.0 12
++ ib_cm_send_sidr_rep@IBCM_1.0 12
++ ib_cm_send_sidr_req@IBCM_1.0 12
+diff -urN rdma-core-21.orig/debian/libibcm-dev.install rdma-core-21/debian/libibcm-dev.install
+--- rdma-core-21.orig/debian/libibcm-dev.install	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/debian/libibcm-dev.install	2018-12-05 12:00:11.286968736 +0000
+@@ -0,0 +1,3 @@
++usr/include/infiniband/cm.h
++usr/include/infiniband/cm_abi.h
++usr/lib/*/libibcm*.so
+diff -urN rdma-core-21.orig/debian/rules rdma-core-21/debian/rules
+--- rdma-core-21.orig/debian/rules	2018-11-15 00:24:06.000000000 +0000
++++ rdma-core-21/debian/rules	2018-12-05 12:00:11.286968736 +0000
+@@ -81,6 +81,7 @@
+ 	dh_makeshlibs $(SHLIBS_EXCLUDE)
+ 
+ override_dh_strip:
++	dh_strip -plibibcm1 --dbg-package=libibcm1-dbg
+ 	dh_strip -plibibumad3 --dbg-package=libibumad3-dbg
+ 	dh_strip -plibibverbs1 --dbg-package=libibverbs1-dbg
+ 	dh_strip -plibrdmacm1 --dbg-package=librdmacm1-dbg
+diff -urN rdma-core-21.orig/debian/rules.orig rdma-core-21/debian/rules.orig
+--- rdma-core-21.orig/debian/rules.orig	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/debian/rules.orig	2018-11-15 00:24:06.000000000 +0000
+@@ -0,0 +1,93 @@
++#!/usr/bin/make -f
++
++include /usr/share/dpkg/architecture.mk
++
++export DEB_BUILD_MAINT_OPTIONS=hardening=+all
++
++COHERENT_DMA_ARCHS = amd64 arm64 i386 ia64 powerpc powerpcspe ppc64 ppc64el s390x sparc64 x32
++
++%:
++	dh $@ --with systemd --builddirectory=build-deb
++
++override_dh_auto_clean:
++	dh_auto_clean
++	rm -rf build-deb
++	for package in ibverbs-providers libibverbs-dev rdma-core; do \
++		test ! -e debian/$$package.install.backup || mv debian/$$package.install.backup debian/$$package.install; \
++	done
++
++# Upstream wishes to use CMAKE_BUILD_TYPE=Release, and ensures that has a
++# sensible basis of options (eg no -O3, including -g). Debian specific options
++# come from CFLAGS as usual.
++#
++# Upstream encourages the use of Ninja to build the source, convince dh to use
++# it until someone writes native support for dh+cmake+ninja.
++override_dh_auto_configure:
++	dh_auto_configure -- -GNinja \
++			-DDISTRO_FLAVOUR=Debian \
++			-DCMAKE_BUILD_TYPE=Release \
++			-DCMAKE_INSTALL_SYSCONFDIR:PATH=/etc \
++			-DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=/lib/systemd/system \
++			-DCMAKE_INSTALL_INITDDIR:PATH=/etc/init.d \
++			-DCMAKE_INSTALL_LIBEXECDIR:PATH=/usr/lib \
++			-DCMAKE_INSTALL_SHAREDSTATEDIR:PATH=/var/lib \
++			-DCMAKE_INSTALL_RUNDIR:PATH=/run \
++			-DCMAKE_INSTALL_UDEV_RULESDIR:PATH=/lib/udev/rules.d \
++			-DENABLE_STATIC=1 \
++			$(EXTRA_CMAKE_FLAGS)
++
++override_dh_auto_build:
++	ninja -C build-deb -v
++
++# upstream does not ship test cases
++override_dh_auto_test:
++
++override_dh_auto_install:
++# Some providers are disabled on architectures that are not able to do coherent DMA
++ifneq (,$(filter-out $(COHERENT_DMA_ARCHS),$(DEB_HOST_ARCH)))
++	for package in ibverbs-providers libibverbs-dev rdma-core; do \
++		test -e debian/$$package.install.backup || cp debian/$$package.install debian/$$package.install.backup; \
++	done
++	sed -i '/mlx[45]/d' debian/ibverbs-providers.install debian/libibverbs-dev.install debian/rdma-core.install
++endif
++	DESTDIR=$(CURDIR)/debian/tmp ninja -C build-deb install
++
++# The following files are not used on Debian (we ship our own sysvinit script)
++INST_EXCLUDE := "etc/init.d/srpd" \
++		"etc/init.d/ibacm" \
++		"usr/sbin/run_srp_daemon" \
++		"usr/sbin/srp_daemon.sh"
++INST_EXCLUDE := $(addprefix -X,$(INST_EXCLUDE))
++override_dh_install:
++	dh_install --fail-missing $(INST_EXCLUDE)
++
++# cmake installs the correct init scripts in the correct place, just setup the
++# pre-postrms
++override_dh_installinit:
++	dh_installinit -prdma-core --onlyscripts --name=iwpmd
++	dh_installinit --remaining-packages
++
++override_dh_installsystemd:
++	dh_installsystemd -pibacm --no-start ibacm.service
++	dh_installsystemd -pibacm ibacm.socket
++	dh_installsystemd --remaining-packages
++
++# Provider plugin libaries are not shared libraries and do not belong in the
++# shlibs file.
++# librspreload is a LD_PRELOAD library and does not belong in the shlib files
++SHLIBS_EXCLUDE = "/libibverbs/" "librspreload" "/ibacm/"
++SHLIBS_EXCLUDE := $(addprefix --exclude=,$(SHLIBS_EXCLUDE))
++override_dh_makeshlibs:
++	dh_makeshlibs $(SHLIBS_EXCLUDE)
++
++override_dh_strip:
++	dh_strip -plibibumad3 --dbg-package=libibumad3-dbg
++	dh_strip -plibibverbs1 --dbg-package=libibverbs1-dbg
++	dh_strip -plibrdmacm1 --dbg-package=librdmacm1-dbg
++	dh_strip --remaining-packages
++
++# Upstream encourages the use of 'build' as the developer build output
++# directory, allow that directory to be present and still allow dh to work.
++.PHONY: build
++build:
++	dh $@ --with systemd --builddirectory=build-deb
+diff -urN rdma-core-21.orig/Documentation/CMakeLists.txt rdma-core-21/Documentation/CMakeLists.txt
+--- rdma-core-21.orig/Documentation/CMakeLists.txt	2018-11-15 00:24:06.000000000 +0000
++++ rdma-core-21/Documentation/CMakeLists.txt	2018-12-05 12:00:11.285968745 +0000
+@@ -1,6 +1,7 @@
+ install(FILES
+   ibacm.md
+   ibsrpdm.md
++  libibcm.md
+   libibverbs.md
+   librdmacm.md
+   rxe.md
+diff -urN rdma-core-21.orig/Documentation/libibcm.md rdma-core-21/Documentation/libibcm.md
+--- rdma-core-21.orig/Documentation/libibcm.md	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/Documentation/libibcm.md	2018-12-05 12:00:11.285968745 +0000
+@@ -0,0 +1,16 @@
++# Device files
++
++The userspace CM uses a device file per adapter present.
++
++To create the appropriate character device file automatically with
++udev, a rule like
++
++    KERNEL="ucm*", NAME="infiniband/%k", MODE="0666"
++
++can be used.  This will create the device node named
++
++    /dev/infiniband/ucm0
++
++for the first HCA in the system, or you can create it manually
++
++  mknod /dev/infiniband/ucm0 c 231 224
+diff -urN rdma-core-21.orig/libibcm/cm_abi.h rdma-core-21/libibcm/cm_abi.h
+--- rdma-core-21.orig/libibcm/cm_abi.h	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/libibcm/cm_abi.h	2018-12-05 12:00:11.287968727 +0000
+@@ -0,0 +1,73 @@
++/*
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef INFINIBAND_CM_ABI_H
++#define INFINIBAND_CM_ABI_H
++
++#warning "This header is obsolete, use rdma/ib_user_cm.h instead"
++
++#include <rdma/ib_user_cm.h>
++
++#define cm_abi_cmd_hdr ib_ucm_cmd_hdr
++#define cm_abi_create_id ib_ucm_create_id
++#define cm_abi_create_id_resp ib_ucm_create_id_resp
++#define cm_abi_destroy_id ib_ucm_destroy_id
++#define cm_abi_destroy_id_resp ib_ucm_destroy_id_resp
++#define cm_abi_attr_id ib_ucm_attr_id
++#define cm_abi_attr_id_resp ib_ucm_attr_id_resp
++#define cm_abi_init_qp_attr ib_ucm_init_qp_attr
++#define cm_abi_listen ib_ucm_listen
++#define cm_abi_establish ib_ucm_establish
++#define cm_abi_notify ib_ucm_notify
++#define cm_abi_private_data ib_ucm_private_data
++#define cm_abi_req ib_ucm_req
++#define cm_abi_rep ib_ucm_rep
++#define cm_abi_info ib_ucm_info
++#define cm_abi_mra ib_ucm_mra
++#define cm_abi_lap ib_ucm_lap
++#define cm_abi_sidr_req ib_ucm_sidr_req
++#define cm_abi_sidr_rep ib_ucm_sidr_rep
++#define cm_abi_event_get ib_ucm_event_get
++#define cm_abi_req_event_resp ib_ucm_req_event_resp
++#define cm_abi_rep_event_resp ib_ucm_rep_event_resp
++#define cm_abi_rej_event_resp ib_ucm_rej_event_resp
++#define cm_abi_mra_event_resp ib_ucm_mra_event_resp
++#define cm_abi_lap_event_resp ib_ucm_lap_event_resp
++#define cm_abi_apr_event_resp ib_ucm_apr_event_resp
++#define cm_abi_sidr_req_event_resp ib_ucm_sidr_req_event_resp
++#define cm_abi_sidr_rep_event_resp ib_ucm_sidr_rep_event_resp
++#define cm_abi_event_resp ib_ucm_event_resp
++
++#define CM_ABI_PRES_DATA IB_UCM_PRES_DATA
++#define CM_ABI_PRES_INFO IB_UCM_PRES_INFO
++#define CM_ABI_PRES_PRIMARY IB_UCM_PRES_PRIMARY
++#define CM_ABI_PRES_ALTERNATE IB_UCM_PRES_ALTERNATE
++
++#endif
+diff -urN rdma-core-21.orig/libibcm/CMakeLists.txt rdma-core-21/libibcm/CMakeLists.txt
+--- rdma-core-21.orig/libibcm/CMakeLists.txt	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/libibcm/CMakeLists.txt	2018-12-05 12:00:11.286968736 +0000
+@@ -0,0 +1,11 @@
++publish_headers(infiniband
++  cm.h
++  cm_abi.h
++  )
++
++rdma_library(ibcm libibcm.map
++  # See Documentation/versioning.md
++  1 1.0.${PACKAGE_VERSION}
++  cm.c
++  )
++target_link_libraries(ibcm LINK_PUBLIC ibverbs)
+diff -urN rdma-core-21.orig/libibcm/cm.c rdma-core-21/libibcm/cm.c
+--- rdma-core-21.orig/libibcm/cm.c	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/libibcm/cm.c	2018-12-05 12:00:11.287968727 +0000
+@@ -0,0 +1,1025 @@
++/*
++ * Copyright (c) 2005 Topspin Communications.  All rights reserved.
++ * Copyright (c) 2005-2006 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ * $Id$
++ */
++#define _GNU_SOURCE
++#include <config.h>
++
++#include <stdlib.h>
++#include <string.h>
++#include <stdio.h>
++#include <fcntl.h>
++#include <errno.h>
++#include <unistd.h>
++#include <pthread.h>
++#include <stddef.h>
++
++#include <infiniband/cm.h>
++#include <rdma/ib_user_cm.h>
++#include <infiniband/driver.h>
++#include <infiniband/marshall.h>
++
++#include <valgrind/memcheck.h>
++
++#define PFX "libibcm: "
++
++#define IB_USER_CM_MIN_ABI_VERSION     4
++#define IB_USER_CM_MAX_ABI_VERSION     5
++
++static int abi_ver;
++static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
++
++enum {
++	IB_UCM_MAX_DEVICES = 32
++};
++
++static inline int ERR(int err)
++{
++	errno = err;
++	return -1;
++}
++
++
++#define CM_CREATE_MSG_CMD_RESP(msg, cmd, resp, type, size) \
++do {                                        \
++	struct ib_ucm_cmd_hdr *hdr;         \
++                                            \
++	size = sizeof(*hdr) + sizeof(*cmd); \
++	msg = alloca(size);                 \
++	if (!msg)                           \
++		return ERR(ENOMEM);         \
++	hdr = msg;                          \
++	cmd = msg + sizeof(*hdr);           \
++	hdr->cmd = type;                    \
++	hdr->in  = sizeof(*cmd);            \
++	hdr->out = sizeof(*resp);           \
++	memset(cmd, 0, sizeof(*cmd));       \
++	resp = alloca(sizeof(*resp));       \
++	if (!resp)                          \
++		return ERR(ENOMEM);         \
++	cmd->response = (uintptr_t)resp;\
++} while (0)
++
++#define CM_CREATE_MSG_CMD(msg, cmd, type, size) \
++do {                                        \
++	struct ib_ucm_cmd_hdr *hdr;         \
++                                            \
++	size = sizeof(*hdr) + sizeof(*cmd); \
++	msg = alloca(size);                 \
++	if (!msg)                           \
++		return ERR(ENOMEM);         \
++	hdr = msg;                          \
++	cmd = msg + sizeof(*hdr);           \
++	hdr->cmd = type;                    \
++	hdr->in  = sizeof(*cmd);            \
++	hdr->out = 0;                       \
++	memset(cmd, 0, sizeof(*cmd));       \
++} while (0)
++
++struct cm_id_private {
++	struct ib_cm_id id;
++	int events_completed;
++	pthread_cond_t cond;
++	pthread_mutex_t mut;
++};
++
++static int check_abi_version(void)
++{
++	char value[8];
++
++	if (ibv_read_sysfs_file(ibv_get_sysfs_path(),
++				"class/infiniband_cm/abi_version",
++				value, sizeof value) < 0) {
++		fprintf(stderr, PFX "couldn't read ABI version\n");
++		return 0;
++	}
++
++	abi_ver = strtol(value, NULL, 10);
++	if (abi_ver < IB_USER_CM_MIN_ABI_VERSION ||
++	    abi_ver > IB_USER_CM_MAX_ABI_VERSION) {
++		fprintf(stderr, PFX "kernel ABI version %d "
++				"doesn't match library version %d.\n",
++				abi_ver, IB_USER_CM_MAX_ABI_VERSION);
++		return -1;
++	}
++	return 0;
++}
++
++static int ucm_init(void)
++{
++	int ret = 0;
++
++	pthread_mutex_lock(&mut);
++	if (!abi_ver)
++		ret = check_abi_version();
++	pthread_mutex_unlock(&mut);
++
++	return ret;
++}
++
++static int ucm_get_dev_index(char *dev_name)
++{
++	char *dev_path;
++	char ibdev[IBV_SYSFS_NAME_MAX];
++	int i, ret;
++
++	for (i = 0; i < IB_UCM_MAX_DEVICES; i++) {
++		ret = asprintf(&dev_path, "/sys/class/infiniband_cm/ucm%d", i);
++		if (ret < 0)
++			return -1;
++
++		ret = ibv_read_sysfs_file(dev_path, "ibdev", ibdev, sizeof ibdev);
++		if (ret < 0)
++			continue;
++
++		if (!strcmp(dev_name, ibdev)) {
++			free(dev_path);
++			return i;
++		}
++
++		free(dev_path);
++	}
++	return -1;
++}
++
++struct ib_cm_device* ib_cm_open_device(struct ibv_context *device_context)
++{
++	struct ib_cm_device *dev;
++	char *dev_path;
++	int index, ret;
++
++	if (ucm_init())
++		return NULL;
++
++	index = ucm_get_dev_index(device_context->device->name);
++	if (index < 0)
++		return NULL;
++
++	dev = malloc(sizeof *dev);
++	if (!dev)
++		return NULL;
++
++	dev->device_context = device_context;
++
++	ret = asprintf(&dev_path, "/dev/infiniband/ucm%d", index);
++	if (ret < 0)
++		goto err1;
++
++	dev->fd = open(dev_path, O_RDWR);
++	if (dev->fd < 0)
++		goto err2;
++
++	free(dev_path);
++	return dev;
++
++err2:
++	free(dev_path);
++err1:
++	free(dev);
++	return NULL;
++}
++
++void ib_cm_close_device(struct ib_cm_device *device)
++{
++	close(device->fd);
++	free(device);
++}
++
++static void ib_cm_free_id(struct cm_id_private *cm_id_priv)
++{
++	pthread_cond_destroy(&cm_id_priv->cond);
++	pthread_mutex_destroy(&cm_id_priv->mut);
++	free(cm_id_priv);
++}
++
++static struct cm_id_private *ib_cm_alloc_id(struct ib_cm_device *device,
++					    void *context)
++{
++	struct cm_id_private *cm_id_priv;
++
++	cm_id_priv = malloc(sizeof *cm_id_priv);
++	if (!cm_id_priv)
++		return NULL;
++
++	memset(cm_id_priv, 0, sizeof *cm_id_priv);
++	cm_id_priv->id.device = device;
++	cm_id_priv->id.context = context;
++	pthread_mutex_init(&cm_id_priv->mut, NULL);
++	if (pthread_cond_init(&cm_id_priv->cond, NULL))
++		goto err;
++
++	return cm_id_priv;
++
++err:	ib_cm_free_id(cm_id_priv);
++	return NULL;
++}
++
++int ib_cm_create_id(struct ib_cm_device *device,
++		    struct ib_cm_id **cm_id, void *context)
++{
++	struct ib_ucm_create_id_resp *resp;
++	struct ib_ucm_create_id *cmd;
++	struct cm_id_private *cm_id_priv;
++	void *msg;
++	int result;
++	int size;
++
++	cm_id_priv = ib_cm_alloc_id(device, context);
++	if (!cm_id_priv)
++		return ERR(ENOMEM);
++
++	CM_CREATE_MSG_CMD_RESP(msg, cmd, resp, IB_USER_CM_CMD_CREATE_ID, size);
++	cmd->uid = (uintptr_t) cm_id_priv;
++
++	result = write(device->fd, msg, size);
++	if (result != size)
++		goto err;
++
++	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
++
++	cm_id_priv->id.handle = resp->id;
++	*cm_id = &cm_id_priv->id;
++	return 0;
++
++err:	ib_cm_free_id(cm_id_priv);
++	return result;
++}
++
++int ib_cm_destroy_id(struct ib_cm_id *cm_id)
++{
++	struct ib_ucm_destroy_id_resp *resp;
++	struct ib_ucm_destroy_id *cmd;
++	struct cm_id_private *cm_id_priv;
++	void *msg;
++	int result;
++	int size;
++	
++	CM_CREATE_MSG_CMD_RESP(msg, cmd, resp, IB_USER_CM_CMD_DESTROY_ID, size);
++	cmd->id = cm_id->handle;
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : -1;
++
++	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
++
++	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
++
++	pthread_mutex_lock(&cm_id_priv->mut);
++	while (cm_id_priv->events_completed < resp->events_reported)
++		pthread_cond_wait(&cm_id_priv->cond, &cm_id_priv->mut);
++	pthread_mutex_unlock(&cm_id_priv->mut);
++
++	ib_cm_free_id(cm_id_priv);
++	return 0;
++}
++
++int ib_cm_attr_id(struct ib_cm_id *cm_id, struct ib_cm_attr_param *param)
++{
++	struct ib_ucm_attr_id_resp *resp;
++	struct ib_ucm_attr_id *cmd;
++	void *msg;
++	int result;
++	int size;
++
++	if (!param)
++		return ERR(EINVAL);
++
++	CM_CREATE_MSG_CMD_RESP(msg, cmd, resp, IB_USER_CM_CMD_ATTR_ID, size);
++	cmd->id = cm_id->handle;
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : -1;
++
++	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
++
++	param->service_id   = resp->service_id;
++	param->service_mask = resp->service_mask;
++	param->local_id     = resp->local_id;
++	param->remote_id    = resp->remote_id;
++	return 0;
++}
++
++int ib_cm_init_qp_attr(struct ib_cm_id *cm_id,
++		       struct ibv_qp_attr *qp_attr,
++		       int *qp_attr_mask)
++{
++	struct ib_uverbs_qp_attr *resp;
++	struct ib_ucm_init_qp_attr *cmd;
++	void *msg;
++	int result;
++	int size;
++
++	if (!qp_attr || !qp_attr_mask)
++		return ERR(EINVAL);
++
++	CM_CREATE_MSG_CMD_RESP(msg, cmd, resp, IB_USER_CM_CMD_INIT_QP_ATTR, size);
++	cmd->id = cm_id->handle;
++	cmd->qp_state = qp_attr->qp_state;
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : result;
++
++	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
++
++	*qp_attr_mask = resp->qp_attr_mask;
++	ibv_copy_qp_attr_from_kern(qp_attr, resp);
++
++	return 0;
++}
++
++int ib_cm_listen(struct ib_cm_id *cm_id,
++		 __be64 service_id,
++		 __be64 service_mask)
++{
++	struct ib_ucm_listen *cmd;
++	void *msg;
++	int result;
++	int size;
++	
++	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_LISTEN, size);
++	cmd->id           = cm_id->handle;
++	cmd->service_id   = service_id;
++	cmd->service_mask = service_mask;
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : -1;
++
++	return 0;
++}
++
++int ib_cm_send_req(struct ib_cm_id *cm_id, struct ib_cm_req_param *param)
++{
++	struct ib_user_path_rec p_path;
++	struct ib_user_path_rec *a_path;
++	struct ib_ucm_req *cmd;
++	void *msg;
++	int result;
++	int size;
++
++	if (!param || !param->primary_path)
++		return ERR(EINVAL);
++
++	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_REQ, size);
++	cmd->id				= cm_id->handle;
++	cmd->qpn			= param->qp_num;
++	cmd->qp_type			= param->qp_type;
++	cmd->psn			= param->starting_psn;
++        cmd->sid			= param->service_id;
++        cmd->peer_to_peer               = param->peer_to_peer;
++        cmd->responder_resources        = param->responder_resources;
++        cmd->initiator_depth            = param->initiator_depth;
++        cmd->remote_cm_response_timeout = param->remote_cm_response_timeout;
++        cmd->flow_control               = param->flow_control;
++        cmd->local_cm_response_timeout  = param->local_cm_response_timeout;
++        cmd->retry_count                = param->retry_count;
++        cmd->rnr_retry_count            = param->rnr_retry_count;
++        cmd->max_cm_retries             = param->max_cm_retries;
++        cmd->srq                        = param->srq;
++
++	ibv_copy_path_rec_to_kern(&p_path, param->primary_path);
++	cmd->primary_path = (uintptr_t) &p_path;
++		
++	if (param->alternate_path) {
++		a_path = alloca(sizeof(*a_path));
++		if (!a_path)
++			return ERR(ENOMEM);
++
++		ibv_copy_path_rec_to_kern(a_path, param->alternate_path);
++		cmd->alternate_path = (uintptr_t) a_path;
++	}
++
++	if (param->private_data && param->private_data_len) {
++		cmd->data = (uintptr_t) param->private_data;
++		cmd->len  = param->private_data_len;
++	}
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : -1;
++
++	return 0;
++}
++
++int ib_cm_send_rep(struct ib_cm_id *cm_id, struct ib_cm_rep_param *param)
++{
++	struct ib_ucm_rep *cmd;
++	void *msg;
++	int result;
++	int size;
++
++	if (!param)
++		return ERR(EINVAL);
++
++	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_REP, size);
++	cmd->uid = (uintptr_t) container_of(cm_id, struct cm_id_private, id);
++	cmd->id			 = cm_id->handle;
++	cmd->qpn		 = param->qp_num;
++	cmd->psn		 = param->starting_psn;
++        cmd->responder_resources = param->responder_resources;
++        cmd->initiator_depth     = param->initiator_depth;
++	cmd->target_ack_delay    = param->target_ack_delay;
++	cmd->failover_accepted   = param->failover_accepted;
++        cmd->flow_control        = param->flow_control;
++        cmd->rnr_retry_count     = param->rnr_retry_count;
++        cmd->srq                 = param->srq;
++
++	if (param->private_data && param->private_data_len) {
++		cmd->data = (uintptr_t) param->private_data;
++		cmd->len  = param->private_data_len;
++	}
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : -1;
++
++	return 0;
++}
++
++static inline int cm_send_private_data(struct ib_cm_id *cm_id,
++				       uint32_t type,
++				       void *private_data,
++				       uint8_t private_data_len)
++{
++	struct ib_ucm_private_data *cmd;
++	void *msg;
++	int result;
++	int size;
++
++	CM_CREATE_MSG_CMD(msg, cmd, type, size);
++	cmd->id = cm_id->handle;
++
++	if (private_data && private_data_len) {
++		cmd->data = (uintptr_t) private_data;
++		cmd->len  = private_data_len;
++	}
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : -1;
++
++	return 0;
++}
++
++int ib_cm_send_rtu(struct ib_cm_id *cm_id,
++		   void *private_data,
++		   uint8_t private_data_len)
++{
++	return cm_send_private_data(cm_id, IB_USER_CM_CMD_SEND_RTU,
++				    private_data, private_data_len);
++}
++
++int ib_cm_send_dreq(struct ib_cm_id *cm_id,
++		    void *private_data,
++		    uint8_t private_data_len)
++{
++	return cm_send_private_data(cm_id, IB_USER_CM_CMD_SEND_DREQ,
++				    private_data, private_data_len);
++}
++
++int ib_cm_send_drep(struct ib_cm_id *cm_id,
++		    void *private_data,
++		    uint8_t private_data_len)
++{
++	return cm_send_private_data(cm_id, IB_USER_CM_CMD_SEND_DREP,
++				    private_data, private_data_len);
++}
++
++static int cm_establish(struct ib_cm_id *cm_id)
++{
++	/* In kernel ABI 4 ESTABLISH was repurposed as NOTIFY and gained an
++	   extra field. For some reason the compat definitions were deleted
++	   from the uapi headers :( */
++#define IB_USER_CM_CMD_ESTABLISH IB_USER_CM_CMD_NOTIFY
++	struct cm_abi_establish { /* ABI 4 support */
++		__u32 id;
++	};
++
++	struct cm_abi_establish *cmd;
++	void *msg;
++	int result;
++	int size;
++	
++	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_ESTABLISH, size);
++	cmd->id = cm_id->handle;
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : -1;
++
++	return 0;
++}
++
++int ib_cm_notify(struct ib_cm_id *cm_id, enum ibv_event_type event)
++{
++	struct ib_ucm_notify *cmd;
++	void *msg;
++	int result;
++	int size;
++	
++	if (abi_ver == 4) {
++		if (event == IBV_EVENT_COMM_EST)
++			return cm_establish(cm_id);
++		else
++			return ERR(EINVAL);
++	}
++
++	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_NOTIFY, size);
++	cmd->id = cm_id->handle;
++	cmd->event = event;
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : -1;
++
++	return 0;
++}
++
++static inline int cm_send_status(struct ib_cm_id *cm_id,
++				 uint32_t type,
++				 int status,
++				 void *info,
++				 uint8_t info_length,
++				 void *private_data,
++				 uint8_t private_data_len)
++{
++	struct ib_ucm_info *cmd;
++	void *msg;
++	int result;
++	int size;
++
++	CM_CREATE_MSG_CMD(msg, cmd, type, size);
++	cmd->id     = cm_id->handle;
++	cmd->status = status;
++
++	if (private_data && private_data_len) {
++		cmd->data     = (uintptr_t) private_data;
++		cmd->data_len = private_data_len;
++	}
++
++	if (info && info_length) {
++		cmd->info     = (uintptr_t) info;
++		cmd->info_len = info_length;
++	}
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : -1;
++
++	return 0;
++}
++
++int ib_cm_send_rej(struct ib_cm_id *cm_id,
++		   enum ib_cm_rej_reason reason,
++		   void *ari,
++		   uint8_t ari_length,
++		   void *private_data,
++		   uint8_t private_data_len)
++{
++	return cm_send_status(cm_id, IB_USER_CM_CMD_SEND_REJ, reason, 
++			      ari, ari_length,
++			      private_data, private_data_len);
++}
++
++int ib_cm_send_apr(struct ib_cm_id *cm_id,
++		   enum ib_cm_apr_status status,
++		   void *info,
++		   uint8_t info_length,
++		   void *private_data,
++		   uint8_t private_data_len)
++{
++	return cm_send_status(cm_id, IB_USER_CM_CMD_SEND_APR, status, 
++			      info, info_length,
++			      private_data, private_data_len);
++}
++
++int ib_cm_send_mra(struct ib_cm_id *cm_id,
++		   uint8_t service_timeout,
++		   void *private_data,
++		   uint8_t private_data_len)
++{
++	struct ib_ucm_mra *cmd;
++	void *msg;
++	int result;
++	int size;
++
++	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_MRA, size);
++	cmd->id      = cm_id->handle;
++	cmd->timeout = service_timeout;
++
++	if (private_data && private_data_len) {
++		cmd->data = (uintptr_t) private_data;
++		cmd->len  = private_data_len;
++	}
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : result;
++
++	return 0;
++}
++
++int ib_cm_send_lap(struct ib_cm_id *cm_id,
++		   struct ibv_sa_path_rec *alternate_path,
++		   void *private_data,
++		   uint8_t private_data_len)
++{
++	struct ib_user_path_rec abi_path;
++	struct ib_ucm_lap *cmd;
++	void *msg;
++	int result;
++	int size;
++
++	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_LAP, size);
++	cmd->id = cm_id->handle;
++
++	ibv_copy_path_rec_to_kern(&abi_path, alternate_path);
++	cmd->path = (uintptr_t) &abi_path;
++
++	if (private_data && private_data_len) {
++		cmd->data = (uintptr_t) private_data;
++		cmd->len  = private_data_len;
++	}
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : -1;
++
++	return 0;
++}
++
++int ib_cm_send_sidr_req(struct ib_cm_id *cm_id,
++			struct ib_cm_sidr_req_param *param)
++{
++	struct ib_user_path_rec abi_path;
++	struct ib_ucm_sidr_req *cmd;
++	void *msg;
++	int result;
++	int size;
++
++	if (!param || !param->path)
++		return ERR(EINVAL);
++
++	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_SIDR_REQ, size);
++	cmd->id             = cm_id->handle;
++	cmd->sid            = param->service_id;
++	cmd->timeout        = param->timeout_ms;
++	cmd->max_cm_retries = param->max_cm_retries;
++
++	ibv_copy_path_rec_to_kern(&abi_path, param->path);
++	cmd->path = (uintptr_t) &abi_path;
++
++	if (param->private_data && param->private_data_len) {
++		cmd->data = (uintptr_t) param->private_data;
++		cmd->len  = param->private_data_len;
++	}
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : result;
++
++	return 0;
++}
++
++int ib_cm_send_sidr_rep(struct ib_cm_id *cm_id,
++			struct ib_cm_sidr_rep_param *param)
++{
++	struct ib_ucm_sidr_rep *cmd;
++	void *msg;
++	int result;
++	int size;
++
++	if (!param)
++		return ERR(EINVAL);
++
++	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_SIDR_REP, size);
++	cmd->id     = cm_id->handle;
++	cmd->qpn    = param->qp_num;
++	cmd->qkey   = param->qkey;
++	cmd->status = param->status;
++
++	if (param->private_data && param->private_data_len) {
++		cmd->data     = (uintptr_t) param->private_data;
++		cmd->data_len = param->private_data_len;
++	}
++
++	if (param->info && param->info_length) {
++		cmd->info     = (uintptr_t) param->info;
++		cmd->info_len = param->info_length;
++	}
++
++	result = write(cm_id->device->fd, msg, size);
++	if (result != size)
++		return (result >= 0) ? ERR(ENODATA) : -1;
++
++	return 0;
++}
++
++static void cm_event_req_get(struct ib_cm_req_event_param *ureq,
++			     struct ib_ucm_req_event_resp *kreq)
++{
++	ureq->remote_ca_guid             = kreq->remote_ca_guid;
++	ureq->remote_qkey                = kreq->remote_qkey;
++	ureq->remote_qpn                 = kreq->remote_qpn;
++	ureq->qp_type                    = kreq->qp_type;
++	ureq->starting_psn               = kreq->starting_psn;
++	ureq->responder_resources        = kreq->responder_resources;
++	ureq->initiator_depth            = kreq->initiator_depth;
++	ureq->local_cm_response_timeout  = kreq->local_cm_response_timeout;
++	ureq->flow_control               = kreq->flow_control;
++	ureq->remote_cm_response_timeout = kreq->remote_cm_response_timeout;
++	ureq->retry_count                = kreq->retry_count;
++	ureq->rnr_retry_count            = kreq->rnr_retry_count;
++	ureq->srq                        = kreq->srq;
++	ureq->port			 = kreq->port;
++
++	ibv_copy_path_rec_from_kern(ureq->primary_path, &kreq->primary_path);
++	if (ureq->alternate_path)
++		ibv_copy_path_rec_from_kern(ureq->alternate_path,
++					    &kreq->alternate_path);
++}
++
++static void cm_event_rep_get(struct ib_cm_rep_event_param *urep,
++			     struct ib_ucm_rep_event_resp *krep)
++{
++	urep->remote_ca_guid      = krep->remote_ca_guid;
++	urep->remote_qkey         = krep->remote_qkey;
++	urep->remote_qpn          = krep->remote_qpn;
++	urep->starting_psn        = krep->starting_psn;
++	urep->responder_resources = krep->responder_resources;
++	urep->initiator_depth     = krep->initiator_depth;
++	urep->target_ack_delay    = krep->target_ack_delay;
++	urep->failover_accepted   = krep->failover_accepted;
++	urep->flow_control        = krep->flow_control;
++	urep->rnr_retry_count     = krep->rnr_retry_count;
++	urep->srq                 = krep->srq;
++}
++
++static void cm_event_sidr_rep_get(struct ib_cm_sidr_rep_event_param *urep,
++				  struct ib_ucm_sidr_rep_event_resp *krep)
++{
++	urep->status = krep->status;
++	urep->qkey   = krep->qkey;
++	urep->qpn    = krep->qpn;
++};
++
++int ib_cm_get_event(struct ib_cm_device *device, struct ib_cm_event **event)
++{
++	struct cm_id_private *cm_id_priv;
++	struct ib_ucm_cmd_hdr *hdr;
++	struct ib_ucm_event_get *cmd;
++	struct ib_ucm_event_resp *resp;
++	struct ib_cm_event *evt = NULL;
++	struct ibv_sa_path_rec *path_a = NULL;
++	struct ibv_sa_path_rec *path_b = NULL;
++	void *data = NULL;
++	void *info = NULL;
++	void *msg;
++	int result = 0;
++	int size;
++	
++	if (!event)
++		return ERR(EINVAL);
++
++	size = sizeof(*hdr) + sizeof(*cmd);
++	msg = alloca(size);
++	if (!msg)
++		return ERR(ENOMEM);
++
++	hdr = msg;
++	cmd = msg + sizeof(*hdr);
++
++	hdr->cmd = IB_USER_CM_CMD_EVENT;
++	hdr->in  = sizeof(*cmd);
++	hdr->out = sizeof(*resp);
++
++	memset(cmd, 0, sizeof(*cmd));
++
++	resp = alloca(sizeof(*resp));
++	if (!resp)
++		return ERR(ENOMEM);
++	
++	cmd->response = (uintptr_t) resp;
++	cmd->data_len = (uint8_t)(~0U);
++	cmd->info_len = (uint8_t)(~0U);
++
++	data = malloc(cmd->data_len);
++	if (!data) {
++		result = ERR(ENOMEM);
++		goto done;
++	}
++
++	info = malloc(cmd->info_len);
++	if (!info) {
++		result = ERR(ENOMEM);
++		goto done;
++	}
++
++	cmd->data = (uintptr_t) data;
++	cmd->info = (uintptr_t) info;
++
++	result = write(device->fd, msg, size);
++	if (result != size) {
++		result = (result >= 0) ? ERR(ENODATA) : -1;
++		goto done;
++	}
++
++	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
++
++	/*
++	 * decode event.
++	 */
++	evt = malloc(sizeof(*evt));
++	if (!evt) {
++		result = ERR(ENOMEM);
++		goto done;
++	}
++	memset(evt, 0, sizeof(*evt));
++	evt->cm_id = (void *) (uintptr_t) resp->uid;
++	evt->event = resp->event;
++
++	if (resp->present & IB_UCM_PRES_PRIMARY) {
++		path_a = malloc(sizeof(*path_a));
++		if (!path_a) {
++			result = ERR(ENOMEM);
++			goto done;
++		}
++	}
++
++	if (resp->present & IB_UCM_PRES_ALTERNATE) {
++		path_b = malloc(sizeof(*path_b));
++		if (!path_b) {
++			result = ERR(ENOMEM);
++			goto done;
++		}
++	}
++
++	switch (evt->event) {
++	case IB_CM_REQ_RECEIVED:
++		evt->param.req_rcvd.listen_id = evt->cm_id;
++		cm_id_priv = ib_cm_alloc_id(evt->cm_id->device,
++					    evt->cm_id->context);
++		if (!cm_id_priv) {
++			result = ERR(ENOMEM);
++			goto done;
++		}
++		cm_id_priv->id.handle = resp->id;
++		evt->cm_id = &cm_id_priv->id;
++		evt->param.req_rcvd.primary_path   = path_a;
++		evt->param.req_rcvd.alternate_path = path_b;
++		path_a = NULL;
++		path_b = NULL;
++		cm_event_req_get(&evt->param.req_rcvd, &resp->u.req_resp);
++		break;
++	case IB_CM_REP_RECEIVED:
++		cm_event_rep_get(&evt->param.rep_rcvd, &resp->u.rep_resp);
++		break;
++	case IB_CM_MRA_RECEIVED:
++		evt->param.mra_rcvd.service_timeout = resp->u.mra_resp.timeout;
++		break;
++	case IB_CM_REJ_RECEIVED:
++		evt->param.rej_rcvd.reason = resp->u.rej_resp.reason;
++		evt->param.rej_rcvd.ari = info;
++		info = NULL;
++		break;
++	case IB_CM_LAP_RECEIVED:
++		evt->param.lap_rcvd.alternate_path = path_b;
++		path_b = NULL;
++		ibv_copy_path_rec_from_kern(evt->param.lap_rcvd.alternate_path,
++					    &resp->u.lap_resp.path);
++		break;
++	case IB_CM_APR_RECEIVED:
++		evt->param.apr_rcvd.ap_status = resp->u.apr_resp.status;
++		evt->param.apr_rcvd.apr_info = info;
++		info = NULL;
++		break;
++	case IB_CM_SIDR_REQ_RECEIVED:
++		evt->param.sidr_req_rcvd.listen_id = evt->cm_id;
++		cm_id_priv = ib_cm_alloc_id(evt->cm_id->device,
++					    evt->cm_id->context);
++		if (!cm_id_priv) {
++			result = ERR(ENOMEM);
++			goto done;
++		}
++		cm_id_priv->id.handle = resp->id;
++		evt->cm_id = &cm_id_priv->id;
++		evt->param.sidr_req_rcvd.pkey = resp->u.sidr_req_resp.pkey;
++		evt->param.sidr_req_rcvd.port = resp->u.sidr_req_resp.port;
++		break;
++	case IB_CM_SIDR_REP_RECEIVED:
++		cm_event_sidr_rep_get(&evt->param.sidr_rep_rcvd,
++				      &resp->u.sidr_rep_resp);
++		evt->param.sidr_rep_rcvd.info = info;
++		info = NULL;
++		break;
++	default:
++		evt->param.send_status = resp->u.send_status;
++		break;
++	}
++
++	if (resp->present & IB_UCM_PRES_DATA) {
++		evt->private_data = data;
++		data = NULL;
++	}
++
++	*event = evt;
++	evt    = NULL;
++	result = 0;
++done:
++	if (data)
++		free(data);
++	if (info)
++		free(info);
++	if (path_a)
++		free(path_a);
++	if (path_b)
++		free(path_b);
++	if (evt)
++		free(evt);
++
++	return result;
++}
++
++int ib_cm_ack_event(struct ib_cm_event *event)
++{
++	struct cm_id_private *cm_id_priv;
++
++	if (!event)
++		return ERR(EINVAL);
++
++	if (event->private_data)
++		free(event->private_data);
++
++	cm_id_priv = container_of(event->cm_id, struct cm_id_private, id);
++
++	switch (event->event) {
++	case IB_CM_REQ_RECEIVED:
++		cm_id_priv = container_of(event->param.req_rcvd.listen_id,
++					  struct cm_id_private, id);
++		free(event->param.req_rcvd.primary_path);
++		if (event->param.req_rcvd.alternate_path)
++			free(event->param.req_rcvd.alternate_path);
++		break;
++	case IB_CM_REJ_RECEIVED:
++		if (event->param.rej_rcvd.ari)
++			free(event->param.rej_rcvd.ari);
++		break;
++	case IB_CM_LAP_RECEIVED:
++		free(event->param.lap_rcvd.alternate_path);
++		break;
++	case IB_CM_APR_RECEIVED:
++		if (event->param.apr_rcvd.apr_info)
++			free(event->param.apr_rcvd.apr_info);
++		break;
++	case IB_CM_SIDR_REQ_RECEIVED:
++		cm_id_priv = container_of(event->param.sidr_req_rcvd.listen_id,
++					  struct cm_id_private, id);
++		break;
++	case IB_CM_SIDR_REP_RECEIVED:
++		if (event->param.sidr_rep_rcvd.info)
++			free(event->param.sidr_rep_rcvd.info);
++	default:
++		break;
++	}
++
++	pthread_mutex_lock(&cm_id_priv->mut);
++	cm_id_priv->events_completed++;
++	pthread_cond_signal(&cm_id_priv->cond);
++	pthread_mutex_unlock(&cm_id_priv->mut);
++
++	free(event);
++	return 0;
++}
+diff -urN rdma-core-21.orig/libibcm/cm.h rdma-core-21/libibcm/cm.h
+--- rdma-core-21.orig/libibcm/cm.h	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/libibcm/cm.h	2018-12-05 12:00:11.287968727 +0000
+@@ -0,0 +1,587 @@
++/*
++ * Copyright (c) 2004-2006 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
++ * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ * $Id$
++ */
++#if !defined(CM_H)
++#define CM_H
++
++#include <infiniband/verbs.h>
++#include <infiniband/sa.h>
++#include <linux/types.h>
++#include <endian.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++enum ib_cm_event_type {
++	IB_CM_REQ_ERROR,
++	IB_CM_REQ_RECEIVED,
++	IB_CM_REP_ERROR,
++	IB_CM_REP_RECEIVED,
++	IB_CM_RTU_RECEIVED,
++	IB_CM_USER_ESTABLISHED,
++	IB_CM_DREQ_ERROR,
++	IB_CM_DREQ_RECEIVED,
++	IB_CM_DREP_RECEIVED,
++	IB_CM_TIMEWAIT_EXIT,
++	IB_CM_MRA_RECEIVED,
++	IB_CM_REJ_RECEIVED,
++	IB_CM_LAP_ERROR,
++	IB_CM_LAP_RECEIVED,
++	IB_CM_APR_RECEIVED,
++	IB_CM_SIDR_REQ_ERROR,
++	IB_CM_SIDR_REQ_RECEIVED,
++	IB_CM_SIDR_REP_RECEIVED
++};
++
++enum ib_cm_data_size {
++	IB_CM_REQ_PRIVATE_DATA_SIZE	 = 92,
++	IB_CM_MRA_PRIVATE_DATA_SIZE	 = 222,
++	IB_CM_REJ_PRIVATE_DATA_SIZE	 = 148,
++	IB_CM_REP_PRIVATE_DATA_SIZE	 = 196,
++	IB_CM_RTU_PRIVATE_DATA_SIZE	 = 224,
++	IB_CM_DREQ_PRIVATE_DATA_SIZE	 = 220,
++	IB_CM_DREP_PRIVATE_DATA_SIZE	 = 224,
++	IB_CM_REJ_ARI_LENGTH		 = 72,
++	IB_CM_LAP_PRIVATE_DATA_SIZE	 = 168,
++	IB_CM_APR_PRIVATE_DATA_SIZE	 = 148,
++	IB_CM_APR_INFO_LENGTH		 = 72,
++	IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE = 216,
++	IB_CM_SIDR_REP_PRIVATE_DATA_SIZE = 136,
++	IB_CM_SIDR_REP_INFO_LENGTH	 = 72
++};
++
++struct ib_cm_device {
++	struct ibv_context	*device_context;
++	int			fd;
++};
++
++struct ib_cm_id {
++	void			*context;
++	struct ib_cm_device	*device;
++	uint32_t		handle;
++};
++
++struct ib_cm_req_event_param {
++	struct ib_cm_id		*listen_id;
++	uint8_t			port;
++
++	struct ibv_sa_path_rec	*primary_path;
++	struct ibv_sa_path_rec	*alternate_path;
++
++	__be64			remote_ca_guid;
++	uint32_t		remote_qkey;
++	uint32_t		remote_qpn;
++	enum ibv_qp_type	qp_type;
++
++	uint32_t		starting_psn;
++	uint8_t			responder_resources;
++	uint8_t			initiator_depth;
++	unsigned int		local_cm_response_timeout:5;
++	unsigned int		flow_control:1;
++	unsigned int		remote_cm_response_timeout:5;
++	unsigned int		retry_count:3;
++	unsigned int		rnr_retry_count:3;
++	unsigned int		srq:1;
++};
++
++struct ib_cm_rep_event_param {
++	__be64			remote_ca_guid;
++	uint32_t		remote_qkey;
++	uint32_t		remote_qpn;
++	uint32_t		starting_psn;
++	uint8_t			responder_resources;
++	uint8_t			initiator_depth;
++	unsigned int		target_ack_delay:5;
++	unsigned int		failover_accepted:2;
++	unsigned int		flow_control:1;
++	unsigned int		rnr_retry_count:3;
++	unsigned int		srq:1;
++};
++
++enum ib_cm_rej_reason {
++	IB_CM_REJ_NO_QP				= 1,
++	IB_CM_REJ_NO_EEC			= 2,
++	IB_CM_REJ_NO_RESOURCES			= 3,
++	IB_CM_REJ_TIMEOUT			= 4,
++	IB_CM_REJ_UNSUPPORTED			= 5,
++	IB_CM_REJ_INVALID_COMM_ID		= 6,
++	IB_CM_REJ_INVALID_COMM_INSTANCE		= 7,
++	IB_CM_REJ_INVALID_SERVICE_ID		= 8,
++	IB_CM_REJ_INVALID_TRANSPORT_TYPE	= 9,
++	IB_CM_REJ_STALE_CONN			= 10,
++	IB_CM_REJ_RDC_NOT_EXIST			= 11,
++	IB_CM_REJ_INVALID_GID			= 12,
++	IB_CM_REJ_INVALID_LID			= 13,
++	IB_CM_REJ_INVALID_SL			= 14,
++	IB_CM_REJ_INVALID_TRAFFIC_CLASS		= 15,
++	IB_CM_REJ_INVALID_HOP_LIMIT		= 16,
++	IB_CM_REJ_INVALID_PACKET_RATE		= 17,
++	IB_CM_REJ_INVALID_ALT_GID		= 18,
++	IB_CM_REJ_INVALID_ALT_LID		= 19,
++	IB_CM_REJ_INVALID_ALT_SL		= 20,
++	IB_CM_REJ_INVALID_ALT_TRAFFIC_CLASS	= 21,
++	IB_CM_REJ_INVALID_ALT_HOP_LIMIT		= 22,
++	IB_CM_REJ_INVALID_ALT_PACKET_RATE	= 23,
++	IB_CM_REJ_PORT_CM_REDIRECT		= 24,
++	IB_CM_REJ_PORT_REDIRECT			= 25,
++	IB_CM_REJ_INVALID_MTU			= 26,
++	IB_CM_REJ_INSUFFICIENT_RESP_RESOURCES	= 27,
++	IB_CM_REJ_CONSUMER_DEFINED		= 28,
++	IB_CM_REJ_INVALID_RNR_RETRY		= 29,
++	IB_CM_REJ_DUPLICATE_LOCAL_COMM_ID	= 30,
++	IB_CM_REJ_INVALID_CLASS_VERSION		= 31,
++	IB_CM_REJ_INVALID_FLOW_LABEL		= 32,
++	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33
++};
++
++struct ib_cm_rej_event_param {
++	enum ib_cm_rej_reason	reason;
++	void			*ari;
++	uint8_t			ari_length;
++};
++
++struct ib_cm_mra_event_param {
++	uint8_t	service_timeout;
++};
++
++struct ib_cm_lap_event_param {
++	struct ibv_sa_path_rec	*alternate_path;
++};
++
++enum ib_cm_apr_status {
++	IB_CM_APR_SUCCESS,
++	IB_CM_APR_INVALID_COMM_ID,
++	IB_CM_APR_UNSUPPORTED,
++	IB_CM_APR_REJECT,
++	IB_CM_APR_REDIRECT,
++	IB_CM_APR_IS_CURRENT,
++	IB_CM_APR_INVALID_QPN_EECN,
++	IB_CM_APR_INVALID_LID,
++	IB_CM_APR_INVALID_GID,
++	IB_CM_APR_INVALID_FLOW_LABEL,
++	IB_CM_APR_INVALID_TCLASS,
++	IB_CM_APR_INVALID_HOP_LIMIT,
++	IB_CM_APR_INVALID_PACKET_RATE,
++	IB_CM_APR_INVALID_SL
++};
++
++struct ib_cm_apr_event_param {
++	enum ib_cm_apr_status	ap_status;
++	void			*apr_info;
++	uint8_t			info_len;
++};
++
++struct ib_cm_sidr_req_event_param {
++	struct ib_cm_id	 *listen_id;
++	uint8_t		  port;
++	uint16_t          pkey;
++};
++
++enum ib_cm_sidr_status {
++	IB_SIDR_SUCCESS,
++	IB_SIDR_UNSUPPORTED,
++	IB_SIDR_REJECT,
++	IB_SIDR_NO_QP,
++	IB_SIDR_REDIRECT,
++	IB_SIDR_UNSUPPORTED_VERSION
++};
++
++struct ib_cm_sidr_rep_event_param {
++	enum ib_cm_sidr_status	status;
++	uint32_t		qkey;
++	uint32_t		qpn;
++	void			*info;
++	uint8_t			info_len;
++};
++
++struct ib_cm_event {
++	struct ib_cm_id	      *cm_id;
++	enum ib_cm_event_type event;
++	union {
++		struct ib_cm_req_event_param	req_rcvd;
++		struct ib_cm_rep_event_param	rep_rcvd;
++		/* No data for RTU received events. */
++		struct ib_cm_rej_event_param	rej_rcvd;
++		struct ib_cm_mra_event_param	mra_rcvd;
++		struct ib_cm_lap_event_param	lap_rcvd;
++		struct ib_cm_apr_event_param	apr_rcvd;
++		/* No data for DREQ/DREP received events. */
++		struct ib_cm_sidr_req_event_param sidr_req_rcvd;
++		struct ib_cm_sidr_rep_event_param sidr_rep_rcvd;
++		enum ibv_wc_status		send_status;
++	} param;
++
++	void			*private_data;
++};
++
++/**
++ * ib_cm_get_event - Retrieves the next pending communications event,
++ *   if no event is pending waits for an event.
++ * @device: CM device to retrieve the event.
++ * @event: Allocated information about the next communication event.
++ *    Event should be freed using ib_cm_ack_event()
++ *
++ * IB_CM_REQ_RECEIVED and IB_CM_SIDR_REQ_RECEIVED communication events 
++ * generated as a result of listen requests result in the allocation of a 
++ * new @cm_id. 
++ * Clients are responsible for destroying the new @cm_id.  For peer-to-peer
++ * IB_CM_REQ_RECEIVED and all other events, the returned @cm_id corresponds
++ * to a user's existing communication identifier.
++ */
++int ib_cm_get_event(struct ib_cm_device *device, struct ib_cm_event **event);
++
++/**
++ * ib_cm_ack_event - Free a communications event.
++ * @event: Event to be released.
++ *
++ * All events which are allocated by ib_cm_get_event() must be released,
++ * there should be a one-to-one correspondence between successful gets
++ * and puts.
++ */
++int ib_cm_ack_event(struct ib_cm_event *event);
++ 
++/**
++ * ib_cm_open_device - Returns the device the CM uses to submit requests
++ *   and retrieve events, corresponding to the specified verbs device.
++ *
++ * The CM device contains the file descriptor that the CM uses to
++ * communicate with the kernel CM component.  The primary use of the
++ * file descriptor is to test for CM readiness events. When the CM
++ * becomes ready to READ there is a pending event ready, and a subsequent
++ * call to ib_cm_get_event will not block.
++ * Note: The user should not read or write directly to the CM file
++ *       descriptor, it will likely result in an error or unexpected
++ *       results.
++ */
++struct ib_cm_device* ib_cm_open_device(struct ibv_context *device_context);
++
++/**
++ * ib_cm_close_device - Close a CM device.
++ * @device: Device to close.
++ */
++void ib_cm_close_device(struct ib_cm_device *device);
++
++/**
++ * ib_cm_create_id - Allocate a communication identifier.
++ *
++ * Communication identifiers are used to track connection states, service
++ * ID resolution requests, and listen requests.
++ */
++int ib_cm_create_id(struct ib_cm_device *device,
++		    struct ib_cm_id **cm_id, void *context);
++
++/**
++ * ib_cm_destroy_id - Destroy a connection identifier.
++ * @cm_id: Connection identifier to destroy.
++ */
++int ib_cm_destroy_id(struct ib_cm_id *cm_id);
++
++struct ib_cm_attr_param {
++	__be64			service_id;
++	__be64			service_mask;
++	__be32			local_id;
++	__be32			remote_id;
++};
++
++/**
++ * ib_cm_attr_id - Get connection identifier attributes.
++ * @cm_id: Connection identifier to retrieve attributes.
++ * @param: Destination of retreived parameters.
++ *
++ * Not all parameters are valid during all connection states.
++ */
++int ib_cm_attr_id(struct ib_cm_id *cm_id,
++		  struct ib_cm_attr_param *param);
++
++#define IB_CM_ASSIGN_SERVICE_ID_MASK htobe64(0xFF00000000000000ULL)
++#define IB_CM_ASSIGN_SERVICE_ID      htobe64(0x0200000000000000ULL)
++
++/**
++ * ib_cm_listen - Initiates listening on the specified service ID for
++ *   connection and service ID resolution requests.
++ * @cm_id: Connection identifier associated with the listen request.
++ * @service_id: Service identifier matched against incoming connection
++ *   and service ID resolution requests.  The service ID should be specified
++ *   network-byte order.
++ * @service_mask: Mask applied to service ID used to listen across a
++ *   range of service IDs.  If set to 0, the service ID is matched
++ *   exactly.
++ */
++int ib_cm_listen(struct ib_cm_id *cm_id,
++		 __be64 service_id,
++		 __be64 service_mask);
++
++struct ib_cm_req_param {
++	struct ibv_sa_path_rec	*primary_path;
++	struct ibv_sa_path_rec	*alternate_path;
++	__be64			service_id;
++	uint32_t		qp_num;
++	enum ibv_qp_type	qp_type;
++	uint32_t		starting_psn;
++	void			*private_data;
++	uint8_t			private_data_len;
++	uint8_t			peer_to_peer;
++	uint8_t			responder_resources;
++	uint8_t			initiator_depth;
++	uint8_t			remote_cm_response_timeout;
++	uint8_t			flow_control;
++	uint8_t			local_cm_response_timeout;
++	uint8_t			retry_count;
++	uint8_t			rnr_retry_count;
++	uint8_t			max_cm_retries;
++	uint8_t			srq;
++};
++
++/**
++ * ib_cm_send_req - Sends a connection request to the remote node.
++ * @cm_id: Connection identifier that will be associated with the
++ *   connection request.
++ * @param: Connection request information needed to establish the
++ *   connection.
++ */
++int ib_cm_send_req(struct ib_cm_id *cm_id,
++		   struct ib_cm_req_param *param);
++
++struct ib_cm_rep_param {
++	uint32_t	qp_num;
++	uint32_t	starting_psn;
++	void		*private_data;
++	uint8_t		private_data_len;
++	uint8_t		responder_resources;
++	uint8_t		initiator_depth;
++	uint8_t		target_ack_delay;
++	uint8_t		failover_accepted;
++	uint8_t		flow_control;
++	uint8_t		rnr_retry_count;
++	uint8_t		srq;
++};
++
++/**
++ * ib_cm_send_rep - Sends a connection reply in response to a connection
++ *   request.
++ * @cm_id: Connection identifier that will be associated with the
++ *   connection request.
++ * @param: Connection reply information needed to establish the
++ *   connection.
++ */
++int ib_cm_send_rep(struct ib_cm_id *cm_id,
++		   struct ib_cm_rep_param *param);
++
++/**
++ * ib_cm_send_rtu - Sends a connection ready to use message in response
++ *   to a connection reply message.
++ * @cm_id: Connection identifier associated with the connection request.
++ * @private_data: Optional user-defined private data sent with the
++ *   ready to use message.
++ * @private_data_len: Size of the private data buffer, in bytes.
++ */
++int ib_cm_send_rtu(struct ib_cm_id *cm_id,
++		   void *private_data,
++		   uint8_t private_data_len);
++
++/**
++ * ib_cm_send_dreq - Sends a disconnection request for an existing
++ *   connection.
++ * @cm_id: Connection identifier associated with the connection being
++ *   released.
++ * @private_data: Optional user-defined private data sent with the
++ *   disconnection request message.
++ * @private_data_len: Size of the private data buffer, in bytes.
++ */
++int ib_cm_send_dreq(struct ib_cm_id *cm_id,
++		    void *private_data,
++		    uint8_t private_data_len);
++
++/**
++ * ib_cm_send_drep - Sends a disconnection reply to a disconnection request.
++ * @cm_id: Connection identifier associated with the connection being
++ *   released.
++ * @private_data: Optional user-defined private data sent with the
++ *   disconnection reply message.
++ * @private_data_len: Size of the private data buffer, in bytes.
++ */
++int ib_cm_send_drep(struct ib_cm_id *cm_id,
++		    void *private_data,
++		    uint8_t private_data_len);
++
++/**
++ * ib_cm_notify - Notifies the CM of an event reported to the consumer.
++ * @cm_id: Connection identifier to transition to established.
++ * @event: Type of event.
++ *
++ * This routine should be invoked by users to notify the CM of relevant
++ * communication events.  Events that should be reported to the CM and
++ * when to report them are:
++ *
++ * IBV_EVENT_COMM_EST - Used when a message is received on a connected
++ *    QP before an RTU has been received.
++ * IBV_EVENT_PATH_MIG - Notifies the CM that the connection has failed over
++ *   to the alternate path.
++ */
++int ib_cm_notify(struct ib_cm_id *cm_id, enum ibv_event_type event);
++
++/**
++ * ib_cm_send_rej - Sends a connection rejection message to the
++ *   remote node.
++ * @cm_id: Connection identifier associated with the connection being
++ *   rejected.
++ * @reason: Reason for the connection request rejection.
++ * @ari: Optional additional rejection information.
++ * @ari_length: Size of the additional rejection information, in bytes.
++ * @private_data: Optional user-defined private data sent with the
++ *   rejection message.
++ * @private_data_len: Size of the private data buffer, in bytes.
++ */
++int ib_cm_send_rej(struct ib_cm_id *cm_id,
++		   enum ib_cm_rej_reason reason,
++		   void *ari,
++		   uint8_t ari_length,
++		   void *private_data,
++		   uint8_t private_data_len);
++
++/**
++ * ib_cm_send_mra - Sends a message receipt acknowledgement to a connection
++ *   message.
++ * @cm_id: Connection identifier associated with the connection message.
++ * @service_timeout: The maximum time required for the sender to reply to
++ *   to the connection message.
++ * @private_data: Optional user-defined private data sent with the
++ *   message receipt acknowledgement.
++ * @private_data_len: Size of the private data buffer, in bytes.
++ */
++int ib_cm_send_mra(struct ib_cm_id *cm_id,
++		   uint8_t service_timeout,
++		   void *private_data,
++		   uint8_t private_data_len);
++
++/**
++ * ib_cm_send_lap - Sends a load alternate path request.
++ * @cm_id: Connection identifier associated with the load alternate path
++ *   message.
++ * @alternate_path: A path record that identifies the alternate path to
++ *   load.
++ * @private_data: Optional user-defined private data sent with the
++ *   load alternate path message.
++ * @private_data_len: Size of the private data buffer, in bytes.
++ */
++int ib_cm_send_lap(struct ib_cm_id *cm_id,
++		   struct ibv_sa_path_rec *alternate_path,
++		   void *private_data,
++		   uint8_t private_data_len);
++
++/**
++ * ib_cm_init_qp_attr - Initializes the QP attributes for use in transitioning
++ *   to a specified QP state.
++ * @cm_id: Communication identifier associated with the QP attributes to
++ *   initialize.
++ * @qp_attr: On input, specifies the desired QP state.  On output, the
++ *   mandatory and desired optional attributes will be set in order to
++ *   modify the QP to the specified state.
++ * @qp_attr_mask: The QP attribute mask that may be used to transition the
++ *   QP to the specified state.
++ *
++ * Users must set the @qp_attr->qp_state to the desired QP state.  This call
++ * will set all required attributes for the given transition, along with
++ * known optional attributes.  Users may override the attributes returned from
++ * this call before calling ib_modify_qp.
++ */
++int ib_cm_init_qp_attr(struct ib_cm_id *cm_id,
++		       struct ibv_qp_attr *qp_attr,
++		       int *qp_attr_mask);
++
++/**
++ * ib_cm_send_apr - Sends an alternate path response message in response to
++ *   a load alternate path request.
++ * @cm_id: Connection identifier associated with the alternate path response.
++ * @status: Reply status sent with the alternate path response.
++ * @info: Optional additional information sent with the alternate path
++ *   response.
++ * @info_length: Size of the additional information, in bytes.
++ * @private_data: Optional user-defined private data sent with the
++ *   alternate path response message.
++ * @private_data_len: Size of the private data buffer, in bytes.
++ */
++int ib_cm_send_apr(struct ib_cm_id *cm_id,
++		   enum ib_cm_apr_status status,
++		   void *info,
++		   uint8_t info_length,
++		   void *private_data,
++		   uint8_t private_data_len);
++
++struct ib_cm_sidr_req_param {
++	struct ibv_sa_path_rec	*path;
++	__be64			service_id;
++	int			timeout_ms;
++	void			*private_data;
++	uint8_t			private_data_len;
++	uint8_t			max_cm_retries;
++};
++
++/**
++ * ib_cm_send_sidr_req - Sends a service ID resolution request to the
++ *   remote node.
++ * @cm_id: Communication identifier that will be associated with the
++ *   service ID resolution request.
++ * @param: Service ID resolution request information.
++ */
++int ib_cm_send_sidr_req(struct ib_cm_id *cm_id,
++			struct ib_cm_sidr_req_param *param);
++
++struct ib_cm_sidr_rep_param {
++	uint32_t		qp_num;
++	uint32_t		qkey;
++	enum ib_cm_sidr_status	status;
++	void			*info;
++	uint8_t			info_length;
++	void			*private_data;
++	uint8_t			private_data_len;
++};
++
++/**
++ * ib_cm_send_sidr_rep - Sends a service ID resolution reply to the
++ *   remote node.
++ * @cm_id: Communication identifier associated with the received service ID
++ *   resolution request.
++ * @param: Service ID resolution reply information.
++ */
++int ib_cm_send_sidr_rep(struct ib_cm_id *cm_id,
++			struct ib_cm_sidr_rep_param *param);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /* CM_H */
+diff -urN rdma-core-21.orig/libibcm/examples/CMakeLists.txt rdma-core-21/libibcm/examples/CMakeLists.txt
+--- rdma-core-21.orig/libibcm/examples/CMakeLists.txt	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/libibcm/examples/CMakeLists.txt	2018-12-05 12:00:11.287968727 +0000
+@@ -0,0 +1,2 @@
++rdma_test_executable(cmpost cmpost.c)
++target_link_libraries(cmpost LINK_PRIVATE ibcm rdmacm)
+diff -urN rdma-core-21.orig/libibcm/examples/cmpost.c rdma-core-21/libibcm/examples/cmpost.c
+--- rdma-core-21.orig/libibcm/examples/cmpost.c	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/libibcm/examples/cmpost.c	2018-12-05 12:00:11.288968718 +0000
+@@ -0,0 +1,774 @@
++/*
++ * Copyright (c) 2004-2006 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ * $Id$
++ */
++#include <endian.h>
++#include <stdlib.h>
++#include <string.h>
++#include <stdio.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <netdb.h>
++#include <endian.h>
++
++#include <netinet/in.h>
++
++#include <infiniband/cm.h>
++#include <rdma/rdma_cma.h>
++
++struct cmtest {
++	struct ibv_device	*device;
++	struct ib_cm_device	*cm_dev;
++	struct ibv_context	*verbs;
++	struct ibv_pd		*pd;
++	struct ibv_device_attr	dev_attr;
++
++	/* cm info */
++	struct ibv_sa_path_rec	path_rec;
++
++	struct cmtest_node	*nodes;
++	int			conn_index;
++	int			connects_left;
++	int			disconnects_left;
++
++	/* memory region info */
++	struct ibv_mr		*mr;
++	void			*mem;
++};
++
++static struct cmtest test;
++static int message_count = 10;
++static int message_size = 100;
++static int connections = 1;
++static int is_server = 1;
++
++struct cmtest_node {
++	int			id;
++	struct ibv_cq		*cq;
++	struct ibv_qp		*qp;
++	struct ib_cm_id		*cm_id;
++	int			connected;
++};
++
++static int post_recvs(struct cmtest_node *node)
++{
++	struct ibv_recv_wr recv_wr, *recv_failure;
++	struct ibv_sge sge;
++	int i, ret = 0;
++
++	if (!message_count)
++		return 0;
++
++	recv_wr.next = NULL;
++	recv_wr.sg_list = &sge;
++	recv_wr.num_sge = 1;
++	recv_wr.wr_id = (uintptr_t) node;
++
++	sge.length = message_size;
++	sge.lkey = test.mr->lkey;
++	sge.addr = (uintptr_t) test.mem;
++
++	for (i = 0; i < message_count && !ret; i++ ) {
++		ret = ibv_post_recv(node->qp, &recv_wr, &recv_failure);
++		if (ret) {
++			printf("failed to post receives: %d\n", ret);
++			break;
++		}
++	}
++	return ret;
++}
++
++static int modify_to_rtr(struct cmtest_node *node,
++			 struct ib_cm_rep_param *rep)
++{
++	struct ibv_qp_attr qp_attr;
++	int qp_attr_mask, ret;
++
++	qp_attr.qp_state = IBV_QPS_INIT;
++	ret = ib_cm_init_qp_attr(node->cm_id, &qp_attr, &qp_attr_mask);
++	if (ret) {
++		printf("failed to init QP attr for INIT: %d\n", ret);
++		return ret;
++	}
++	ret = ibv_modify_qp(node->qp, &qp_attr, qp_attr_mask);
++	if (ret) {
++		printf("failed to modify QP to INIT: %d\n", ret);
++		return ret;
++	}
++	qp_attr.qp_state = IBV_QPS_RTR;
++	ret = ib_cm_init_qp_attr(node->cm_id, &qp_attr, &qp_attr_mask);
++	if (ret) {
++		printf("failed to init QP attr for RTR: %d\n", ret);
++		return ret;
++	}
++	qp_attr.rq_psn = node->qp->qp_num;
++	if (rep) {
++		qp_attr.max_dest_rd_atomic = rep->responder_resources;
++		qp_attr.max_rd_atomic = rep->initiator_depth;
++	}
++	ret = ibv_modify_qp(node->qp, &qp_attr, qp_attr_mask);
++	if (ret) {
++		printf("failed to modify QP to RTR: %d\n", ret);
++		return ret;
++	}
++	return 0;
++}
++
++static int modify_to_rts(struct cmtest_node *node)
++{
++	struct ibv_qp_attr qp_attr;
++	int qp_attr_mask, ret;
++
++	qp_attr.qp_state = IBV_QPS_RTS;
++	ret = ib_cm_init_qp_attr(node->cm_id, &qp_attr, &qp_attr_mask);
++	if (ret) {
++		printf("failed to init QP attr for RTS: %d\n", ret);
++		return ret;
++	}
++	ret = ibv_modify_qp(node->qp, &qp_attr, qp_attr_mask);
++	if (ret) {
++		printf("failed to modify QP to RTS: %d\n", ret);
++		return ret;
++	}
++	return 0;
++}
++
++static void req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
++{
++	struct cmtest_node *node;
++	struct ib_cm_req_event_param *req;
++	struct ib_cm_rep_param rep;
++	int ret;
++
++	if (test.conn_index == connections)
++		goto error1;
++	node = &test.nodes[test.conn_index++];
++
++	req = &event->param.req_rcvd;
++	memset(&rep, 0, sizeof rep);
++
++	/*
++	 * Limit the responder resources requested by the remote
++	 * to our capabilities.  Note that the kernel swaps
++	 * req->responder_resources and req->initiator_depth, so
++	 * that req->responder_resources is actually the active
++	 * side's initiator depth.
++	 */
++	if (req->responder_resources > test.dev_attr.max_qp_rd_atom)
++		rep.responder_resources = test.dev_attr.max_qp_rd_atom;
++	else
++		rep.responder_resources = req->responder_resources;
++
++	/*
++	 * Note: if this side of the connection is never going to
++	 * use RDMA read opreations, then initiator_depth can be set
++	 * to 0 here.
++	 */
++	if (req->initiator_depth > test.dev_attr.max_qp_init_rd_atom)
++		rep.initiator_depth = test.dev_attr.max_qp_init_rd_atom; 
++	else
++		rep.initiator_depth = req->initiator_depth;
++
++	node->cm_id = cm_id;
++	cm_id->context = node;
++
++	ret = modify_to_rtr(node, &rep);
++	if (ret)
++		goto error2;
++
++	ret = post_recvs(node);
++	if (ret)
++		goto error2;
++
++	rep.qp_num = node->qp->qp_num;
++	rep.srq = (node->qp->srq != NULL);
++	rep.starting_psn = node->qp->qp_num;
++	rep.target_ack_delay = 20;
++	rep.flow_control = req->flow_control;
++	rep.rnr_retry_count = req->rnr_retry_count;
++
++	ret = ib_cm_send_rep(cm_id, &rep);
++	if (ret) {
++		printf("failed to send CM REP: %d\n", ret);
++		goto error2;
++	}
++	return;
++error2:
++	test.disconnects_left--;
++	test.connects_left--;
++error1:
++	printf("failing connection request\n");
++	ib_cm_send_rej(cm_id, IB_CM_REJ_UNSUPPORTED, NULL, 0, NULL, 0);
++}
++
++static void rep_handler(struct cmtest_node *node, struct ib_cm_event *event)
++{
++	int ret;
++
++	ret = modify_to_rtr(node, NULL);
++	if (ret)
++		goto error;
++
++	ret = modify_to_rts(node);
++	if (ret)
++		goto error;
++
++	ret = post_recvs(node);
++	if (ret)
++		goto error;
++
++	ret = ib_cm_send_rtu(node->cm_id, NULL, 0);
++	if (ret) {
++		printf("failed to send CM RTU: %d\n", ret);
++		goto error;
++	}
++	node->connected = 1;
++	test.connects_left--;
++	return;
++error:
++	printf("failing connection reply\n");
++	ib_cm_send_rej(node->cm_id, IB_CM_REJ_UNSUPPORTED, NULL, 0, NULL, 0);
++	test.disconnects_left--;
++	test.connects_left--;
++}
++
++static void rtu_handler(struct cmtest_node *node)
++{
++	int ret;
++
++	ret = modify_to_rts(node);
++	if (ret)
++		goto error;
++
++	node->connected = 1;
++	test.connects_left--;
++	return;
++error:
++	printf("aborting connection - disconnecting\n");
++	ib_cm_send_dreq(node->cm_id, NULL, 0);
++	test.disconnects_left--;
++	test.connects_left--;
++}
++
++static void cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
++{
++	struct cmtest_node *node = cm_id->context;
++
++	switch (event->event) {
++	case IB_CM_REQ_RECEIVED:
++		req_handler(cm_id, event);
++		break;
++	case IB_CM_REP_RECEIVED:
++		rep_handler(node, event);
++		break;
++	case IB_CM_RTU_RECEIVED:
++		rtu_handler(node);
++		break;
++	case IB_CM_DREQ_RECEIVED:
++		node->connected = 0;
++		ib_cm_send_drep(node->cm_id, NULL, 0);
++		test.disconnects_left--;
++		break;
++	case IB_CM_DREP_RECEIVED:
++		test.disconnects_left--;
++		break;
++	case IB_CM_REJ_RECEIVED:
++		printf("Received REJ\n");
++		/* fall through */
++	case IB_CM_REQ_ERROR:
++	case IB_CM_REP_ERROR:
++		printf("Error sending REQ or REP\n");
++		test.disconnects_left--;
++		test.connects_left--;
++		break;
++	case IB_CM_DREQ_ERROR:
++		test.disconnects_left--;
++		printf("Error sending DREQ\n");
++		break;
++	default:
++		break;
++	}
++}
++
++static int init_node(struct cmtest_node *node, struct ibv_qp_init_attr *qp_attr)
++{
++	int cqe, ret;
++
++	if (!is_server) {
++		ret = ib_cm_create_id(test.cm_dev, &node->cm_id, node);
++		if (ret) {
++			printf("failed to create cm_id: %d\n", ret);
++			return ret;
++		}
++	}
++
++	cqe = message_count ? message_count * 2 : 2;
++	node->cq = ibv_create_cq(test.verbs, cqe, node, NULL, 0);
++	if (!node->cq) {
++		printf("unable to create CQ\n");
++		goto error1;
++	}
++
++	qp_attr->send_cq = node->cq; 
++	qp_attr->recv_cq = node->cq; 
++	node->qp = ibv_create_qp(test.pd, qp_attr);
++	if (!node->qp) {
++		printf("unable to create QP\n");
++		goto error2;
++	}
++	return 0;
++error2:
++	ibv_destroy_cq(node->cq);
++error1:
++	if (!is_server)
++		ib_cm_destroy_id(node->cm_id);
++	return -1;
++}
++
++static void destroy_node(struct cmtest_node *node)
++{
++	ibv_destroy_qp(node->qp);
++	ibv_destroy_cq(node->cq);
++	if (node->cm_id)
++		ib_cm_destroy_id(node->cm_id);
++}
++
++static int create_nodes(void)
++{
++	struct ibv_qp_init_attr qp_attr;
++	int ret, i;
++
++	test.nodes = malloc(sizeof *test.nodes * connections);
++	if (!test.nodes) {
++		printf("unable to allocate memory for test nodes\n");
++		return -1;
++	}
++	memset(test.nodes, 0, sizeof *test.nodes * connections);
++
++	memset(&qp_attr, 0, sizeof qp_attr);
++	qp_attr.cap.max_send_wr = message_count ? message_count : 1;
++	qp_attr.cap.max_recv_wr = message_count ? message_count : 1;
++	qp_attr.cap.max_send_sge = 1;
++	qp_attr.cap.max_recv_sge = 1;
++	qp_attr.qp_type = IBV_QPT_RC;
++
++	for (i = 0; i < connections; i++) {
++		test.nodes[i].id = i;
++		ret = init_node(&test.nodes[i], &qp_attr);
++		if (ret)
++			goto error;
++	}
++	return 0;
++error:
++	while (--i >= 0)
++		destroy_node(&test.nodes[i]);
++	free(test.nodes);
++	return ret;
++}
++
++static void destroy_nodes(void)
++{
++	int i;
++
++	for (i = 0; i < connections; i++)
++		destroy_node(&test.nodes[i]);
++	free(test.nodes);
++}
++
++static int create_messages(void)
++{
++	if (!message_size)
++		message_count = 0;
++
++	if (!message_count)
++		return 0;
++
++	test.mem = malloc(message_size);
++	if (!test.mem) {
++		printf("failed message allocation\n");
++		return -1;
++	}
++	test.mr = ibv_reg_mr(test.pd, test.mem, message_size,
++			     IBV_ACCESS_LOCAL_WRITE);
++	if (!test.mr) {
++		printf("failed to reg MR\n");
++		goto err;
++	}
++	return 0;
++err:
++	free(test.mem);
++	return -1;
++}
++
++static void destroy_messages(void)
++{
++	if (!message_count)
++		return;
++
++	ibv_dereg_mr(test.mr);
++	free(test.mem);
++}
++
++static int init(void)
++{
++	struct ibv_device **dev_list;
++	int ret;
++
++	test.connects_left = connections;
++	test.disconnects_left = connections;
++
++	dev_list = ibv_get_device_list(NULL);
++	if (!dev_list)
++		return -1;
++	test.device = dev_list[0];
++	if (!test.device)
++		return -1;
++
++	test.verbs = ibv_open_device(test.device);
++	if (!test.verbs)
++		return -1;
++
++	if (ibv_query_device(test.verbs, &test.dev_attr))
++		return -1;
++
++	test.cm_dev = ib_cm_open_device(test.verbs);
++	if (!test.cm_dev)
++		return -1;
++
++	test.pd = ibv_alloc_pd(test.verbs);
++	if (!test.pd) {
++		printf("failed to alloc PD\n");
++		return -1;
++	}
++	ret = create_messages();
++	if (ret) {
++		printf("unable to create test messages\n");
++		goto error1;
++	}
++	ret = create_nodes();
++	if (ret) {
++		printf("unable to create test nodes\n");
++		goto error2;
++	}
++	return 0;
++error2:
++	destroy_messages();
++error1:
++	ibv_dealloc_pd(test.pd);
++	return -1;
++}
++
++static void cleanup(void)
++{
++	destroy_nodes();
++	destroy_messages();
++	ibv_dealloc_pd(test.pd);
++	ib_cm_close_device(test.cm_dev);
++	ibv_close_device(test.verbs);
++}
++
++static int send_msgs(void)
++{
++	struct ibv_send_wr send_wr, *bad_send_wr;
++	struct ibv_sge sge;
++	int i, m, ret;
++
++	send_wr.next = NULL;
++	send_wr.sg_list = &sge;
++	send_wr.num_sge = 1;
++	send_wr.opcode = IBV_WR_SEND;
++	send_wr.send_flags = IBV_SEND_SIGNALED;
++	send_wr.wr_id = 0;
++
++	sge.addr = (uintptr_t) test.mem;
++	sge.length = message_size;
++	sge.lkey = test.mr->lkey;
++
++	for (i = 0; i < connections; i++) {
++		if (!test.nodes[i].connected)
++			continue;
++
++		for (m = 0; m < message_count; m++) {
++			ret = ibv_post_send(test.nodes[i].qp, &send_wr,
++					    &bad_send_wr);
++			if (ret)
++				return ret;
++		}
++	}
++	return 0;
++}
++
++static int poll_cqs(void)
++{
++	struct ibv_wc wc[8];
++	int done, i, ret;
++
++	for (i = 0; i < connections; i++) {
++		if (!test.nodes[i].connected)
++			continue;
++
++		for (done = 0; done < message_count; done += ret) {
++			ret = ibv_poll_cq(test.nodes[i].cq, 8, wc);
++			if (ret < 0) {
++				printf("failed polling CQ: %d\n", ret);
++				return ret;
++			}
++		}
++	}
++	return 0;
++}
++
++static void connect_events(void)
++{
++	struct ib_cm_event *event;
++	int err = 0;
++
++	while (test.connects_left && !err) {
++		err = ib_cm_get_event(test.cm_dev, &event);
++		if (!err) {
++			cm_handler(event->cm_id, event);
++			ib_cm_ack_event(event);
++		}
++	}
++}
++
++static void disconnect_events(void)
++{
++	struct ib_cm_event *event;
++	int err = 0;
++
++	while (test.disconnects_left && !err) {
++		err = ib_cm_get_event(test.cm_dev, &event);
++		if (!err) {
++			cm_handler(event->cm_id, event);
++			ib_cm_ack_event(event);
++		}
++	}
++}
++
++static void run_server(void)
++{
++	struct ib_cm_id *listen_id;
++	int i, ret;
++
++	printf("starting server\n");
++	if (ib_cm_create_id(test.cm_dev, &listen_id, &test)) {
++		printf("listen request failed\n");
++		return;
++	}
++	ret = ib_cm_listen(listen_id, htobe64(0x1000), 0);
++	if (ret) {
++		printf("failure trying to listen: %d\n", ret);
++		goto out;
++	}
++
++	connect_events();
++
++	if (message_count) {
++		printf("initiating data transfers\n");
++		if (send_msgs())
++			goto out;
++		printf("receiving data transfers\n");
++		if (poll_cqs())
++			goto out;
++		printf("data transfers complete\n");
++	}
++
++	printf("disconnecting\n");
++	for (i = 0; i < connections; i++) {
++		if (!test.nodes[i].connected)
++			continue;
++
++		test.nodes[i].connected = 0;
++		ib_cm_send_dreq(test.nodes[i].cm_id, NULL, 0);
++	}
++	disconnect_events();
++ 	printf("disconnected\n");
++out:
++	ib_cm_destroy_id(listen_id);
++}
++
++static int get_dst_addr(char *dst, struct sockaddr_in *addr_in)
++{
++	struct addrinfo *res;
++	int ret;
++
++	ret = getaddrinfo(dst, NULL, NULL, &res);
++	if (ret)
++		return ret;
++
++	if (res->ai_family != PF_INET) {
++		ret = -1;
++		goto out;
++	}
++
++	*addr_in = *(struct sockaddr_in *) res->ai_addr;
++	addr_in->sin_port = htobe16(7471);
++out:
++	freeaddrinfo(res);
++	return ret;
++}
++
++static int query_for_path(char *dst)
++{
++	struct rdma_event_channel *channel;
++	struct rdma_cm_id *id;
++	struct sockaddr_in addr_in;
++	struct rdma_cm_event *event;
++	int ret;
++
++	ret = get_dst_addr(dst, &addr_in);
++	if (ret)
++		return ret;
++
++	channel = rdma_create_event_channel();
++	if (!channel)
++		return -1;
++
++	ret = rdma_create_id(channel, &id, NULL, RDMA_PS_TCP);
++	if (ret)
++		goto destroy_channel;
++
++	ret = rdma_resolve_addr(id, NULL, (struct sockaddr *) &addr_in, 2000);
++	if (ret)
++		goto out;
++
++	ret = rdma_get_cm_event(channel, &event);
++	if (!ret && event->event != RDMA_CM_EVENT_ADDR_RESOLVED)
++		ret = event->status;
++	rdma_ack_cm_event(event);
++	if (ret)
++		goto out;
++
++	ret = rdma_resolve_route(id, 2000);
++	if (ret)
++		goto out;
++
++	ret = rdma_get_cm_event(channel, &event);
++	if (!ret && event->event != RDMA_CM_EVENT_ROUTE_RESOLVED)
++		ret = event->status;
++	rdma_ack_cm_event(event);
++	if (ret)
++		goto out;
++
++	test.path_rec = id->route.path_rec[0];
++out:
++	rdma_destroy_id(id);
++destroy_channel:
++	rdma_destroy_event_channel(channel);
++	return ret;
++}
++
++static void run_client(char *dst)
++{
++	struct ib_cm_req_param req;
++	int i, ret;
++
++	printf("starting client\n");
++	ret = query_for_path(dst);
++	if (ret) {
++		printf("failed path record query: %d\n", ret);
++		return;
++	}
++
++	memset(&req, 0, sizeof req);
++	req.primary_path = &test.path_rec;
++	req.service_id = htobe64(0x1000);
++
++	/*
++	 * When choosing the responder resources for a ULP, it is usually
++	 * best to use the maximum value of the HCA.  If the other side is
++	 * not going to use RDMA read, then it should zero out the
++	 * initiator_depth in the REP, which will zero out the local
++	 * responder_resources when we program the QP.  Generally, the
++	 * initiator_depth should be either set to 0 or
++	 * min(max_qp_rd_atom, max_send_wr).  Use 0 if RDMA read is
++	 * never going to be sent from this side.
++	 */
++	req.responder_resources = test.dev_attr.max_qp_rd_atom;
++	req.initiator_depth = test.dev_attr.max_qp_init_rd_atom;
++
++	req.remote_cm_response_timeout = 20;
++	req.local_cm_response_timeout = 20;
++	req.retry_count = 5;
++	req.max_cm_retries = 5;
++
++	printf("connecting\n");
++	for (i = 0; i < connections; i++) {
++		req.qp_num = test.nodes[i].qp->qp_num;
++		req.qp_type = IBV_QPT_RC;
++		req.srq = (test.nodes[i].qp->srq != NULL);
++		req.starting_psn = test.nodes[i].qp->qp_num;
++		ret = ib_cm_send_req(test.nodes[i].cm_id, &req);
++		if (ret) {
++			printf("failure sending REQ: %d\n", ret);
++			return;
++		}
++	}
++
++	connect_events();
++
++	if (message_count) {
++		printf("receiving data transfers\n");
++		if (poll_cqs())
++			goto out;
++		printf("initiating data transfers\n");
++		if (send_msgs())
++			goto out;
++		printf("data transfers complete\n");
++	}
++out:
++	disconnect_events();
++}
++
++int main(int argc, char **argv)
++{
++	if (argc != 1 && argc != 2) {
++		printf("usage: %s [server_ip_addr]\n", argv[0]);
++		exit(1);
++	}
++
++	is_server = (argc == 1);
++	if (init()) {
++		printf("init failed\n");
++		exit(1);
++	}
++
++	if (is_server)
++		run_server();
++	else
++		run_client(argv[1]);
++
++	printf("test complete\n");
++	cleanup();
++	return 0;
++}
+diff -urN rdma-core-21.orig/libibcm/libibcm.map rdma-core-21/libibcm/libibcm.map
+--- rdma-core-21.orig/libibcm/libibcm.map	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/libibcm/libibcm.map	2018-12-05 12:00:11.288968718 +0000
+@@ -0,0 +1,26 @@
++/* Do not change this file without reading Documentation/versioning.md */
++IBCM_1.0 {
++	global:
++		ib_cm_open_device;
++		ib_cm_close_device;
++		ib_cm_get_event;
++		ib_cm_ack_event;
++		ib_cm_create_id;
++		ib_cm_destroy_id;
++		ib_cm_attr_id;
++		ib_cm_listen;
++		ib_cm_send_req;
++		ib_cm_send_rep;
++		ib_cm_send_rtu;
++		ib_cm_send_dreq;
++		ib_cm_send_drep;
++		ib_cm_notify;
++		ib_cm_send_rej;
++		ib_cm_send_mra;
++		ib_cm_send_lap;
++		ib_cm_send_apr;
++		ib_cm_send_sidr_req;
++		ib_cm_send_sidr_rep;
++		ib_cm_init_qp_attr;
++	local: *;
++};
+diff -urN rdma-core-21.orig/MAINTAINERS rdma-core-21/MAINTAINERS
+--- rdma-core-21.orig/MAINTAINERS	2018-11-15 00:24:06.000000000 +0000
++++ rdma-core-21/MAINTAINERS	2018-12-05 12:00:11.285968745 +0000
+@@ -99,6 +99,12 @@
+ S:	Supported
+ F:	iwpmd/
+ 
++LIBIBCM USERSPACE LIBRARY FOR IB CONNECTION MANAGEMENT (/dev/infiniband/ucmX)
++M:	Sean Hefty <sean.hefty@intel.com>
++H:	Libor Michalek <libor@topspin.com>
++S:	Obsolete
++F:	libibcm/
++
+ LIBIBUMAD USERSPACE LIBRARY FOR SMP AND GMP MAD PROCESSING (/dev/infiniband/umadX)
+ M:	Hal Rosenstock <hal@dev.mellanox.co.il>
+ H:	Sasha Khapyorsky <sashak@voltaire.com>
+diff -urN rdma-core-21.orig/README.md rdma-core-21/README.md
+--- rdma-core-21.orig/README.md	2018-11-15 00:24:06.000000000 +0000
++++ rdma-core-21/README.md	2018-12-05 12:00:11.285968745 +0000
+@@ -9,6 +9,7 @@
+  - /dev/infiniband/uverbsX (libibverbs)
+  - /dev/infiniband/rdma_cm (librdmacm)
+  - /dev/infiniband/umadX (libibumad)
++ - /dev/infiniband/ucmX (libibcm, deprecated)
+ 
+ The userspace component of the libibverbs RDMA kernel drivers are included
+ under the providers/ directory. Support for the following Kernel RDMA drivers
+diff -urN rdma-core-21.orig/redhat/rdma-core.spec rdma-core-21/redhat/rdma-core.spec
+--- rdma-core-21.orig/redhat/rdma-core.spec	2018-11-15 00:24:06.000000000 +0000
++++ rdma-core-21/redhat/rdma-core.spec	2018-12-05 12:00:11.288968718 +0000
+@@ -66,6 +66,9 @@
+ Requires: libibverbs = %{version}-%{release}
+ Provides: libibverbs-devel = %{version}-%{release}
+ Obsoletes: libibverbs-devel < %{version}-%{release}
++Requires: libibcm = %{version}-%{release}
++Provides: libibcm-devel = %{version}-%{release}
++Obsoletes: libibcm-devel < %{version}-%{release}
+ Requires: libibumad = %{version}-%{release}
+ Provides: libibumad-devel = %{version}-%{release}
+ Obsoletes: libibumad-devel < %{version}-%{release}
+@@ -174,6 +177,15 @@
+ iwpmd provides a userspace service for iWarp drivers to claim
+ tcp ports through the standard socket interface.
+ 
++%package -n libibcm
++Summary: Userspace InfiniBand Connection Manager
++ExcludeArch: s390 s390x
++Requires: %{name}%{?_isa} = %{version}-%{release}
++
++%description -n libibcm
++libibcm provides a userspace library that handles the majority of the low
++level work required to open an RDMA connection between two machines.
++
+ %package -n libibumad
+ Summary: OpenFabrics Alliance InfiniBand umad (userspace management datagram) library
+ Requires: %{name}%{?_isa} = %{version}-%{release}
+@@ -284,6 +296,10 @@
+ %post -n libibverbs -p /sbin/ldconfig
+ %postun -n libibverbs -p /sbin/ldconfig
+ 
++# libibcm
++%post -n libibcm -p /sbin/ldconfig
++%postun -n libibcm -p /sbin/ldconfig
++
+ # libibumad
+ %post -n libibumad -p /sbin/ldconfig
+ %postun -n libibumad -p /sbin/ldconfig
+@@ -416,6 +432,10 @@
+ %{_mandir}/man8/iwpmd.*
+ %{_mandir}/man5/iwpmd.*
+ 
++%files -n libibcm
++%{_libdir}/libibcm*.so.*
++%doc %{_docdir}/%{name}-%{version}/libibcm.md
++
+ %files -n libibumad
+ %{_libdir}/libibumad*.so.*
+ 
+diff -urN rdma-core-21.orig/redhat/rdma-core.spec.orig rdma-core-21/redhat/rdma-core.spec.orig
+--- rdma-core-21.orig/redhat/rdma-core.spec.orig	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/redhat/rdma-core.spec.orig	2018-11-15 00:24:06.000000000 +0000
+@@ -0,0 +1,471 @@
++Name: rdma-core
++Version: 21.0
++Release: 1%{?dist}
++Summary: RDMA core userspace libraries and daemons
++
++# Almost everything is licensed under the OFA dual GPLv2, 2 Clause BSD license
++#  providers/ipathverbs/ Dual licensed using a BSD license with an extra patent clause
++#  providers/rxe/ Incorporates code from ipathverbs and contains the patent clause
++#  providers/hfi1verbs Uses the 3 Clause BSD license
++License: GPLv2 or BSD
++Url: https://github.com/linux-rdma/rdma-core
++Source: rdma-core-%{version}.tgz
++# Do not build static libs by default.
++%define with_static %{?_with_static: 1} %{?!_with_static: 0}
++
++BuildRequires: binutils
++BuildRequires: cmake >= 2.8.11
++BuildRequires: gcc
++BuildRequires: libudev-devel
++BuildRequires: pkgconfig
++BuildRequires: pkgconfig(libnl-3.0)
++BuildRequires: pkgconfig(libnl-route-3.0)
++BuildRequires: valgrind-devel
++BuildRequires: systemd
++BuildRequires: systemd-devel
++BuildRequires: python
++%if 0%{?fedora} >= 21
++BuildRequires: perl-generators
++%endif
++
++Requires: dracut, kmod, systemd
++# Red Hat/Fedora previously shipped redhat/ as a stand-alone
++# package called 'rdma', which we're supplanting here.
++Provides: rdma = %{version}-%{release}
++Obsoletes: rdma < %{version}-%{release}
++Conflicts: infiniband-diags <= 1.6.7
++
++# Since we recommend developers use Ninja, so should packagers, for consistency.
++%define CMAKE_FLAGS %{nil}
++%if 0%{?fedora} >= 23
++# Ninja was introduced in FC23
++BuildRequires: ninja-build
++%define CMAKE_FLAGS -GNinja
++%define make_jobs ninja-build -v %{?_smp_mflags}
++%define cmake_install DESTDIR=%{buildroot} ninja-build install
++%else
++# Fallback to make otherwise
++BuildRequires: make
++%define make_jobs make -v %{?_smp_mflags}
++%define cmake_install DESTDIR=%{buildroot} make install
++%endif
++
++%if 0%{?fedora} >= 25
++# pandoc was introduced in FC25
++BuildRequires: pandoc
++%endif
++
++%description
++RDMA core userspace infrastructure and documentation, including initialization
++scripts, kernel driver-specific modprobe override configs, IPoIB network
++scripts, dracut rules, and the rdma-ndd utility.
++
++%package devel
++Summary: RDMA core development libraries and headers
++Requires: %{name}%{?_isa} = %{version}-%{release}
++Requires: libibverbs = %{version}-%{release}
++Provides: libibverbs-devel = %{version}-%{release}
++Obsoletes: libibverbs-devel < %{version}-%{release}
++Requires: libibumad = %{version}-%{release}
++Provides: libibumad-devel = %{version}-%{release}
++Obsoletes: libibumad-devel < %{version}-%{release}
++Requires: librdmacm = %{version}-%{release}
++Provides: librdmacm-devel = %{version}-%{release}
++Obsoletes: librdmacm-devel < %{version}-%{release}
++Requires: ibacm = %{version}-%{release}
++Provides: ibacm-devel = %{version}-%{release}
++Obsoletes: ibacm-devel < %{version}-%{release}
++%if %{with_static}
++# Since our pkg-config files include private references to these packages they
++# need to have their .pc files installed too, even for dynamic linking, or
++# pkg-config breaks.
++BuildRequires: pkgconfig(libnl-3.0)
++BuildRequires: pkgconfig(libnl-route-3.0)
++%endif
++
++%description devel
++RDMA core development libraries and headers.
++
++%package -n libibverbs
++Summary: A library and drivers for direct userspace use of RDMA (InfiniBand/iWARP/RoCE) hardware
++Requires(post): /sbin/ldconfig
++Requires(postun): /sbin/ldconfig
++Requires: %{name}%{?_isa} = %{version}-%{release}
++Provides: libcxgb3 = %{version}-%{release}
++Obsoletes: libcxgb3 < %{version}-%{release}
++Provides: libcxgb4 = %{version}-%{release}
++Obsoletes: libcxgb4 < %{version}-%{release}
++Provides: libhfi1 = %{version}-%{release}
++Obsoletes: libhfi1 < %{version}-%{release}
++Provides: libi40iw = %{version}-%{release}
++Obsoletes: libi40iw < %{version}-%{release}
++Provides: libipathverbs = %{version}-%{release}
++Obsoletes: libipathverbs < %{version}-%{release}
++Provides: libmlx4 = %{version}-%{release}
++Obsoletes: libmlx4 < %{version}-%{release}
++Provides: libmlx5 = %{version}-%{release}
++Obsoletes: libmlx5 < %{version}-%{release}
++Provides: libmthca = %{version}-%{release}
++Obsoletes: libmthca < %{version}-%{release}
++Provides: libnes = %{version}-%{release}
++Obsoletes: libnes < %{version}-%{release}
++Provides: libocrdma = %{version}-%{release}
++Obsoletes: libocrdma < %{version}-%{release}
++Provides: librxe = %{version}-%{release}
++Obsoletes: librxe < %{version}-%{release}
++
++%description -n libibverbs
++libibverbs is a library that allows userspace processes to use RDMA
++"verbs" as described in the InfiniBand Architecture Specification and
++the RDMA Protocol Verbs Specification.  This includes direct hardware
++access from userspace to InfiniBand/iWARP adapters (kernel bypass) for
++fast path operations.
++
++Device-specific plug-in ibverbs userspace drivers are included:
++
++- libcxgb3: Chelsio T3 iWARP HCA
++- libcxgb4: Chelsio T4 iWARP HCA
++- libhfi1: Intel Omni-Path HFI
++- libhns: HiSilicon Hip06 SoC
++- libi40iw: Intel Ethernet Connection X722 RDMA
++- libipathverbs: QLogic InfiniPath HCA
++- libmlx4: Mellanox ConnectX-3 InfiniBand HCA
++- libmlx5: Mellanox Connect-IB/X-4+ InfiniBand HCA
++- libmthca: Mellanox InfiniBand HCA
++- libnes: NetEffect RNIC
++- libocrdma: Emulex OneConnect RDMA/RoCE Device
++- libqedr: QLogic QL4xxx RoCE HCA
++- librxe: A software implementation of the RoCE protocol
++- libvmw_pvrdma: VMware paravirtual RDMA device
++
++%package -n libibverbs-utils
++Summary: Examples for the libibverbs library
++Requires: libibverbs%{?_isa} = %{version}-%{release}
++
++%description -n libibverbs-utils
++Useful libibverbs example programs such as ibv_devinfo, which
++displays information about RDMA devices.
++
++%package -n ibacm
++Summary: InfiniBand Communication Manager Assistant
++Requires(post): systemd-units
++Requires(preun): systemd-units
++Requires(postun): systemd-units
++Requires: %{name}%{?_isa} = %{version}-%{release}
++
++%description -n ibacm
++The ibacm daemon helps reduce the load of managing path record lookups on
++large InfiniBand fabrics by providing a user space implementation of what
++is functionally similar to an ARP cache.  The use of ibacm, when properly
++configured, can reduce the SA packet load of a large IB cluster from O(n^2)
++to O(n).  The ibacm daemon is started and normally runs in the background,
++user applications need not know about this daemon as long as their app
++uses librdmacm to handle connection bring up/tear down.  The librdmacm
++library knows how to talk directly to the ibacm daemon to retrieve data.
++
++%package -n iwpmd
++Summary: iWarp Port Mapper userspace daemon
++Requires(post): systemd-units
++Requires(preun): systemd-units
++Requires(postun): systemd-units
++Requires: %{name}%{?_isa} = %{version}-%{release}
++
++%description -n iwpmd
++iwpmd provides a userspace service for iWarp drivers to claim
++tcp ports through the standard socket interface.
++
++%package -n libibumad
++Summary: OpenFabrics Alliance InfiniBand umad (userspace management datagram) library
++Requires: %{name}%{?_isa} = %{version}-%{release}
++
++%description -n libibumad
++libibumad provides the userspace management datagram (umad) library
++functions, which sit on top of the umad modules in the kernel. These
++are used by the IB diagnostic and management tools, including OpenSM.
++
++%package -n librdmacm
++Summary: Userspace RDMA Connection Manager
++Requires: %{name}%{?_isa} = %{version}-%{release}
++
++%description -n librdmacm
++librdmacm provides a userspace RDMA Communication Management API.
++
++%package -n librdmacm-utils
++Summary: Examples for the librdmacm library
++Requires: librdmacm%{?_isa} = %{version}-%{release}
++
++%description -n librdmacm-utils
++Example test programs for the librdmacm library.
++
++%package -n srp_daemon
++Summary: Tools for using the InfiniBand SRP protocol devices
++Obsoletes: srptools <= 1.0.3
++Provides: srptools = %{version}-%{release}
++Obsoletes: openib-srptools <= 0.0.6
++Requires(post): systemd-units
++Requires(preun): systemd-units
++Requires(postun): systemd-units
++Requires: %{name}%{?_isa} = %{version}-%{release}
++
++%description -n srp_daemon
++In conjunction with the kernel ib_srp driver, srp_daemon allows you to
++discover and use SCSI devices via the SCSI RDMA Protocol over InfiniBand.
++
++%prep
++%setup
++
++%build
++
++# New RPM defines _rundir, usually as /run
++%if 0%{?_rundir:1}
++%else
++%define _rundir /var/run
++%endif
++
++%{!?EXTRA_CMAKE_FLAGS: %define EXTRA_CMAKE_FLAGS %{nil}}
++
++# Pass all of the rpm paths directly to GNUInstallDirs and our other defines.
++%cmake %{CMAKE_FLAGS} \
++         -DCMAKE_BUILD_TYPE=Release \
++         -DCMAKE_INSTALL_BINDIR:PATH=%{_bindir} \
++         -DCMAKE_INSTALL_SBINDIR:PATH=%{_sbindir} \
++         -DCMAKE_INSTALL_LIBDIR:PATH=%{_libdir} \
++         -DCMAKE_INSTALL_LIBEXECDIR:PATH=%{_libexecdir} \
++         -DCMAKE_INSTALL_LOCALSTATEDIR:PATH=%{_localstatedir} \
++         -DCMAKE_INSTALL_SHAREDSTATEDIR:PATH=%{_sharedstatedir} \
++         -DCMAKE_INSTALL_INCLUDEDIR:PATH=%{_includedir} \
++         -DCMAKE_INSTALL_INFODIR:PATH=%{_infodir} \
++         -DCMAKE_INSTALL_MANDIR:PATH=%{_mandir} \
++         -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} \
++         -DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=%{_unitdir} \
++         -DCMAKE_INSTALL_INITDDIR:PATH=%{_initrddir} \
++         -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
++         -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version} \
++         -DCMAKE_INSTALL_UDEV_RULESDIR:PATH=%{_udevrulesdir} \
++%if %{with_static}
++         -DENABLE_STATIC=1 \
++%endif
++         %{EXTRA_CMAKE_FLAGS}
++%make_jobs
++
++%install
++%cmake_install
++
++mkdir -p %{buildroot}/%{_sysconfdir}/rdma
++
++# Red Hat specific glue
++%global dracutlibdir %{_prefix}/lib/dracut
++%global sysmodprobedir %{_prefix}/lib/modprobe.d
++mkdir -p %{buildroot}%{_sysconfdir}/udev/rules.d
++mkdir -p %{buildroot}%{_libexecdir}
++mkdir -p %{buildroot}%{_udevrulesdir}
++mkdir -p %{buildroot}%{dracutlibdir}/modules.d/05rdma
++mkdir -p %{buildroot}%{sysmodprobedir}
++install -D -m0644 redhat/rdma.conf %{buildroot}/%{_sysconfdir}/rdma/rdma.conf
++install -D -m0644 redhat/rdma.sriov-vfs %{buildroot}/%{_sysconfdir}/rdma/sriov-vfs
++install -D -m0644 redhat/rdma.mlx4.conf %{buildroot}/%{_sysconfdir}/rdma/mlx4.conf
++install -D -m0644 redhat/rdma.service %{buildroot}%{_unitdir}/rdma.service
++install -D -m0755 redhat/rdma.modules-setup.sh %{buildroot}%{dracutlibdir}/modules.d/05rdma/module-setup.sh
++install -D -m0644 redhat/rdma.udev-rules %{buildroot}%{_udevrulesdir}/98-rdma.rules
++install -D -m0644 redhat/rdma.mlx4.sys.modprobe %{buildroot}%{sysmodprobedir}/libmlx4.conf
++install -D -m0755 redhat/rdma.kernel-init %{buildroot}%{_libexecdir}/rdma-init-kernel
++install -D -m0755 redhat/rdma.sriov-init %{buildroot}%{_libexecdir}/rdma-set-sriov-vf
++install -D -m0755 redhat/rdma.mlx4-setup.sh %{buildroot}%{_libexecdir}/mlx4-setup.sh
++
++# ibacm
++bin/ib_acme -D . -O
++install -D -m0644 ibacm_opts.cfg %{buildroot}%{_sysconfdir}/rdma/
++
++# Delete the package's init.d scripts
++rm -rf %{buildroot}/%{_initrddir}/
++rm -rf %{buildroot}/%{_sbindir}/srp_daemon.sh
++
++# libibverbs
++%post -n libibverbs -p /sbin/ldconfig
++%postun -n libibverbs -p /sbin/ldconfig
++
++# libibumad
++%post -n libibumad -p /sbin/ldconfig
++%postun -n libibumad -p /sbin/ldconfig
++
++# librdmacm
++%post -n librdmacm -p /sbin/ldconfig
++%postun -n librdmacm -p /sbin/ldconfig
++
++# ibacm
++%post -n ibacm
++%systemd_post ibacm.service
++%preun -n ibacm
++%systemd_preun ibacm.service
++%postun -n ibacm
++%systemd_postun_with_restart ibacm.service
++
++# srp_daemon
++%post -n srp_daemon
++%systemd_post srp_daemon.service
++%preun -n srp_daemon
++%systemd_preun srp_daemon.service
++%postun -n srp_daemon
++%systemd_postun_with_restart srp_daemon.service
++
++# iwpmd
++%post -n iwpmd
++%systemd_post iwpmd.service
++%preun -n iwpmd
++%systemd_preun iwpmd.service
++%postun -n iwpmd
++%systemd_postun_with_restart iwpmd.service
++
++%files
++%dir %{_sysconfdir}/rdma
++%dir %{_docdir}/%{name}-%{version}
++%doc %{_docdir}/%{name}-%{version}/README.md
++%doc %{_docdir}/%{name}-%{version}/rxe.md
++%doc %{_docdir}/%{name}-%{version}/udev.md
++%doc %{_docdir}/%{name}-%{version}/tag_matching.md
++%config(noreplace) %{_sysconfdir}/rdma/mlx4.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/infiniband.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/iwarp.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/opa.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/rdma.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/roce.conf
++%config(noreplace) %{_sysconfdir}/rdma/rdma.conf
++%config(noreplace) %{_sysconfdir}/rdma/sriov-vfs
++%config(noreplace) %{_sysconfdir}/udev/rules.d/*
++%config(noreplace) %{_sysconfdir}/modprobe.d/mlx4.conf
++%config(noreplace) %{_sysconfdir}/modprobe.d/truescale.conf
++%{_unitdir}/rdma-hw.target
++%{_unitdir}/rdma-load-modules@.service
++%{_unitdir}/rdma.service
++%dir %{dracutlibdir}/modules.d/05rdma
++%{dracutlibdir}/modules.d/05rdma/module-setup.sh
++%{_udevrulesdir}/60-rdma-ndd.rules
++%{_udevrulesdir}/75-rdma-description.rules
++%{_udevrulesdir}/90-rdma-hw-modules.rules
++%{_udevrulesdir}/90-rdma-ulp-modules.rules
++%{_udevrulesdir}/90-rdma-umad.rules
++%{_udevrulesdir}/98-rdma.rules
++%{sysmodprobedir}/libmlx4.conf
++%{_libexecdir}/rdma-init-kernel
++%{_libexecdir}/rdma-set-sriov-vf
++%{_libexecdir}/mlx4-setup.sh
++%{_libexecdir}/truescale-serdes.cmds
++%{_bindir}/rxe_cfg
++%{_sbindir}/rdma-ndd
++%{_unitdir}/rdma-ndd.service
++%{_mandir}/man7/rxe*
++%{_mandir}/man8/rdma-ndd.*
++%{_mandir}/man8/rxe*
++%license COPYING.*
++
++%files devel
++%doc %{_docdir}/%{name}-%{version}/MAINTAINERS
++%dir %{_includedir}/infiniband
++%dir %{_includedir}/rdma
++%{_includedir}/infiniband/*
++%{_includedir}/rdma/*
++%if %{with_static}
++%{_libdir}/lib*.a
++%endif
++%{_libdir}/lib*.so
++%{_libdir}/pkgconfig/*.pc
++%{_mandir}/man3/ibv_*
++%{_mandir}/man3/rdma*
++%{_mandir}/man3/umad*
++%{_mandir}/man3/*_to_ibv_rate.*
++%{_mandir}/man7/rdma_cm.*
++%{_mandir}/man3/mlx5dv*
++%{_mandir}/man3/mlx4dv*
++%{_mandir}/man7/mlx5dv*
++%{_mandir}/man7/mlx4dv*
++
++%files -n libibverbs
++%dir %{_sysconfdir}/libibverbs.d
++%dir %{_libdir}/libibverbs
++%{_libdir}/libibverbs*.so.*
++%{_libdir}/libibverbs/*.so
++%{_libdir}/libmlx5.so.*
++%{_libdir}/libmlx4.so.*
++%config(noreplace) %{_sysconfdir}/libibverbs.d/*.driver
++%doc %{_docdir}/%{name}-%{version}/libibverbs.md
++
++%files -n libibverbs-utils
++%{_bindir}/ibv_*
++%{_mandir}/man1/ibv_*
++
++%files -n ibacm
++%config(noreplace) %{_sysconfdir}/rdma/ibacm_opts.cfg
++%{_bindir}/ib_acme
++%{_sbindir}/ibacm
++%{_mandir}/man1/ibacm.*
++%{_mandir}/man1/ib_acme.*
++%{_mandir}/man7/ibacm.*
++%{_mandir}/man7/ibacm_prov.*
++%{_unitdir}/ibacm.service
++%{_unitdir}/ibacm.socket
++%dir %{_libdir}/ibacm
++%{_libdir}/ibacm/*
++%doc %{_docdir}/%{name}-%{version}/ibacm.md
++
++%files -n iwpmd
++%{_sbindir}/iwpmd
++%{_unitdir}/iwpmd.service
++%config(noreplace) %{_sysconfdir}/rdma/modules/iwpmd.conf
++%config(noreplace) %{_sysconfdir}/iwpmd.conf
++%{_udevrulesdir}/90-iwpmd.rules
++%{_mandir}/man8/iwpmd.*
++%{_mandir}/man5/iwpmd.*
++
++%files -n libibumad
++%{_libdir}/libibumad*.so.*
++
++%files -n librdmacm
++%{_libdir}/librdmacm*.so.*
++%dir %{_libdir}/rsocket
++%{_libdir}/rsocket/*.so*
++%doc %{_docdir}/%{name}-%{version}/librdmacm.md
++%{_mandir}/man7/rsocket.*
++
++%files -n librdmacm-utils
++%{_bindir}/cmtime
++%{_bindir}/mckey
++%{_bindir}/rcopy
++%{_bindir}/rdma_client
++%{_bindir}/rdma_server
++%{_bindir}/rdma_xclient
++%{_bindir}/rdma_xserver
++%{_bindir}/riostream
++%{_bindir}/rping
++%{_bindir}/rstream
++%{_bindir}/ucmatose
++%{_bindir}/udaddy
++%{_bindir}/udpong
++%{_mandir}/man1/cmtime.*
++%{_mandir}/man1/mckey.*
++%{_mandir}/man1/rcopy.*
++%{_mandir}/man1/rdma_client.*
++%{_mandir}/man1/rdma_server.*
++%{_mandir}/man1/rdma_xclient.*
++%{_mandir}/man1/rdma_xserver.*
++%{_mandir}/man1/riostream.*
++%{_mandir}/man1/rping.*
++%{_mandir}/man1/rstream.*
++%{_mandir}/man1/ucmatose.*
++%{_mandir}/man1/udaddy.*
++%{_mandir}/man1/udpong.*
++
++%files -n srp_daemon
++%config(noreplace) %{_sysconfdir}/srp_daemon.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/srp_daemon.conf
++%{_libexecdir}/srp_daemon/start_on_all_ports
++%{_unitdir}/srp_daemon.service
++%{_unitdir}/srp_daemon_port@.service
++%{_sbindir}/ibsrpdm
++%{_sbindir}/srp_daemon
++%{_sbindir}/run_srp_daemon
++%{_udevrulesdir}/60-srp_daemon.rules
++%{_mandir}/man1/ibsrpdm.1*
++%{_mandir}/man1/srp_daemon.1*
++%{_mandir}/man5/srp_daemon.service.5*
++%{_mandir}/man5/srp_daemon_port@.service.5*
++%doc %{_docdir}/%{name}-%{version}/ibsrpdm.md
+diff -urN rdma-core-21.orig/suse/rdma-core.spec rdma-core-21/suse/rdma-core.spec
+--- rdma-core-21.orig/suse/rdma-core.spec	2018-11-15 00:24:06.000000000 +0000
++++ rdma-core-21/suse/rdma-core.spec	2018-12-05 12:00:11.288968718 +0000
+@@ -29,12 +29,14 @@
+ Group:          Productivity/Networking/Other
+ 
+ %define verbs_so_major  1
++%define ibcm_so_major   1
+ %define rdmacm_so_major 1
+ %define umad_so_major   3
+ %define mlx4_so_major   1
+ %define mlx5_so_major   1
+ 
+ %define  verbs_lname  libibverbs%{verbs_so_major}
++%define  ibcm_lname   libibcm%{ibcm_so_major}
+ %define  rdmacm_lname librdmacm%{rdmacm_so_major}
+ %define  umad_lname   libibumad%{umad_so_major}
+ %define  mlx4_lname   libmlx4-%{mlx4_so_major}
+@@ -126,6 +128,7 @@
+ Group:          Development/Libraries/C and C++
+ Requires:       %{name}%{?_isa} = %{version}-%{release}
+ 
++Requires:       %{ibcm_lname} = %{version}-%{release}
+ Requires:       %{rdmacm_lname} = %{version}-%{release}
+ Requires:       %{umad_lname} = %{version}-%{release}
+ Requires:       %{verbs_lname} = %{version}-%{release}
+@@ -138,6 +141,9 @@
+ Provides:       libibverbs-devel = %{version}-%{release}
+ Obsoletes:      libibverbs-devel < %{version}-%{release}
+ 
++Provides:       libibcm-devel = %{version}-%{release}
++Obsoletes:      libibcm-devel < %{version}-%{release}
++
+ Provides:       libibumad-devel = %{version}-%{release}
+ Obsoletes:      libibumad-devel < %{version}-%{release}
+ Provides:       librdmacm-devel = %{version}-%{release}
+@@ -265,6 +271,14 @@
+ iwpmd provides a userspace service for iWarp drivers to claim
+ tcp ports through the standard socket interface.
+ 
++%package -n %ibcm_lname
++Summary:        Userspace InfiniBand Connection Manager
++Group:          System/Libraries
++
++%description -n %ibcm_lname
++libibcm provides a userspace library that handles the majority of the low
++level work required to open an RDMA connection between two machines.
++
+ %package -n %umad_lname
+ Summary:        OpenFabrics Alliance InfiniBand Userspace Management Datagram library
+ Group:          System/Libraries
+@@ -417,6 +431,9 @@
+ %postun -n %mlx5_lname -p /sbin/ldconfig
+ %endif
+ 
++%post -n %ibcm_lname -p /sbin/ldconfig
++%postun -n %ibcm_lname -p /sbin/ldconfig
++
+ %post -n %umad_lname -p /sbin/ldconfig
+ %postun -n %umad_lname -p /sbin/ldconfig
+ 
+@@ -618,6 +635,11 @@
+ %{_mandir}/man8/iwpmd.*
+ %{_mandir}/man5/iwpmd.*
+ 
++%files -n %ibcm_lname
++%defattr(-,root,root)
++%{_libdir}/libibcm*.so.*
++%doc %{_docdir}/%{name}-%{version}/libibcm.md
++
+ %files -n %umad_lname
+ %defattr(-,root,root)
+ %{_libdir}/libibumad*.so.*
+diff -urN rdma-core-21.orig/suse/rdma-core.spec.orig rdma-core-21/suse/rdma-core.spec.orig
+--- rdma-core-21.orig/suse/rdma-core.spec.orig	1970-01-01 00:00:00.000000000 +0000
++++ rdma-core-21/suse/rdma-core.spec.orig	2018-11-15 00:24:06.000000000 +0000
+@@ -0,0 +1,694 @@
++#
++# spec file for package rdma-core
++#
++# Copyright (c) 2017 SUSE LINUX GmbH, Nuernberg, Germany.
++#
++# All modifications and additions to the file contributed by third parties
++# remain the property of their copyright owners, unless otherwise agreed
++# upon. The license for this file, and modifications and additions to the
++# file, is the same license as for the pristine package itself (unless the
++# license for the pristine package is not an Open Source License, in which
++# case the license is the MIT License). An "Open Source License" is a
++# license that conforms to the Open Source Definition (Version 1.9)
++# published by the Open Source Initiative.
++
++# Please submit bugfixes or comments via http://bugs.opensuse.org/
++#
++
++
++%bcond_without  systemd
++# Do not build static libs by default.
++%define with_static %{?_with_static: 1} %{?!_with_static: 0}
++
++%define         git_ver %{nil}
++Name:           rdma-core
++Version:        21.0
++Release:        0
++Summary:        RDMA core userspace libraries and daemons
++License:        GPL-2.0 or BSD-2-Clause
++Group:          Productivity/Networking/Other
++
++%define verbs_so_major  1
++%define rdmacm_so_major 1
++%define umad_so_major   3
++%define mlx4_so_major   1
++%define mlx5_so_major   1
++
++%define  verbs_lname  libibverbs%{verbs_so_major}
++%define  rdmacm_lname librdmacm%{rdmacm_so_major}
++%define  umad_lname   libibumad%{umad_so_major}
++%define  mlx4_lname   libmlx4-%{mlx4_so_major}
++%define  mlx5_lname   libmlx5-%{mlx5_so_major}
++
++%ifnarch s390 %arm
++%define dma_coherent 1
++%endif
++
++# Almost everything is licensed under the OFA dual GPLv2, 2 Clause BSD license
++#  providers/ipathverbs/ Dual licensed using a BSD license with an extra patent clause
++#  providers/rxe/ Incorporates code from ipathverbs and contains the patent clause
++#  providers/hfi1verbs Uses the 3 Clause BSD license
++Url:            https://github.com/linux-rdma/rdma-core
++Source:         rdma-core-%{version}%{git_ver}.tar.gz
++Source1:        baselibs.conf
++BuildRequires:  binutils
++BuildRequires:  cmake >= 2.8.11
++BuildRequires:  gcc
++BuildRequires:  pandoc
++BuildRequires:  pkgconfig
++BuildRequires:  pkgconfig(libsystemd)
++BuildRequires:  pkgconfig(libudev)
++BuildRequires:  pkgconfig(systemd)
++BuildRequires:  pkgconfig(udev)
++BuildRequires:  python3-base
++%ifnarch s390 s390x
++BuildRequires:  valgrind-devel
++%endif
++BuildRequires:  systemd-rpm-macros
++BuildRequires:  pkgconfig(libnl-3.0)
++BuildRequires:  pkgconfig(libnl-route-3.0)
++BuildRequires:  pkgconfig(systemd)
++Requires:       kmod
++Requires:       systemd
++Requires:       udev
++
++# SUSE previously shipped rdma as a stand-alone
++# package which we're supplanting here.
++
++Provides:       rdma = %{version}
++Obsoletes:      rdma < %{version}
++Provides:       ofed = %{version}
++Obsoletes:      ofed < %{version}
++
++# Trickery to handle both SUSE OpenBuild System and Manual build
++# In OBS, rdma-core must use curl-mini instead of curl to avoid
++# a build dependency loop:
++# rdma-core -> cmake -> curl -> ... -> boost -> rdma-core
++# Thus we force a BuildRequires to curl-mini which as no impact
++# as it is not used during the build.
++# However curl-mini is not a published RPM. This would prevent any build
++# outside of OBS. Thus we add a bcond to allow manual build.
++# To force build without the use of curl-mini, --without=curlmini
++# should be passed to rpmbuild
++%bcond_without curlmini
++%if 0%{?suse_version} >= 1330
++%if %{with curlmini}
++BuildRequires:  curl-mini
++%endif
++%endif
++
++# Tumbleweed's cmake RPM macro adds -Wl,--no-undefined to the module flags
++# which is totally inappropriate and breaks building 'ENABLE_EXPORTS' style
++# module libraries (eg ibacmp).
++#%%define CMAKE_FLAGS -DCMAKE_MODULE_LINKER_FLAGS=""
++
++# Since we recommend developers use Ninja, so should packagers, for consistency.
++%define CMAKE_FLAGS %{nil}
++%if 0%{?suse_version} >= 1300
++BuildRequires:  ninja
++%define CMAKE_FLAGS -GNinja
++%define make_jobs ninja -v %{?_smp_mflags}
++%define cmake_install DESTDIR=%{buildroot} ninja install
++%else
++# Fallback to make otherwise
++BuildRequires:  make
++%define make_jobs make -v %{?_smp_mflags}
++%define cmake_install DESTDIR=%{buildroot} make install
++%endif
++
++%description
++RDMA core userspace infrastructure and documentation, including initialization
++scripts, kernel driver-specific modprobe override configs, IPoIB network
++scripts, dracut rules, and the rdma-ndd utility.
++
++%package devel
++Summary:        RDMA core development libraries and headers
++Group:          Development/Libraries/C and C++
++Requires:       %{name}%{?_isa} = %{version}-%{release}
++
++Requires:       %{rdmacm_lname} = %{version}-%{release}
++Requires:       %{umad_lname} = %{version}-%{release}
++Requires:       %{verbs_lname} = %{version}-%{release}
++%if 0%{?dma_coherent}
++Requires:       %{mlx4_lname} = %{version}-%{release}
++Requires:       %{mlx5_lname} = %{version}-%{release}
++%endif
++Requires:       rsocket = %{version}-%{release}
++
++Provides:       libibverbs-devel = %{version}-%{release}
++Obsoletes:      libibverbs-devel < %{version}-%{release}
++
++Provides:       libibumad-devel = %{version}-%{release}
++Obsoletes:      libibumad-devel < %{version}-%{release}
++Provides:       librdmacm-devel = %{version}-%{release}
++
++Obsoletes:      librdmacm-devel < %{version}-%{release}
++#Requires:       ibacm = %%{version}-%%{release}
++Provides:       ibacm-devel = %{version}-%{release}
++Obsoletes:      ibacm-devel < %{version}-%{release}
++%if %{with_static}
++# Since our pkg-config files include private references to these packages they
++# need to have their .pc files installed too, even for dynamic linking, or
++# pkg-config breaks.
++BuildRequires: pkgconfig(libnl-3.0)
++BuildRequires: pkgconfig(libnl-route-3.0)
++%endif
++ 
++%description devel
++RDMA core development libraries and headers.
++
++%package -n     libibverbs
++Summary:        Library & drivers for direct userspace use of InfiniBand/iWARP/RoCE hardware
++Group:          System/Libraries
++Requires:       %{name}%{?_isa} = %{version}-%{release}
++Obsoletes:      libcxgb3-rdmav2 < %{version}-%{release}
++Obsoletes:      libcxgb4-rdmav2 < %{version}-%{release}
++Obsoletes:      libhfi1verbs-rdmav2 < %{version}-%{release}
++Obsoletes:      libi40iw-rdmav2 < %{version}-%{release}
++Obsoletes:      libipathverbs-rdmav2 < %{version}-%{release}
++Obsoletes:      libmlx4-rdmav2 < %{version}-%{release}
++Obsoletes:      libmlx5-rdmav2 < %{version}-%{release}
++Obsoletes:      libmthca-rdmav2 < %{version}-%{release}
++Obsoletes:      libnes-rdmav2 < %{version}-%{release}
++Obsoletes:      libocrdma-rdmav2 < %{version}-%{release}
++Obsoletes:      librxe-rdmav2 < %{version}-%{release}
++%if 0%{?dma_coherent}
++Requires:       %{mlx4_lname} = %{version}-%{release}
++Requires:       %{mlx5_lname} = %{version}-%{release}
++%endif
++# Recommended packages for rxe_cfg
++Recommends:     ethtool
++Recommends:     iproute2
++
++%description -n libibverbs
++libibverbs is a library that allows userspace processes to use RDMA
++"verbs" as described in the InfiniBand Architecture Specification and
++the RDMA Protocol Verbs Specification.  This includes direct hardware
++access from userspace to InfiniBand/iWARP adapters (kernel bypass) for
++fast path operations.
++
++Device-specific plug-in ibverbs userspace drivers are included:
++
++- libcxgb3: Chelsio T3 iWARP HCA
++- libcxgb4: Chelsio T4 iWARP HCA
++- libhfi1: Intel Omni-Path HFI
++- libhns: HiSilicon Hip06 SoC
++- libi40iw: Intel Ethernet Connection X722 RDMA
++- libipathverbs: QLogic InfiniPath HCA
++- libmlx4: Mellanox ConnectX-3 InfiniBand HCA
++- libmlx5: Mellanox Connect-IB/X-4+ InfiniBand HCA
++- libmthca: Mellanox InfiniBand HCA
++- libnes: NetEffect RNIC
++- libocrdma: Emulex OneConnect RDMA/RoCE Device
++- libqedr: QLogic QL4xxx RoCE HCA
++- librxe: A software implementation of the RoCE protocol
++- libvmw_pvrdma: VMware paravirtual RDMA device
++
++%package -n %verbs_lname
++Summary:        Ibverbs runtime library
++Group:          System/Libraries
++Requires:       libibverbs = %{version}
++
++%description -n %verbs_lname
++This package contains the ibverbs runtime library.
++
++%if 0%{?dma_coherent}
++%package -n %mlx4_lname
++Summary:        MLX4 runtime library
++Group:          System/Libraries
++
++%description -n %mlx4_lname
++This package contains the mlx4 runtime library.
++
++%package -n %mlx5_lname
++Summary:        MLX5 runtime library
++Group:          System/Libraries
++
++%description -n %mlx5_lname
++This package contains the mlx5 runtime library.
++%endif
++
++%package -n     libibverbs-utils
++Summary:        Examples for the libibverbs library
++Group:          Productivity/Networking/Other
++Requires:       libibverbs%{?_isa} = %{version}
++
++%description -n libibverbs-utils
++Useful libibverbs example programs such as ibv_devinfo, which
++displays information about RDMA devices.
++
++%package -n     ibacm
++Summary:        InfiniBand Communication Manager Assistant
++Group:          Productivity/Networking/Other
++%{?systemd_requires}
++Requires:       %{name}%{?_isa} = %{version}
++Obsoletes:      libibacmp1 < %{version}
++Provides:       libibacmp1 = %{version}
++
++%description -n ibacm
++The ibacm daemon helps reduce the load of managing path record lookups on
++large InfiniBand fabrics by providing a user space implementation of what
++is functionally similar to an ARP cache.  The use of ibacm, when properly
++configured, can reduce the SA packet load of a large IB cluster from O(n^2)
++to O(n).  The ibacm daemon is started and normally runs in the background,
++user applications need not know about this daemon as long as their app
++uses librdmacm to handle connection bring up/tear down.  The librdmacm
++library knows how to talk directly to the ibacm daemon to retrieve data.
++
++%package -n iwpmd
++Summary:        Userspace iWarp Port Mapper daemon
++Group:          Development/Libraries/C and C++
++Requires:       %{name}%{?_isa} = %{version}
++%{?systemd_requires}
++
++%description -n iwpmd
++iwpmd provides a userspace service for iWarp drivers to claim
++tcp ports through the standard socket interface.
++
++%package -n %umad_lname
++Summary:        OpenFabrics Alliance InfiniBand Userspace Management Datagram library
++Group:          System/Libraries
++
++%description -n %umad_lname
++libibumad provides the userspace management datagram (umad) library
++functions, which sit on top of the umad modules in the kernel. These
++are used by the IB diagnostic and management tools, including OpenSM.
++
++%package -n     %rdmacm_lname
++Summary:        Userspace RDMA Connection Manager
++Group:          System/Libraries
++Requires:       %{name} = %{version}
++Provides:       librdmacm = %{version}
++Obsoletes:      librdmacm < %{version}
++
++%description -n %rdmacm_lname
++librdmacm provides a userspace RDMA Communication Management API.
++
++%package -n rsocket
++Summary:        Preloadable library to turn the socket API RDMA-aware
++Group:          System/Libraries
++
++%description -n rsocket
++Existing applications can make use of rsockets through the use this
++preloadable library. See the documentation in the packaged rsocket(7)
++manpage for details.
++
++%package -n librdmacm-utils
++Summary:        Examples for the librdmacm library
++Group:          Productivity/Networking/Other
++
++%description -n librdmacm-utils
++Example test programs for the librdmacm library.
++
++%package -n srp_daemon
++Summary:        Tools for using the InfiniBand SRP protocol devices
++Group:          Development/Libraries/C and C++
++Requires:       %{name} = %{version}
++Obsoletes:      srptools <= 1.0.3
++Provides:       srptools = %{version}
++%{?systemd_requires}
++
++%description -n srp_daemon
++In conjunction with the kernel ib_srp driver, srp_daemon allows you to
++discover and use SCSI devices via the SCSI RDMA Protocol over InfiniBand.
++
++%package     -n rdma-ndd
++Summary:        Daemon to manage RDMA Node Description
++Group:          System/Daemons
++Requires:       %{name} = %{version}
++# The udev rules in rdma need to be aware of rdma-ndd:
++Conflicts:      rdma < 2.1
++%{?systemd_requires}
++
++%description -n rdma-ndd
++rdma-ndd is a system daemon which watches for rdma device changes and/or
++hostname changes and updates the Node Description of the rdma devices based
++on those changes.
++
++%prep
++%setup -q -n  %{name}-%{version}%{git_ver}
++
++%build
++
++# New RPM defines _rundir, usually as /run
++%if 0%{?_rundir:1}
++%else
++%define _rundir /var/run
++%endif
++
++%{!?EXTRA_CMAKE_FLAGS: %define EXTRA_CMAKE_FLAGS %{nil}}
++
++# Pass all of the rpm paths directly to GNUInstallDirs and our other defines.
++%cmake %{CMAKE_FLAGS} \
++	 -DCMAKE_MODULE_LINKER_FLAGS="-Wl,--as-needed -Wl,-z,now" \
++         -DCMAKE_BUILD_TYPE=Release \
++         -DCMAKE_INSTALL_BINDIR:PATH=%{_bindir} \
++         -DCMAKE_INSTALL_SBINDIR:PATH=%{_sbindir} \
++         -DCMAKE_INSTALL_LIBDIR:PATH=%{_libdir} \
++         -DCMAKE_INSTALL_LIBEXECDIR:PATH=%{_libexecdir} \
++         -DCMAKE_INSTALL_LOCALSTATEDIR:PATH=%{_localstatedir} \
++         -DCMAKE_INSTALL_SHAREDSTATEDIR:PATH=%{_sharedstatedir} \
++         -DCMAKE_INSTALL_INCLUDEDIR:PATH=%{_includedir} \
++         -DCMAKE_INSTALL_INFODIR:PATH=%{_infodir} \
++         -DCMAKE_INSTALL_MANDIR:PATH=%{_mandir} \
++         -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} \
++         -DCMAKE_INSTALL_SYSTEMD_SERVICEDIR:PATH=%{_unitdir} \
++         -DCMAKE_INSTALL_SYSTEMD_BINDIR:PATH=%{_libexecdir}/systemd \
++         -DCMAKE_INSTALL_INITDDIR:PATH=%{_initddir} \
++         -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
++         -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version} \
++         -DCMAKE_INSTALL_UDEV_RULESDIR:PATH=%{_udevrulesdir} \
++%if %{with_static}
++         -DENABLE_STATIC=1 \
++%endif
++         %{EXTRA_CMAKE_FLAGS}
++%make_jobs
++
++%install
++cd build
++%cmake_install
++cd ..
++mkdir -p %{buildroot}/%{_sysconfdir}/rdma
++
++%global dracutlibdir %%{_sysconfdir}/dracut.conf.d
++%global sysmodprobedir %%{_sysconfdir}/modprobe.d
++
++mkdir -p %{buildroot}%{_libexecdir}/udev/rules.d
++mkdir -p %{buildroot}%{_udevrulesdir}
++mkdir -p %{buildroot}%{dracutlibdir}/modules.d/05rdma
++mkdir -p %{buildroot}%{sysmodprobedir}
++mkdir -p %{buildroot}%{_unitdir}
++
++# SRIOV service
++install -D -m0644 redhat/rdma.sriov-vfs %{buildroot}/%{_sysconfdir}/rdma/sriov-vfs
++install -D -m0755 redhat/rdma.sriov-init %{buildroot}%{_libexecdir}/rdma-set-sriov-vf
++install -D -m0644 suse/rdma.sriov-rules %{buildroot}%{_udevrulesdir}/98-rdma-sriov.rules
++install -D -m0644 suse/rdma.sriov-service %{buildroot}%{_unitdir}/rdma-sriov.service
++
++# Port type setup for mlx4 dual port cards
++install -D -m0644 redhat/rdma.mlx4.conf %{buildroot}/%{_sysconfdir}/rdma/mlx4.conf
++sed 's%/usr/libexec%/usr/lib%g' redhat/rdma.mlx4.sys.modprobe > %{buildroot}%{sysmodprobedir}/50-libmlx4.conf
++chmod 0644 %{buildroot}%{sysmodprobedir}/50-libmlx4.conf
++install -D -m0755 redhat/rdma.mlx4-setup.sh %{buildroot}%{_libexecdir}/mlx4-setup.sh
++
++# Dracut file for IB support during boot
++sed 's%/usr/libexec%/usr/lib%g' redhat/rdma.modules-setup.sh > %{buildroot}%{dracutlibdir}/modules.d/05rdma/module-setup.sh
++chmod 0755 %{buildroot}%{dracutlibdir}/modules.d/05rdma/module-setup.sh
++
++# ibacm
++cd build
++LD_LIBRARY_PATH=./lib bin/ib_acme -D . -O
++install -D -m0644 ibacm_opts.cfg %{buildroot}%{_sysconfdir}/rdma/
++
++for service in rdma rdma-ndd ibacm iwpmd srp_daemon; do ln -sf %{_sbindir}/service %{buildroot}%{_sbindir}/rc${service}; done
++
++# Delete the package's init.d scripts
++rm -rf %{buildroot}/%{_initddir}/
++rm -rf %{buildroot}/%{_sbindir}/srp_daemon.sh
++
++%post -n %verbs_lname -p /sbin/ldconfig
++%postun -n %verbs_lname -p /sbin/ldconfig
++
++%if 0%{?dma_coherent}
++%post -n %mlx4_lname -p /sbin/ldconfig
++%postun -n %mlx4_lname -p /sbin/ldconfig
++
++%post -n %mlx5_lname -p /sbin/ldconfig
++%postun -n %mlx5_lname -p /sbin/ldconfig
++%endif
++
++%post -n %umad_lname -p /sbin/ldconfig
++%postun -n %umad_lname -p /sbin/ldconfig
++
++%post -n %rdmacm_lname -p /sbin/ldconfig
++%postun -n %rdmacm_lname -p /sbin/ldconfig
++
++%post
++# we ship udev rules, so trigger an update.
++/sbin/udevadm trigger --subsystem-match=infiniband --action=change || true
++/sbin/udevadm trigger --subsystem-match=infiniband_mad --action=change || true
++
++#
++# ibacm
++#
++%pre -n ibacm
++%service_add_pre ibacm.service ibacm.socket
++
++%post -n ibacm
++%service_add_post ibacm.service ibacm.socket
++
++%preun -n ibacm
++%service_del_preun ibacm.service ibacm.socket
++
++%postun -n ibacm
++%service_del_postun ibacm.service ibacm.socket
++
++#
++# srp daemon
++#
++%pre -n srp_daemon
++%service_add_pre srp_daemon.service
++
++%post -n srp_daemon
++%service_add_post srp_daemon.service
++# we ship udev rules, so trigger an update.
++/sbin/udevadm trigger --subsystem-match=infiniband_mad --action=change
++
++%preun -n srp_daemon
++%service_del_preun srp_daemon.service
++
++%postun -n srp_daemon
++%service_del_postun srp_daemon.service
++
++#
++# iwpmd
++#
++%pre -n iwpmd
++%service_add_pre ibiwpmd.service
++
++%post -n iwpmd
++%service_add_post iwpmd.service
++
++%preun -n iwpmd
++%service_del_preun iwpmd.service
++
++%postun -n iwpmd
++%service_del_postun iwpmd.service
++
++#
++# rdma-ndd
++#
++%pre -n rdma-ndd
++%service_add_pre rdma-ndd.service
++
++%preun -n rdma-ndd
++%service_del_preun rdma-ndd.service
++
++%post -n rdma-ndd
++%service_add_post rdma-ndd.service
++
++%postun -n rdma-ndd
++%service_del_postun rdma-ndd.service
++
++%files
++%defattr(-,root,root)
++%dir %{_sysconfdir}/rdma
++%dir %{_sysconfdir}/rdma/modules
++%dir %{_docdir}/%{name}-%{version}
++%dir %{_libexecdir}/udev
++%dir %{_libexecdir}/udev/rules.d
++%dir %{_sysconfdir}/udev
++%dir %{_sysconfdir}/udev/rules.d
++%dir %{_sysconfdir}/modprobe.d
++%doc %{_docdir}/%{name}-%{version}/README.md
++%config(noreplace) %{_sysconfdir}/rdma/mlx4.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/infiniband.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/iwarp.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/opa.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/rdma.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/roce.conf
++%config(noreplace) %{_sysconfdir}/rdma/sriov-vfs
++%if 0%{?dma_coherent}
++%config(noreplace) %{_sysconfdir}/modprobe.d/mlx4.conf
++%endif
++%config(noreplace) %{_sysconfdir}/modprobe.d/truescale.conf
++%config(noreplace) %{_sysconfdir}/udev/rules.d/70-persistent-ipoib.rules
++%{_unitdir}/rdma-hw.target
++%{_unitdir}/rdma-load-modules@.service
++%{_unitdir}/rdma-sriov.service
++%dir %{dracutlibdir}
++%dir %{dracutlibdir}/modules.d
++%dir %{dracutlibdir}/modules.d/05rdma
++%{dracutlibdir}/modules.d/05rdma/module-setup.sh
++%{_udevrulesdir}/75-rdma-description.rules
++%{_udevrulesdir}/90-rdma-hw-modules.rules
++%{_udevrulesdir}/90-rdma-ulp-modules.rules
++%{_udevrulesdir}/90-rdma-umad.rules
++%{_udevrulesdir}/98-rdma-sriov.rules
++%{sysmodprobedir}/50-libmlx4.conf
++%{_libexecdir}/rdma-set-sriov-vf
++%{_libexecdir}/mlx4-setup.sh
++%{_libexecdir}/truescale-serdes.cmds
++%license COPYING.*
++%{_sbindir}/rcrdma
++
++%files devel
++%defattr(-,root,root)
++%doc %{_docdir}/%{name}-%{version}/MAINTAINERS
++%dir %{_includedir}/infiniband
++%dir %{_includedir}/rdma
++%{_includedir}/infiniband/*
++%{_includedir}/rdma/*
++%if %{with_static}
++%{_libdir}/lib*.a
++%endif
++%{_libdir}/lib*.so
++%{_libdir}/pkgconfig/*.pc
++%{_mandir}/man3/ibv_*
++%{_mandir}/man3/rdma*
++%{_mandir}/man3/umad*
++%{_mandir}/man3/*_to_ibv_rate.*
++%{_mandir}/man7/rdma_cm.*
++%if 0%{?dma_coherent}
++%{_mandir}/man3/mlx5dv*
++%{_mandir}/man3/mlx4dv*
++%{_mandir}/man7/mlx5dv*
++%{_mandir}/man7/mlx4dv*
++%endif
++
++%files -n libibverbs
++%defattr(-,root,root)
++%dir %{_sysconfdir}/libibverbs.d
++%dir %{_libdir}/libibverbs
++%{_libdir}/libibverbs/*.so
++%config(noreplace) %{_sysconfdir}/libibverbs.d/*.driver
++%doc %{_docdir}/%{name}-%{version}/libibverbs.md
++%doc %{_docdir}/%{name}-%{version}/rxe.md
++%doc %{_docdir}/%{name}-%{version}/udev.md
++%doc %{_docdir}/%{name}-%{version}/tag_matching.md
++%{_bindir}/rxe_cfg
++%{_mandir}/man7/rxe*
++%{_mandir}/man8/rxe*
++
++%files -n %verbs_lname
++%defattr(-,root,root)
++%{_libdir}/libibverbs*.so.*
++
++%if 0%{?dma_coherent}
++%files -n %mlx4_lname
++%defattr(-,root,root)
++%{_libdir}/libmlx4*.so.*
++
++%files -n %mlx5_lname
++%defattr(-,root,root)
++%{_libdir}/libmlx5*.so.*
++%endif
++
++%files -n libibverbs-utils
++%defattr(-,root,root)
++%{_bindir}/ibv_*
++%{_mandir}/man1/ibv_*
++
++%files -n ibacm
++%defattr(-,root,root)
++%config(noreplace) %{_sysconfdir}/rdma/ibacm_opts.cfg
++%{_bindir}/ib_acme
++%{_sbindir}/ibacm
++%{_mandir}/man1/ibacm.*
++%{_mandir}/man1/ib_acme.*
++%{_mandir}/man7/ibacm.*
++%{_mandir}/man7/ibacm_prov.*
++%{_unitdir}/ibacm.service
++%{_unitdir}/ibacm.socket
++%dir %{_libdir}/ibacm
++%{_libdir}/ibacm/*
++%{_sbindir}/rcibacm
++%doc %{_docdir}/%{name}-%{version}/ibacm.md
++
++%files -n iwpmd
++%defattr(-,root,root)
++%dir %{_sysconfdir}/rdma
++%dir %{_sysconfdir}/rdma/modules
++%{_sbindir}/iwpmd
++%{_sbindir}/rciwpmd
++%{_unitdir}/iwpmd.service
++%config(noreplace) %{_sysconfdir}/rdma/modules/iwpmd.conf
++%config(noreplace) %{_sysconfdir}/iwpmd.conf
++%{_udevrulesdir}/90-iwpmd.rules
++%{_mandir}/man8/iwpmd.*
++%{_mandir}/man5/iwpmd.*
++
++%files -n %umad_lname
++%defattr(-,root,root)
++%{_libdir}/libibumad*.so.*
++
++%files -n %rdmacm_lname
++%defattr(-,root,root)
++%{_libdir}/librdmacm*.so.*
++%doc %{_docdir}/%{name}-%{version}/librdmacm.md
++
++%files -n rsocket
++%defattr(-,root,root)
++%dir %{_libdir}/rsocket
++%{_libdir}/rsocket/*.so*
++%{_mandir}/man7/rsocket.*
++
++%files -n librdmacm-utils
++%defattr(-,root,root)
++%{_bindir}/cmtime
++%{_bindir}/mckey
++%{_bindir}/rcopy
++%{_bindir}/rdma_client
++%{_bindir}/rdma_server
++%{_bindir}/rdma_xclient
++%{_bindir}/rdma_xserver
++%{_bindir}/riostream
++%{_bindir}/rping
++%{_bindir}/rstream
++%{_bindir}/ucmatose
++%{_bindir}/udaddy
++%{_bindir}/udpong
++%{_mandir}/man1/cmtime.*
++%{_mandir}/man1/mckey.*
++%{_mandir}/man1/rcopy.*
++%{_mandir}/man1/rdma_client.*
++%{_mandir}/man1/rdma_server.*
++%{_mandir}/man1/rdma_xclient.*
++%{_mandir}/man1/rdma_xserver.*
++%{_mandir}/man1/riostream.*
++%{_mandir}/man1/rping.*
++%{_mandir}/man1/rstream.*
++%{_mandir}/man1/ucmatose.*
++%{_mandir}/man1/udaddy.*
++%{_mandir}/man1/udpong.*
++
++%files -n srp_daemon
++%defattr(-,root,root)
++%dir %{_libexecdir}/srp_daemon
++%dir %{_sysconfdir}/rdma
++%dir %{_sysconfdir}/rdma/modules
++%config(noreplace) %{_sysconfdir}/srp_daemon.conf
++%config(noreplace) %{_sysconfdir}/rdma/modules/srp_daemon.conf
++%{_libexecdir}/udev/rules.d/60-srp_daemon.rules
++%{_libexecdir}/srp_daemon/start_on_all_ports
++%{_unitdir}/srp_daemon.service
++%{_unitdir}/srp_daemon_port@.service
++%{_sbindir}/ibsrpdm
++%{_sbindir}/srp_daemon
++%{_sbindir}/run_srp_daemon
++%{_sbindir}/rcsrp_daemon
++%{_mandir}/man1/ibsrpdm.1*
++%{_mandir}/man1/srp_daemon.1*
++%{_mandir}/man5/srp_daemon.service.5*
++%{_mandir}/man5/srp_daemon_port@.service.5*
++%doc %{_docdir}/%{name}-%{version}/ibsrpdm.md
++
++%files -n rdma-ndd
++%defattr(-, root, root)
++%{_sbindir}/rdma-ndd
++%{_sbindir}/rcrdma-ndd
++%{_unitdir}/rdma-ndd.service
++%{_mandir}/man8/rdma-ndd.8*
++%{_libexecdir}/udev/rules.d/60-rdma-ndd.rules
++
++%changelog

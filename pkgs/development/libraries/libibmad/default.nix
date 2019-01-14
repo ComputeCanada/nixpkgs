@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, libibumad }:
+{ stdenv, fetchurl, rdma-core }:
 
 stdenv.mkDerivation rec {
   name = "libibmad-1.3.12";
@@ -8,7 +8,7 @@ stdenv.mkDerivation rec {
     sha256 = "0ywkz0rskci414r6h6jd4iz4qjbj37ga2k91z1mlj9xrnl9bbgzi";
   };
 
-  buildInputs = [ libibumad ];
+  buildInputs = [ rdma-core ];
 
   meta = with stdenv.lib; {
     homepage = http://www.openfabrics.org/;

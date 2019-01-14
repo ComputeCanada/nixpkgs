@@ -2009,6 +2009,8 @@ in
 
   hardinfo = callPackage ../tools/system/hardinfo { };
 
+  hcoll = callPackage ../development/libraries/hcoll { };
+
   hdapsd = callPackage ../os-specific/linux/hdapsd { };
 
   hddtemp = callPackage ../tools/misc/hddtemp { };
@@ -2461,13 +2463,19 @@ in
 
   libibverbs = callPackage ../development/libraries/libibverbs { };
 
+  libibverbs_mlnx = callPackage ../development/libraries/libibverbs/mlnx.nix { };
+
   libscif = callPackage ../development/libraries/libscif { };
 
   libxcomp = callPackage ../development/libraries/libxcomp { };
 
   libx86emu = callPackage ../development/libraries/libx86emu { };
 
+  libibcm_mlnx = callPackage ../development/libraries/libibcm/mlnx.nix { };
+
   librdmacm = callPackage ../development/libraries/librdmacm { };
+
+  librdmacm_mlnx = callPackage ../development/libraries/librdmacm/mlnx.nix { };
 
   libreswan = callPackage ../tools/networking/libreswan { };
 
@@ -3344,6 +3352,8 @@ in
   rawdog = callPackage ../applications/networking/feedreaders/rawdog { };
 
   rc = callPackage ../shells/rc { };
+
+  rdma-core = callPackage ../os-specific/linux/rdma-core { };
 
   read-edid = callPackage ../os-specific/linux/read-edid { };
 
