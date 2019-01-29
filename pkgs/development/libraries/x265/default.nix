@@ -44,6 +44,7 @@ stdenv.mkDerivation rec {
     (mkFlag cliSupport "ENABLE_CLI")
     (mkFlag unittestsSupport "ENABLE_TESTS")
   ];
+  NIX_LDFLAGS="-ldl";
 
   preConfigure = ''
     cd source
