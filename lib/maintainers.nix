@@ -288,6 +288,7 @@
   nfjinjing = "Jinjing Wang <nfjinjing@gmail.com>";
   nico202 = "Nicolò Balzarotti <anothersms@gmail.com>";
   notthemessiah = "Brian Cohen <brian.cohen.88@gmail.com>";
+  numinit = "Morgan Jones <me@numin.it>";
   NikolaMandic = "Ratko Mladic <nikola@mandic.email>";
   np = "Nicolas Pouillard <np.nix@nicolaspouillard.fr>";
   nslqqq = "Nikita Mikhailov <nslqqq@gmail.com>";
