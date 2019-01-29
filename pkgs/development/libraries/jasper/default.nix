@@ -16,6 +16,7 @@ stdenv.mkDerivation rec {
   propagatedBuildInputs = [ libjpeg ];
 
   configureFlags = "--enable-shared";
+  NIX_LDFLAGS = "-lm";
 
   outputs = [ "bin" "dev" "out" "man" ];
 
