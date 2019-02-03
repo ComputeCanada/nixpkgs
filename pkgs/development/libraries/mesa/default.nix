@@ -52,6 +52,7 @@ stdenv.mkDerivation {
   patches = [
     ./glx_ro_text_segm.patch # fix for grsecurity/PaX
     ./symlink-drivers.patch
+    ./query-mit-shm.patch
   ];
 
   outputs = [ "out" "dev" "drivers" "osmesa" ];
