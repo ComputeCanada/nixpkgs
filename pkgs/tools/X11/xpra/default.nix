@@ -82,7 +82,8 @@ in buildPythonApplication rec {
       --set XPRA_INSTALL_PREFIX "$out" \
       --prefix LD_LIBRARY_PATH : ${libfakeXinerama}/lib \
       --prefix PATH : ${stdenv.lib.makeBinPath [ getopt xorgserver xauth which utillinux ]} \
-      --add-flags --xvfb="\"Xorg -configdir $out/etc/X11/xorg.conf.d -config $out/etc/xpra/xorg.conf\""
+      --add-flags --xvfb="\"Xorg -configdir $out/etc/X11/xorg.conf.d -config $out/etc/xpra/xorg.conf\"" \
+      --add-flags --socket-dir='"''$XPRA_SOCKET_DIR"'
   '';
 
   preCheck = "exit 0";
