@@ -78,9 +78,11 @@ in buildPythonApplication rec {
       --set XKB_BINDIR "${xkbcomp}/bin" \
       --set FONTCONFIG_FILE "${fontsConf}" \
       --set XPRA_LOG_DIR "\$HOME/.xpra" \
+      --set XPRA_SOCKET_DIR '"''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/xpra"' \
       --set XPRA_INSTALL_PREFIX "$out" \
       --prefix LD_LIBRARY_PATH : ${libfakeXinerama}/lib \
-      --prefix PATH : ${stdenv.lib.makeBinPath [ getopt xorgserver xauth which utillinux ]}
+      --prefix PATH : ${stdenv.lib.makeBinPath [ getopt xorgserver xauth which utillinux ]} \
+      --add-flags --xvfb="\"Xorg -configdir $out/etc/X11/xorg.conf.d -config $out/etc/xpra/xorg.conf\""
   '';
 
   preCheck = "exit 0";
