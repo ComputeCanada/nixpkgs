@@ -15,6 +15,13 @@ in buildPythonApplication rec {
     sha256 = "0pq2pzmv5fsafp50rzl9nb6ns08rl88fhgdqc2hh27dx7b8ka8n6";
   };
 
+  patches = [
+    (substituteAll {
+      src = ./fix-paths.patch;
+      inherit (xorg) xkeyboardconfig;
+    })
+  ];
+
   buildInputs = [
     cython pkgconfig
 
