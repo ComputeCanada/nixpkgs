@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchurl, callPackage, substituteAll, pythonPackages, pkgconfig
+{ stdenv, lib, fetchurl, callPackage, substituteAll, pythonPackages, pkgconfig, writeText
 , xorg, gtk, glib, pango, cairo, gdk_pixbuf, atk
 , makeWrapper, xkbcomp, xorgserver, getopt, xauth, utillinux, which, fontsConf, xkeyboard_config
 , ffmpeg, x264, libvpx, libwebp
@@ -53,7 +53,27 @@ in buildPythonApplication rec {
     sed -i '/ = data_files/d' setup.py
   '';
 
+  xorgConfig = writeText "10-dummy.conf" ''
+    Section "Module"
+      Load "fb"
+    EndSection
+    Section "Files"
+      ModulePath "${xorg.xorgserver.out}/lib/xorg/modules"
+      ModulePath "${xorg.xf86videodummy}/lib/xorg/modules"
+      XkbDir "${xkeyboard_config}/share/X11/xkb"
+
+      FontPath "${xorg.fontadobe75dpi}/lib/X11/fonts/75dpi"
+      FontPath "${xorg.fontadobe100dpi}/lib/X11/fonts/100dpi"
+      FontPath "${xorg.fontbhlucidatypewriter75dpi}/lib/X11/fonts/75dpi"
+      FontPath "${xorg.fontbhlucidatypewriter100dpi}/lib/X11/fonts/100dpi"
+      FontPath "${xorg.fontbh100dpi}/lib/X11/fonts/100dpi"
+      FontPath "${xorg.fontmiscmisc}/lib/X11/fonts/misc"
+      FontPath "${xorg.fontcursormisc}/lib/X11/fonts/misc"
+    EndSection
+  '';
+
   postInstall = ''
+    cp ${xorgConfig} $out/etc/X11/xorg.conf.d
     wrapProgram $out/bin/xpra \
       --set XKB_BINDIR "${xkbcomp}/bin" \
       --set FONTCONFIG_FILE "${fontsConf}" \
