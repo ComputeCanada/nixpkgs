@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchurl, callPackage, pythonPackages, pkgconfig
+{ stdenv, lib, fetchurl, callPackage, substituteAll, pythonPackages, pkgconfig
 , xorg, gtk, glib, pango, cairo, gdk_pixbuf, atk
 , makeWrapper, xkbcomp, xorgserver, getopt, xauth, utillinux, which, fontsConf, xkeyboard_config
 , ffmpeg, x264, libvpx, libwebp
