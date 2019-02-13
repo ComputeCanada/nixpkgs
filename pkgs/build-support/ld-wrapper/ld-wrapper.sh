@@ -122,6 +122,10 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
         if [ "${1%%/stubs}" != "$1" ]; then
             return 0
         fi
+        # also exclude gcc libraries (using nixpkgs libstdc++ etc)
+        if [ "${1##${NIXUSER_PROFILE%/*}/gcc-}" != "$1" ]; then
+            return 0
+        fi
         case $rpath in
             *\ $1\ *) return 0 ;;
         esac
