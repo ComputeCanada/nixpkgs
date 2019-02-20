@@ -157,6 +157,11 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
         p2=${allParams[$((n+1))]}
         if [ "${p:0:3}" = -L/ ]; then
             addToLibPath ${p:2}
+            #if referring to static gcc libraries, add dynamic ones to search path too
+            if [[ "$p" =~ -L$NIX_STORE/.*/lib/gcc/x86_64-unknown-linux-gnu/.*/\.\./\.\./\.\./\.\./lib64 ]]; then
+		p=$(cat ${p:2}/../nix-support/propagated-native-build-inputs)
+		params[$n]=-L${p:1}/lib
+            fi
         elif [ "$p" = -L ]; then
             addToLibPath ${p2}
             n=$((n + 1))
