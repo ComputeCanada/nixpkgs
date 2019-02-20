@@ -112,7 +112,7 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
             return 0
         fi
         # this never gets explicitly added, only via $NIXUSER_PROFILE/etc/ld.so.conf
-        if [ "$1" == "$NIXUSER_PROFILE/lib" -a -z "$2" ]; then
+        if [ "$1" == "$NIXUSER_PROFILE/lib" ]; then
             return 0
         fi
         if [ "$1" == "$NIXUSER_PROFILE/lib64" ]; then
@@ -122,7 +122,7 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
         if [ "${1%%/stubs}" != "$1" ]; then
             return 0
         fi
-        # also exclude gcc libraries (using nixpkgs libstdc++ etc)
+        # also exclude gcc libraries (runtime uses $NIXUSER_PROFILE/lib/libstdc++ etc)
         if [ "${1##${NIXUSER_PROFILE%/*}/gcc-}" != "$1" ]; then
             return 0
         fi
