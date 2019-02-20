@@ -196,23 +196,19 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
     unset FOUNDLIBS
     declare -A FOUNDLIBS
     for i in $libPath; do
-        if [ "${i:0:${#NIX_PROFILE_DIR}}" == "$NIX_PROFILE_DIR" -o \
-             "${i:0:${#EASYBUILD_DIR}}" == "$EASYBUILD_DIR" -o \
-             "${1:0:${#EASYBUILD_HOME_DIR}}" == "$EASYBUILD_HOME_DIR" ]; then
-            for j in $libs; do
-    	        foundlib=${FOUNDLIBS["$j"]}
-                if [ -z "$foundlib" -a -f "$i/lib$j.so" ]; then
-                    addToRPath $i
-		    break
-                fi
-            done
-            for j in $libs; do
-	        foundlib=${FOUNDLIBS["$j"]}
-                if [ -z "$foundlib" -a -f "$i/lib$j.so" ]; then
-		    FOUNDLIBS["$j"]=1
-                fi
-            done
-	fi
+	for j in $libs; do
+	    foundlib=${FOUNDLIBS["$j"]}
+            if [ -z "$foundlib" -a -f "$i/lib$j.so" ]; then
+                addToRPath $i
+		break
+            fi
+	done
+	for j in $libs; do
+	    foundlib=${FOUNDLIBS["$j"]}
+            if [ -z "$foundlib" -a -f "$i/lib$j.so" ]; then
+		FOUNDLIBS["$j"]=1
+            fi
+	done
     done
 
 
