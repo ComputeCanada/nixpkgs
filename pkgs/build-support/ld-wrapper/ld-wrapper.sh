@@ -85,6 +85,7 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
     NIX_STORE=${NIXUSER_PROFILE%/var/nix/profiles/*}/store
     NIX_PROFILE_DIR=${NIXUSER_PROFILE%/*}
     EASYBUILD_DIR=${EASYBUILD_CONFIGFILES%/*}
+    EASYBUILD_HOME_DIR="$HOME/.local/easybuild"
 
     libPath=""
     addToLibPath() {
@@ -108,7 +109,8 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
         # Only NIX_PROFILE_DIR and EASYBUILD library paths are added
         # to rpath. No /tmp, /dev/shm, etc.
         if [ "${1:0:${#NIX_PROFILE_DIR}}" != "$NIX_PROFILE_DIR" -a \
-            "${1:0:${#EASYBUILD_DIR}}" != "$EASYBUILD_DIR" ]; then
+            "${1:0:${#EASYBUILD_DIR}}" != "$EASYBUILD_DIR" -a \
+            "${1:0:${#EASYBUILD_HOME_DIR}}" != "$EASYBUILD_HOME_DIR" ]; then
             return 0
         fi
         # this never gets explicitly added, only via $NIXUSER_PROFILE/etc/ld.so.conf
@@ -195,7 +197,8 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
     declare -A FOUNDLIBS
     for i in $libPath; do
         if [ "${i:0:${#NIX_PROFILE_DIR}}" == "$NIX_PROFILE_DIR" -o \
-             "${i:0:${#EASYBUILD_DIR}}" == "$EASYBUILD_DIR" ]; then
+             "${i:0:${#EASYBUILD_DIR}}" == "$EASYBUILD_DIR" -o \
+             "${1:0:${#EASYBUILD_HOME_DIR}}" == "$EASYBUILD_HOME_DIR" ]; then
             for j in $libs; do
     	        foundlib=${FOUNDLIBS["$j"]}
                 if [ -z "$foundlib" -a -f "$i/lib$j.so" ]; then
