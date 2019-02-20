@@ -39,7 +39,7 @@ diff -ru3 cmake-3.4.3/Modules/Platform/UnixPaths.cmake cmake-3.4.3-new/Modules/P
 -  /usr/pkg/lib
 -  /opt/csw/lib /opt/lib
 -  /usr/openwin/lib
-+  @glibc_lib@/lib
++  @glibc_lib@/lib @glibc_lib@/lib64
    )
  
  list(APPEND CMAKE_SYSTEM_PROGRAM_PATH
@@ -49,7 +49,7 @@ diff -ru3 cmake-3.4.3/Modules/Platform/UnixPaths.cmake cmake-3.4.3-new/Modules/P
  
  list(APPEND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES
 -  /lib /lib32 /lib64 /usr/lib /usr/lib32 /usr/lib64
-+  @glibc_lib@/lib
++  @glibc_lib@/lib @glibc_lib@/lib64
    )
  
  list(APPEND CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES
