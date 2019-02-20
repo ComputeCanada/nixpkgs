@@ -66,7 +66,6 @@ stdenv.mkDerivation {
       # explicit overrides of the dynamic linker by callers to gcc/ld
       # (the *last* value counts, so ours should come first).
       echo "-dynamic-linker" $dynamicLinker > $out/nix-support/libc-ldflags-before
-      echo '-L$NIXUSER_PROFILE/lib' > $out/nix-support/libc-ldflags
 
       ldPath="${binutils_bin}/bin"
 
