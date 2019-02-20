@@ -111,6 +111,12 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
         if [ "${1:0:${#NIX_PROFILE_DIR}}" != "$NIX_PROFILE_DIR" -a \
             "${1:0:${#EASYBUILD_DIR}}" != "$EASYBUILD_DIR" -a \
             "${1:0:${#EASYBUILD_HOME_DIR}}" != "$EASYBUILD_HOME_DIR" ]; then
+            if [ "${1:0:${#NIX_STORE}}" != "$NIX_STORE" -a -z "$origin_rpath" ]; then
+		# heuristically add ORIGIN locations only if library location unaccounted,
+		# mostly likely in some build directory
+                rpath="$rpath \$ORIGIN \$ORIGIN/../lib \$ORIGIN/../lib64"
+		origin_rpath="added"
+	    fi
             return 0
         fi
         # this never gets explicitly added, only via $NIXUSER_PROFILE/etc/ld.so.conf
@@ -139,7 +145,8 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
         libs="$libs $1"
     }
 
-    rpath='$ORIGIN/../lib $ORIGIN/../lib64'
+    rpath=''
+    origin_rpath=''
 
     # First, find all -L... switches.
     allParams=("${params[@]}" ${extra[@]})
