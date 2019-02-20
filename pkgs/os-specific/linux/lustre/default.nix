@@ -25,6 +25,8 @@ in
     configureFlags = "--disable-modules";
     NIX_CFLAGS_COMPILE = "-Wno-error=deprecated-declarations";
 
+    postInstall = ''rm -rf $out/bin $out/sbin $out/share/man/man[158] $out/etc'';
+
     meta = {
       description = "Lustre file system clients and libraries";
     };
