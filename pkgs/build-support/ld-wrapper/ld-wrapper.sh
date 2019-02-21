@@ -111,7 +111,9 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
         if [ "${1:0:${#NIX_PROFILE_DIR}}" != "$NIX_PROFILE_DIR" -a \
             "${1:0:${#EASYBUILD_DIR}}" != "$EASYBUILD_DIR" -a \
             "${1:0:${#EASYBUILD_HOME_DIR}}" != "$EASYBUILD_HOME_DIR" ]; then
-            if [ "${1:0:${#NIX_STORE}}" != "$NIX_STORE" -a -z "$origin_rpath" ]; then
+            if [ "${1:0:${#NIX_STORE}}" != "$NIX_STORE" -a -z "$origin_rpath" -a \
+		"$RSNT_EASYBUILD_MAGIC_COOKIE" == "263ca73bb634185aab1d1b41627fdbba" ]; then
+		# when inside easybuild only,
 		# heuristically add ORIGIN locations only if library location unaccounted,
 		# mostly likely in some build directory
                 rpath="$rpath \$ORIGIN \$ORIGIN/../lib \$ORIGIN/../lib64"
