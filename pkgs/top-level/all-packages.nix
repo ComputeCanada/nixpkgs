@@ -4509,6 +4509,8 @@ in
 
   gambit = callPackage ../development/compilers/gambit { };
 
+  gcc_symlinks = callPackage ../development/compilers/gcc-symlinks {};
+
   gcc = gcc5;
 
   wrapCCMulti = cc:
