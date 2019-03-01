@@ -1,11 +1,11 @@
 { stdenv, fetchurl, infinipath-psm, opa-psm2, rdma-core, libnl, ucx }:
 
 stdenv.mkDerivation rec {
-  name = "libfabric-1.6.1";
+  name = "libfabric-1.7.0";
 
   src = fetchurl {
-    url = "https://github.com/ofiwg/libfabric/releases/download/v1.6.1/${name}.tar.bz2";
-    sha256 = "33215a91450e2234ebdc7c467f041b6757f76f5ba926425e89d80c27b3fd7da2";
+    url = "https://github.com/ofiwg/libfabric/releases/download/v1.7.0/${name}.tar.bz2";
+    sha256 = "1i5arvpcg7y0qkimzhhn91q0ba9ir2g2gflpk4xqrzinzb09rpdk";
   };
 
   buildInputs = [ infinipath-psm opa-psm2 rdma-core libnl ucx ];
