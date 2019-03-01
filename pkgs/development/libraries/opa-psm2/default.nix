@@ -1,11 +1,11 @@
 { stdenv, fetchurl, libuuid, numactl }:
 
 stdenv.mkDerivation rec {
-  name = "opa-psm2-11.2.23";
+  name = "opa-psm2-11.2.78";
 
   src = fetchurl {
-    url = "https://github.com/01org/opa-psm2/archive/IFS_RELEASE_10_8_0_0_204.tar.gz";
-    sha256 = "19820zjmv99qr9xy7k57zjyk2x353xx76yiq04xa907p9qfsn0dd";
+    url = "https://github.com/01org/opa-psm2/archive/IFS_RELEASE_10_9_0_1_5.tar.gz";
+    sha256 = "1x34da00a00y4xvvcqc55fv69zx2ki897l4pchrvw2a7gzfcxrpi";
   };
 
   configurePhase = "sed -i 's|/usr|/|' Makefile";
