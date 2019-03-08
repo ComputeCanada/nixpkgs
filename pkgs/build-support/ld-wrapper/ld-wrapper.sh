@@ -85,6 +85,7 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
     NIX_STORE=${NIXUSER_PROFILE%/var/nix/profiles/*}/store
     NIX_PROFILE_DIR=${NIXUSER_PROFILE%/*}
     EASYBUILD_DIR=${EASYBUILD_CONFIGFILES%/*}
+    EASYBUILD_RESTRICTED_DIR=${EASYBUILD_DIR/soft/restricted}
     EASYBUILD_HOME_DIR="$HOME/.local/easybuild"
 
     libPath=""
@@ -110,6 +111,7 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
         # to rpath. No /tmp, /dev/shm, etc.
         if [ "${1:0:${#NIX_PROFILE_DIR}}" != "$NIX_PROFILE_DIR" -a \
             "${1:0:${#EASYBUILD_DIR}}" != "$EASYBUILD_DIR" -a \
+            "${1:0:${#EASYBUILD_RESTRICTED_DIR}}" != "$EASYBUILD_RESTRICTED_DIR" -a \
             "${1:0:${#EASYBUILD_HOME_DIR}}" != "$EASYBUILD_HOME_DIR" ]; then
             if [ "${1:0:${#NIX_STORE}}" != "$NIX_STORE" -a -z "$origin_rpath" -a \
 		"$RSNT_EASYBUILD_MAGIC_COOKIE" == "263ca73bb634185aab1d1b41627fdbba" ]; then
@@ -136,10 +138,16 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
         if [ "${1##${NIXUSER_PROFILE%/*}/gcc-}" != "$1" ]; then
             return 0
         fi
+	# check if soft equivalent exists for restricted
+	rpath_to_add=$1
+        if [ "${1:0:${#EASYBUILD_RESTRICTED_DIR}}" == "$EASYBUILD_RESTRICTED_DIR" -a \
+	    -d "$EASYBUILD_DIR${1:${#EASYBUILD_RESTRICTED_DIR}}" ]; then
+	    rpath_to_add="$EASYBUILD_DIR${1:${#EASYBUILD_RESTRICTED_DIR}}"
+        fi
         case $rpath in
-            *\ $1\ *) return 0 ;;
+            *\ $rpath_to_add\ *) return 0 ;;
         esac
-        rpath="$rpath $1 "
+        rpath="$rpath $rpath_to_add "
     }
 
     libs=""
