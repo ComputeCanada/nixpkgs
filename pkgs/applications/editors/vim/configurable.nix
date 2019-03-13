@@ -162,6 +162,7 @@ composableDerivation {
     */
 
   postInstall = stdenv.lib.optionalString stdenv.isLinux ''
+    sed -i -e "s/set mouse=a/\"set mouse=a/g" $out/share/vim/vim74/defaults.vim
     patchelf --set-rpath \
       "$(patchelf --print-rpath $out/bin/vim):${lib.makeLibraryPath buildInputs}" \
       "$out"/bin/{vim,gvim}
