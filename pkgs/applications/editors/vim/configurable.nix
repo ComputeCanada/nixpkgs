@@ -4,7 +4,12 @@ args@{ source ? "default", callPackage, fetchurl, stdenv, ncurses, pkgconfig, ge
 , composableDerivation, writeText, lib, config, glib, gtk2, python, perl, tcl, ruby
 , libX11, libXext, libSM, libXpm, libXt, libXaw, libXau, libXmu
 , libICE
-
+# default vimrc
+, vimrc ? fetchurl {
+    name = "default-vimrc";
+    url = https://projects.archlinux.org/svntogit/packages.git/plain/trunk/archlinux.vim?h=packages/vim?id=68f6d131750aa778807119e03eed70286a17b1cb;
+    sha256 = "18ifhv5q9prd175q3vxbqf6qyvkk6bc7d2lhqdk0q78i68kv9y0c";
+  }
 # apple frameworks
 , CoreServices, CoreData, Cocoa, Foundation, libobjc, cf-private
 
@@ -163,11 +168,13 @@ composableDerivation {
 
   postInstall = stdenv.lib.optionalString stdenv.isLinux ''
     sed -i -e "s/set mouse=a/\"set mouse=a/g" $out/share/vim/vim74/defaults.vim
+    ln -s vim $out/bin/vi
+    mkdir -p $out/share/vim
+    cp "${vimrc}" $out/share/vim/vimrc
     patchelf --set-rpath \
       "$(patchelf --print-rpath $out/bin/vim):${lib.makeLibraryPath buildInputs}" \
       "$out"/bin/{vim,gvim}
 
-    ln -sfn '${nixosRuntimepath}' "$out"/share/vim/vimrc
   '';
 
   dontStrip = 1;
