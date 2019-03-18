@@ -10,7 +10,7 @@ buildGoPackage rec {
     owner = "hashicorp";
     repo = "vault";
     rev = "v${version}";
-    sha256 = "6ece62b75265a963ac70981c529ea82f2383ea4fdef47fdb14953aff22bfff6c";
+    sha256 = "0v7zpwigyflm2kdpzx6y9zm868rgm2g5474qf2n67ab5aavn5kkf";
   };
 
   buildFlagsArray = ''
