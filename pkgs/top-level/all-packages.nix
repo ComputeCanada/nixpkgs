@@ -2490,6 +2490,8 @@ in
   
   lmutil = self.callPackage ../tools/misc/lmutil { };
 
+  vault = self.callPackage ../tools/misc/vault { };
+
   logcheck = callPackage ../tools/system/logcheck {
     inherit (perlPackages) mimeConstruct;
   };
