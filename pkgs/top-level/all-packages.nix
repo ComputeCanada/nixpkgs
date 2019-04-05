@@ -4675,7 +4675,11 @@ in
     # PGO seems to speed up compilation by gcc by ~10%, see #445 discussion
     profiledCompiler = with stdenv; (!isDarwin && (isi686 || isx86_64));
 
-    libcCross = if targetPlatform != buildPlatform then libcCross else null;
+    # When building `gcc.crossDrv' (a "Canadian cross", with host == target
+    # and host != build), `cross' must be null but the cross-libc must still
+    # be passed.
+    cross = null;
+    libcCross = if crossSystem != null then libcCross else null;
 
     isl = if !stdenv.isDarwin then isl_0_17 else null;
   }));
