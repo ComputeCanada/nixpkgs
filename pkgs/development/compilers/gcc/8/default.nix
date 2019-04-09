@@ -66,7 +66,10 @@ let version = "8.3.0";
     enableParallelBuilding = true;
 
     patches =
-      optional (cross != null) ../libstdc++-target.patch
+      [ ./gcc-stable-branch.patch ]
+      ++ [ ./hj.patch ]
+      ++ [ ./hj-patch-round.patch ]
+      ++ optional (cross != null) ../libstdc++-target.patch
       ++ optional noSysDirs ../no-sys-dirs.patch
       # The GNAT Makefiles did not pay attention to CFLAGS_FOR_TARGET for its
       # target libraries and tools.
