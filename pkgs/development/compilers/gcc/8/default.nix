@@ -370,6 +370,8 @@ stdenv.mkDerivation ({
     ${if cross == null then platformFlags else ""}
   ";
 
+  configureFlagsArray = ( "--with-pkgversion=20190410 gcc-8-branch revision 270244" );
+
   targetConfig = if cross != null then cross.config else null;
 
   buildFlags = if bootstrap then
