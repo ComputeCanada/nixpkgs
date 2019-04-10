@@ -1,7 +1,7 @@
 Index: libstdc++-v3/include/bits/char_traits.h
 ===================================================================
---- a/src/libstdc++-v3/include/bits/char_traits.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/libstdc++-v3/include/bits/char_traits.h	(.../branches/gcc-8-branch)
+--- a/libstdc++-v3/include/bits/char_traits.h	(.../tags/gcc_8_3_0_release)
++++ b/libstdc++-v3/include/bits/char_traits.h	(.../branches/gcc-8-branch)
 @@ -248,7 +248,7 @@
      __constant_char_array_p(const _CharT* __a, size_t __n)
      {
@@ -13,8 +13,8 @@ Index: libstdc++-v3/include/bits/char_traits.h
      }
 Index: libstdc++-v3/ChangeLog
 ===================================================================
---- a/src/libstdc++-v3/ChangeLog	(.../tags/gcc_8_3_0_release)
-+++ b/src/libstdc++-v3/ChangeLog	(.../branches/gcc-8-branch)
+--- a/libstdc++-v3/ChangeLog	(.../tags/gcc_8_3_0_release)
++++ b/libstdc++-v3/ChangeLog	(.../branches/gcc-8-branch)
 @@ -1,3 +1,11 @@
 +2019-02-22  Jonathan Wakely  <jwakely@redhat.com>
 +
@@ -29,8 +29,8 @@ Index: libstdc++-v3/ChangeLog
  	* GCC 8.3.0 released.
 Index: libstdc++-v3/testsuite/21_strings/basic_string_view/operators/char/89446.cc
 ===================================================================
---- a/src/libstdc++-v3/testsuite/21_strings/basic_string_view/operators/char/89446.cc	(.../tags/gcc_8_3_0_release)
-+++ b/src/libstdc++-v3/testsuite/21_strings/basic_string_view/operators/char/89446.cc	(.../branches/gcc-8-branch)
+--- a/libstdc++-v3/testsuite/21_strings/basic_string_view/operators/char/89446.cc	(.../tags/gcc_8_3_0_release)
++++ b/libstdc++-v3/testsuite/21_strings/basic_string_view/operators/char/89446.cc	(.../branches/gcc-8-branch)
 @@ -0,0 +1,28 @@
 +// Copyright (C) 2019 Free Software Foundation, Inc.
 +//
@@ -62,8 +62,8 @@ Index: libstdc++-v3/testsuite/21_strings/basic_string_view/operators/char/89446.
 +}
 Index: include/ChangeLog
 ===================================================================
---- a/src/include/ChangeLog	(.../tags/gcc_8_3_0_release)
-+++ b/src/include/ChangeLog	(.../branches/gcc-8-branch)
+--- a/include/ChangeLog	(.../tags/gcc_8_3_0_release)
++++ b/include/ChangeLog	(.../branches/gcc-8-branch)
 @@ -1,3 +1,11 @@
 +2019-04-08  Claudiu Zissulescu  <claziss@synopsys.com>
 +
@@ -78,8 +78,8 @@ Index: include/ChangeLog
  	* GCC 8.3.0 released.
 Index: include/longlong.h
 ===================================================================
---- a/src/include/longlong.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/include/longlong.h	(.../branches/gcc-8-branch)
+--- a/include/longlong.h	(.../tags/gcc_8_3_0_release)
++++ b/include/longlong.h	(.../branches/gcc-8-branch)
 @@ -199,7 +199,8 @@
  	   : "%r" ((USItype) (ah)),					\
  	     "rICal" ((USItype) (bh)),					\
@@ -102,8 +102,8 @@ Index: include/longlong.h
  #ifdef __ARC_NORM__
 Index: libatomic/ChangeLog
 ===================================================================
---- a/src/libatomic/ChangeLog	(.../tags/gcc_8_3_0_release)
-+++ b/src/libatomic/ChangeLog	(.../branches/gcc-8-branch)
+--- a/libatomic/ChangeLog	(.../tags/gcc_8_3_0_release)
++++ b/libatomic/ChangeLog	(.../branches/gcc-8-branch)
 @@ -1,3 +1,18 @@
 +2019-03-20  Florian Weimer  <fweimer@redhat.com>
 +
@@ -125,8 +125,8 @@ Index: libatomic/ChangeLog
  	* GCC 8.3.0 released.
 Index: libatomic/config/x86/init.c
 ===================================================================
---- a/src/libatomic/config/x86/init.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/libatomic/config/x86/init.c	(.../branches/gcc-8-branch)
+--- a/libatomic/config/x86/init.c	(.../tags/gcc_8_3_0_release)
++++ b/libatomic/config/x86/init.c	(.../branches/gcc-8-branch)
 @@ -26,13 +26,17 @@
  
  #if HAVE_IFUNC
@@ -152,8 +152,8 @@ Index: libatomic/config/x86/init.c
  #endif /* HAVE_IFUNC */
 Index: libatomic/config/x86/host-config.h
 ===================================================================
---- a/src/libatomic/config/x86/host-config.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/libatomic/config/x86/host-config.h	(.../branches/gcc-8-branch)
+--- a/libatomic/config/x86/host-config.h	(.../tags/gcc_8_3_0_release)
++++ b/libatomic/config/x86/host-config.h	(.../branches/gcc-8-branch)
 @@ -25,13 +25,39 @@
  #if HAVE_IFUNC
  #include <cpuid.h>
@@ -200,8 +200,8 @@ Index: libatomic/config/x86/host-config.h
  #ifdef __x86_64__
 Index: gcc/c-family/ChangeLog
 ===================================================================
---- a/src/gcc/c-family/ChangeLog	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/c-family/ChangeLog	(.../branches/gcc-8-branch)
+--- a/gcc/c-family/ChangeLog	(.../tags/gcc_8_3_0_release)
++++ b/gcc/c-family/ChangeLog	(.../branches/gcc-8-branch)
 @@ -1,3 +1,8 @@
 +2019-04-09  Eric Botcazou  <ebotcazou@adacore.com>
 +
@@ -213,8 +213,8 @@ Index: gcc/c-family/ChangeLog
  	* GCC 8.3.0 released.
 Index: gcc/c-family/c-ada-spec.c
 ===================================================================
---- a/src/gcc/c-family/c-ada-spec.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/c-family/c-ada-spec.c	(.../branches/gcc-8-branch)
+--- a/gcc/c-family/c-ada-spec.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/c-family/c-ada-spec.c	(.../branches/gcc-8-branch)
 @@ -2686,6 +2686,8 @@
    tree decl_name = DECL_NAME (TYPE_NAME (type));
  
@@ -239,8 +239,8 @@ Index: gcc/c-family/c-ada-spec.c
  
 Index: gcc/cgraph.c
 ===================================================================
---- a/src/gcc/cgraph.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/cgraph.c	(.../branches/gcc-8-branch)
+--- a/gcc/cgraph.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/cgraph.c	(.../branches/gcc-8-branch)
 @@ -3007,8 +3007,10 @@
    return redirect_callers;
  }
@@ -283,8 +283,8 @@ Index: gcc/cgraph.c
  }
 Index: gcc/cgraph.h
 ===================================================================
---- a/src/gcc/cgraph.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/cgraph.h	(.../branches/gcc-8-branch)
+--- a/gcc/cgraph.h	(.../tags/gcc_8_3_0_release)
++++ b/gcc/cgraph.h	(.../branches/gcc-8-branch)
 @@ -1258,6 +1258,9 @@
       Note that at WPA stage, the function body may not be present in memory.  */
    inline bool has_gimple_body_p (void);
@@ -314,15 +314,15 @@ Index: gcc/cgraph.h
     for ((node) = symtab->first_function_with_gimple_body (); (node); \
 Index: gcc/DATESTAMP
 ===================================================================
---- a/src/gcc/DATESTAMP	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/DATESTAMP	(.../branches/gcc-8-branch)
+--- a/gcc/DATESTAMP	(.../tags/gcc_8_3_0_release)
++++ b/gcc/DATESTAMP	(.../branches/gcc-8-branch)
 @@ -1 +1 @@
 -20190222
 +20190410
 Index: gcc/tree-ssa-loop-ch.c
 ===================================================================
---- a/src/gcc/tree-ssa-loop-ch.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/tree-ssa-loop-ch.c	(.../branches/gcc-8-branch)
+--- a/gcc/tree-ssa-loop-ch.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/tree-ssa-loop-ch.c	(.../branches/gcc-8-branch)
 @@ -376,11 +376,23 @@
  		{
  		  gimple *stmt = gsi_stmt (bsi);
@@ -351,8 +351,8 @@ Index: gcc/tree-ssa-loop-ch.c
  		}
 Index: gcc/ipa-cp.c
 ===================================================================
---- a/src/gcc/ipa-cp.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/ipa-cp.c	(.../branches/gcc-8-branch)
+--- a/gcc/ipa-cp.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/ipa-cp.c	(.../branches/gcc-8-branch)
 @@ -2852,12 +2852,19 @@
    base_time -= time;
    if (base_time > 65535)
@@ -380,8 +380,8 @@ Index: gcc/ipa-cp.c
       contexts some functions do not have any size at all but we want
 Index: gcc/tree-scalar-evolution.c
 ===================================================================
---- a/src/gcc/tree-scalar-evolution.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/tree-scalar-evolution.c	(.../branches/gcc-8-branch)
+--- a/gcc/tree-scalar-evolution.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/tree-scalar-evolution.c	(.../branches/gcc-8-branch)
 @@ -875,7 +875,7 @@
        gimple *stmt;
  
@@ -405,8 +405,8 @@ Index: gcc/tree-scalar-evolution.c
    tree_to_aff_combination_expand (step_val, type, &aff2, &peeled_chrec_map);
 Index: gcc/rtlanal.c
 ===================================================================
---- a/src/gcc/rtlanal.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/rtlanal.c	(.../branches/gcc-8-branch)
+--- a/gcc/rtlanal.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/rtlanal.c	(.../branches/gcc-8-branch)
 @@ -358,10 +358,10 @@
    if (to == from)
      return 0;
@@ -424,8 +424,8 @@ Index: gcc/rtlanal.c
  #if !STACK_GROWS_DOWNWARD
 Index: gcc/input.c
 ===================================================================
---- a/src/gcc/input.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/input.c	(.../branches/gcc-8-branch)
+--- a/gcc/input.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/input.c	(.../branches/gcc-8-branch)
 @@ -3538,6 +3538,34 @@
    ASSERT_EQ (num_cases_tested, 2 * 12);
  }
@@ -472,8 +472,8 @@ Index: gcc/input.c
  } // namespace selftest
 Index: gcc/fold-const.c
 ===================================================================
---- a/src/gcc/fold-const.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fold-const.c	(.../branches/gcc-8-branch)
+--- a/gcc/fold-const.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fold-const.c	(.../branches/gcc-8-branch)
 @@ -5515,12 +5515,15 @@
    /* On machines where the branch cost is expensive, if this is a
       short-circuited branch and the underlying object on both sides
@@ -511,9 +511,9 @@ Index: gcc/fold-const.c
            || code == TRUTH_ANDIF_EXPR
 Index: gcc/ChangeLog
 ===================================================================
---- a/src/gcc/ChangeLog	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/ChangeLog	(.../branches/gcc-8-branch)
-@@ -1,3 +1,449 @@
+--- a/gcc/ChangeLog	(.../tags/gcc_8_3_0_release)
++++ b/gcc/ChangeLog	(.../branches/gcc-8-branch)
+@@ -1,3 +1,445 @@
 +2019-04-07  Uroš Bizjak  <ubizjak@gmail.com>
 +
 +	PR target/89945
@@ -970,8 +970,8 @@ Index: gcc/ChangeLog
  	backedges.
 Index: gcc/testsuite/gcc.target/powerpc/ppc-fortran/ppc-fortran.exp
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/powerpc/ppc-fortran/ppc-fortran.exp	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/powerpc/ppc-fortran/ppc-fortran.exp	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/powerpc/ppc-fortran/ppc-fortran.exp	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/powerpc/ppc-fortran/ppc-fortran.exp	(.../branches/gcc-8-branch)
 @@ -36,7 +36,7 @@
      global gfortran_test_path
      global gfortran_aux_module_flags
@@ -983,8 +983,8 @@ Index: gcc/testsuite/gcc.target/powerpc/ppc-fortran/ppc-fortran.exp
  
 Index: gcc/testsuite/gcc.target/powerpc/crypto-builtin-1.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/powerpc/crypto-builtin-1.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/powerpc/crypto-builtin-1.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/powerpc/crypto-builtin-1.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/powerpc/crypto-builtin-1.c	(.../branches/gcc-8-branch)
 @@ -4,6 +4,7 @@
  /* { dg-skip-if "do not override -mcpu" { powerpc*-*-* } { "-mcpu=*" } { "-mcpu=power8" } } */
  /* { dg-options "-mcpu=power8 -O2 -ftree-vectorize -fvect-cost-model=dynamic -fno-unroll-loops -fno-unroll-all-loops" } */
@@ -1074,8 +1074,8 @@ Index: gcc/testsuite/gcc.target/powerpc/crypto-builtin-1.c
  /* { dg-final { scan-assembler-times "vshasigmaw "   2 } } */
 Index: gcc/testsuite/gcc.target/powerpc/mmx-psubd-2.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/powerpc/mmx-psubd-2.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/powerpc/mmx-psubd-2.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/powerpc/mmx-psubd-2.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/powerpc/mmx-psubd-2.c	(.../branches/gcc-8-branch)
 @@ -23,20 +23,28 @@
    return _mm_sub_pi32 (s1, s2);
  }
@@ -1110,8 +1110,8 @@ Index: gcc/testsuite/gcc.target/powerpc/mmx-psubd-2.c
  }
 Index: gcc/testsuite/gcc.target/powerpc/pr88100.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/powerpc/pr88100.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/powerpc/pr88100.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/powerpc/pr88100.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/powerpc/pr88100.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,44 @@
 +/* PR88100.  Verify that rs6000 gimple-folding code handles the
 +   vec_splat_{su}{8,16,32} invalid data properly. */
@@ -1159,8 +1159,8 @@ Index: gcc/testsuite/gcc.target/powerpc/pr88100.c
 +}
 Index: gcc/testsuite/gcc.target/arm/f16_f64_conv_no_dp.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/arm/f16_f64_conv_no_dp.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/arm/f16_f64_conv_no_dp.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/arm/f16_f64_conv_no_dp.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/arm/f16_f64_conv_no_dp.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,16 @@
 +/* { dg-do compile } */
 +/* { dg-require-effective-target arm_fp16_ok } */
@@ -1180,8 +1180,8 @@ Index: gcc/testsuite/gcc.target/arm/f16_f64_conv_no_dp.c
 +}
 Index: gcc/testsuite/gcc.target/s390/pr89775-1.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/s390/pr89775-1.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/s390/pr89775-1.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/s390/pr89775-1.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/s390/pr89775-1.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,17 @@
 +/* PR target/89775 */
 +/* { dg-do run } */
@@ -1202,8 +1202,8 @@ Index: gcc/testsuite/gcc.target/s390/pr89775-1.c
 +}
 Index: gcc/testsuite/gcc.target/s390/pr89775-2.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/s390/pr89775-2.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/s390/pr89775-2.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/s390/pr89775-2.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/s390/pr89775-2.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,25 @@
 +/* PR target/89775 */
 +/* { dg-do compile } */
@@ -1232,8 +1232,8 @@ Index: gcc/testsuite/gcc.target/s390/pr89775-2.c
 +}
 Index: gcc/testsuite/gcc.target/s390/zvector/vec-addc-u128.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/s390/zvector/vec-addc-u128.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/s390/zvector/vec-addc-u128.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/s390/zvector/vec-addc-u128.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/s390/zvector/vec-addc-u128.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,10 @@
 +/* { dg-do compile { target { s390*-*-* } } } */
 +/* { dg-options "-O3 -mzarch -march=z13 -mzvector -fno-asynchronous-unwind-tables" } */
@@ -1247,8 +1247,8 @@ Index: gcc/testsuite/gcc.target/s390/zvector/vec-addc-u128.c
 +}
 Index: gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-1.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-1.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-1.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-1.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-1.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,45 @@
 +/* { dg-do compile { target { s390*-*-* } } } */
 +/* { dg-options "-O3 -mzarch -march=z14 -mzvector" } */
@@ -1297,8 +1297,8 @@ Index: gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-1.c
 +/* { dg-final { scan-assembler-not "vst.*,3" } } */
 Index: gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-2.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-2.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-2.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-2.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-2.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,48 @@
 +/* { dg-do compile { target { s390*-*-* } } } */
 +/* { dg-options "-O3 -mzarch -march=z14 -mzvector" } */
@@ -1350,8 +1350,8 @@ Index: gcc/testsuite/gcc.target/s390/zvector/xl-xst-align-2.c
 +/* { dg-final { scan-assembler-times "vst\t%v\[0-9\]*,0\\(%r2\\),3" 2 } } */
 Index: gcc/testsuite/gcc.target/aarch64/options_set_9.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/aarch64/options_set_9.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/aarch64/options_set_9.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/aarch64/options_set_9.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/aarch64/options_set_9.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,14 @@
 +/* { dg-do compile } */
 +/* { dg-additional-options "-march=armv8-a+simd+fp" } */
@@ -1369,8 +1369,8 @@ Index: gcc/testsuite/gcc.target/aarch64/options_set_9.c
 +    and turning on sha2 and eas should turn on crypto!.  */
 Index: gcc/testsuite/gcc.target/aarch64/options_set_1.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/aarch64/options_set_1.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/aarch64/options_set_1.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/aarch64/options_set_1.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/aarch64/options_set_1.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +/* { dg-do compile } */
 +/* { dg-additional-options "-march=armv8.2-a" } */
@@ -1385,8 +1385,8 @@ Index: gcc/testsuite/gcc.target/aarch64/options_set_1.c
 +/* Check to see if crc is output by default.  */
 Index: gcc/testsuite/gcc.target/aarch64/options_set_2.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/aarch64/options_set_2.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/aarch64/options_set_2.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/aarch64/options_set_2.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/aarch64/options_set_2.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +/* { dg-do compile } */
 +/* { dg-additional-options "-march=armv8.2-a+crypto" } */
@@ -1401,8 +1401,8 @@ Index: gcc/testsuite/gcc.target/aarch64/options_set_2.c
 +/* Check to see if crc and crypto are maintained if crypto specified.  */
 Index: gcc/testsuite/gcc.target/aarch64/options_set_3.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/aarch64/options_set_3.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/aarch64/options_set_3.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/aarch64/options_set_3.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/aarch64/options_set_3.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +/* { dg-do compile } */
 +/* { dg-additional-options "-march=armv8.2-a+aes+sha2+crypto" } */
@@ -1417,8 +1417,8 @@ Index: gcc/testsuite/gcc.target/aarch64/options_set_3.c
 +/* Check if smallest set is maintained when outputting. */
 Index: gcc/testsuite/gcc.target/aarch64/options_set_4.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/aarch64/options_set_4.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/aarch64/options_set_4.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/aarch64/options_set_4.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/aarch64/options_set_4.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,12 @@
 +/* { dg-do compile } */
 +/* { dg-additional-options "-march=armv8.2-a+aes+sha2" } */
@@ -1435,8 +1435,8 @@ Index: gcc/testsuite/gcc.target/aarch64/options_set_4.c
 \ No newline at end of file
 Index: gcc/testsuite/gcc.target/aarch64/options_set_5.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/aarch64/options_set_5.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/aarch64/options_set_5.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/aarch64/options_set_5.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/aarch64/options_set_5.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,12 @@
 +/* { dg-do compile } */
 +/* { dg-additional-options "-march=armv8.2-a+aes+sha2+nosha2" } */
@@ -1452,8 +1452,8 @@ Index: gcc/testsuite/gcc.target/aarch64/options_set_5.c
 +   longer valid.   */
 Index: gcc/testsuite/gcc.target/aarch64/options_set_10.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/aarch64/options_set_10.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/aarch64/options_set_10.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/aarch64/options_set_10.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/aarch64/options_set_10.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +/* { dg-do compile { target { { aarch64*-*-linux*} && native } } } */
 +/* { dg-additional-options "-mcpu=native" } */
@@ -1468,8 +1468,8 @@ Index: gcc/testsuite/gcc.target/aarch64/options_set_10.c
 + /* Check that an empty feature string is not detected during mcpu=native.  */
 Index: gcc/testsuite/gcc.target/aarch64/options_set_6.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/aarch64/options_set_6.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/aarch64/options_set_6.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/aarch64/options_set_6.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/aarch64/options_set_6.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,12 @@
 +/* { dg-do compile } */
 +/* { dg-additional-options "-march=armv8.2-a+crypto+nosha2" } */
@@ -1485,8 +1485,8 @@ Index: gcc/testsuite/gcc.target/aarch64/options_set_6.c
 +   just turning off one feature can't turn it off.   */
 Index: gcc/testsuite/gcc.target/aarch64/options_set_7.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/aarch64/options_set_7.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/aarch64/options_set_7.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/aarch64/options_set_7.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/aarch64/options_set_7.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +/* { dg-do compile } */
 +/* { dg-additional-options "-march=armv8.4-a+dotprod" } */
@@ -1501,8 +1501,8 @@ Index: gcc/testsuite/gcc.target/aarch64/options_set_7.c
 +/* Checking if enabling default features drops the superfluous bits.   */
 Index: gcc/testsuite/gcc.target/aarch64/options_set_8.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/aarch64/options_set_8.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/aarch64/options_set_8.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/aarch64/options_set_8.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/aarch64/options_set_8.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,12 @@
 +/* { dg-do compile } */
 +/* { dg-additional-options "-march=armv8.4-a+nodotprod" } */
@@ -1518,8 +1518,8 @@ Index: gcc/testsuite/gcc.target/aarch64/options_set_8.c
 +   option.  */
 Index: gcc/testsuite/gcc.target/i386/pr70799-5.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr70799-5.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr70799-5.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr70799-5.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr70799-5.c	(.../branches/gcc-8-branch)
 @@ -1,17 +0,0 @@
 -/* PR target/pr70799 */
 -/* { dg-do compile { target ia32 } } */
@@ -1540,8 +1540,8 @@ Index: gcc/testsuite/gcc.target/i386/pr70799-5.c
 -}
 Index: gcc/testsuite/gcc.target/i386/pr70799-4.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr70799-4.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr70799-4.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr70799-4.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr70799-4.c	(.../branches/gcc-8-branch)
 @@ -1,17 +0,0 @@
 -/* PR target/pr70799 */
 -/* { dg-do compile { target ia32 } } */
@@ -1562,8 +1562,8 @@ Index: gcc/testsuite/gcc.target/i386/pr70799-4.c
 -}
 Index: gcc/testsuite/gcc.target/i386/pr89523-4.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89523-4.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89523-4.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89523-4.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89523-4.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,36 @@
 +/* { dg-do compile { target { ! ia32 } } } */
 +/* { dg-require-effective-target maybe_x32 } */
@@ -1603,8 +1603,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89523-4.c
 +}
 Index: gcc/testsuite/gcc.target/i386/pr89523-5.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89523-5.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89523-5.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89523-5.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89523-5.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,39 @@
 +/* { dg-do compile { target { ! ia32 } } } */
 +/* { dg-require-effective-target maybe_x32 } */
@@ -1647,8 +1647,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89523-5.c
 +}
 Index: gcc/testsuite/gcc.target/i386/pr89848.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89848.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89848.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89848.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89848.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +/* PR target/89848 */
 +/* { dg-do compile { target ia32 } } */
@@ -1663,8 +1663,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89848.c
 +}
 Index: gcc/testsuite/gcc.target/i386/pr89523-6.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89523-6.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89523-6.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89523-6.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89523-6.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,38 @@
 +/* { dg-do compile { target { ! ia32 } } } */
 +/* { dg-require-effective-target maybe_x32 } */
@@ -1706,8 +1706,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89523-6.c
 +}
 Index: gcc/testsuite/gcc.target/i386/pr89827.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89827.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89827.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89827.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89827.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +/* PR target/89827 */
 +/* { dg-do compile { target ia32 } } */
@@ -1722,8 +1722,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89827.c
 +}
 Index: gcc/testsuite/gcc.target/i386/indirect-thunk-extern-7.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/indirect-thunk-extern-7.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/indirect-thunk-extern-7.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/indirect-thunk-extern-7.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/indirect-thunk-extern-7.c	(.../branches/gcc-8-branch)
 @@ -1,5 +1,5 @@
  /* { dg-do compile } */
 -/* { dg-options "-O2 -mno-indirect-branch-register -mfunction-return=keep -mindirect-branch=thunk-extern -fno-pic" } */
@@ -1733,8 +1733,8 @@ Index: gcc/testsuite/gcc.target/i386/indirect-thunk-extern-7.c
  void func1 (void);
 Index: gcc/testsuite/gcc.target/i386/pr89523-7.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89523-7.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89523-7.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89523-7.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89523-7.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,42 @@
 +/* { dg-do compile { target { ! ia32 } } } */
 +/* { dg-require-effective-target maybe_x32 } */
@@ -1780,8 +1780,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89523-7.c
 +}
 Index: gcc/testsuite/gcc.target/i386/pr89523-8.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89523-8.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89523-8.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89523-8.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89523-8.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,41 @@
 +/* { dg-do compile { target { ! ia32 } } } */
 +/* { dg-require-effective-target maybe_x32 } */
@@ -1826,8 +1826,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89523-8.c
 +}
 Index: gcc/testsuite/gcc.target/i386/indirect-thunk-inline-7.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/indirect-thunk-inline-7.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/indirect-thunk-inline-7.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/indirect-thunk-inline-7.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/indirect-thunk-inline-7.c	(.../branches/gcc-8-branch)
 @@ -1,5 +1,5 @@
  /* { dg-do compile } */
 -/* { dg-options "-O2 -mno-indirect-branch-register -mfunction-return=keep -mindirect-branch=thunk-inline -fno-pic" } */
@@ -1837,8 +1837,8 @@ Index: gcc/testsuite/gcc.target/i386/indirect-thunk-inline-7.c
  void func1 (void);
 Index: gcc/testsuite/gcc.target/i386/pr89523-1a.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89523-1a.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89523-1a.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89523-1a.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89523-1a.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,24 @@
 +/* { dg-do compile { target { ! ia32 } } } */
 +/* { dg-require-effective-target maybe_x32 } */
@@ -1866,8 +1866,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89523-1a.c
 +}
 Index: gcc/testsuite/gcc.target/i386/pr89945.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89945.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89945.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89945.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89945.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,21 @@
 +/* PR target/89945 */
 +/* { dg-do compile } */
@@ -1892,8 +1892,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89945.c
 +}
 Index: gcc/testsuite/gcc.target/i386/pr89902.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89902.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89902.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89902.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89902.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,13 @@
 +/* PR target/89902 */
 +/* { dg-do compile { target ia32 } } */
@@ -1910,8 +1910,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89902.c
 +}
 Index: gcc/testsuite/gcc.target/i386/pr89523-9.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89523-9.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89523-9.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89523-9.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89523-9.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,30 @@
 +/* { dg-do compile { target { ! ia32 } } } */
 +/* { dg-require-effective-target maybe_x32 } */
@@ -1945,8 +1945,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89523-9.c
 +}
 Index: gcc/testsuite/gcc.target/i386/pr89523-1b.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89523-1b.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89523-1b.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89523-1b.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89523-1b.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,7 @@
 +/* { dg-do compile { target { ! ia32 } } } */
 +/* { dg-require-effective-target maybe_x32 } */
@@ -1957,8 +1957,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89523-1b.c
 +#include "pr89523-1a.c"
 Index: gcc/testsuite/gcc.target/i386/pr89523-2.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89523-2.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89523-2.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89523-2.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89523-2.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,37 @@
 +/* { dg-do compile { target { ! ia32 } } } */
 +/* { dg-require-effective-target maybe_x32 } */
@@ -1999,8 +1999,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89523-2.c
 +}
 Index: gcc/testsuite/gcc.target/i386/pr89903.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89903.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89903.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89903.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89903.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,14 @@
 +/* PR target/89903 */
 +/* { dg-do compile { target ia32 } } */
@@ -2018,8 +2018,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89903.c
 +}
 Index: gcc/testsuite/gcc.target/i386/indirect-thunk-7.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/indirect-thunk-7.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/indirect-thunk-7.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/indirect-thunk-7.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/indirect-thunk-7.c	(.../branches/gcc-8-branch)
 @@ -1,5 +1,5 @@
  /* { dg-do compile } */
 -/* { dg-options "-O2 -mno-indirect-branch-register -mfunction-return=keep -mindirect-branch=thunk -fno-pic" } */
@@ -2029,8 +2029,8 @@ Index: gcc/testsuite/gcc.target/i386/indirect-thunk-7.c
  void func1 (void);
 Index: gcc/testsuite/gcc.target/i386/pr85860.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr85860.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr85860.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr85860.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr85860.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,23 @@
 +/* { dg-do compile { target lp64 } } */
 +/* { dg-options "-O2 -fno-guess-branch-probability -flive-range-shrinkage -mbmi2" } */
@@ -2057,8 +2057,8 @@ Index: gcc/testsuite/gcc.target/i386/pr85860.c
 +}
 Index: gcc/testsuite/gcc.target/i386/pr89523-3.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.target/i386/pr89523-3.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.target/i386/pr89523-3.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.target/i386/pr89523-3.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.target/i386/pr89523-3.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,36 @@
 +/* { dg-do compile { target { ! ia32 } } } */
 +/* { dg-require-effective-target maybe_x32 } */
@@ -2098,8 +2098,8 @@ Index: gcc/testsuite/gcc.target/i386/pr89523-3.c
 +}
 Index: gcc/testsuite/gfortran.dg/transfer_simplify_12.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/transfer_simplify_12.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/transfer_simplify_12.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/transfer_simplify_12.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/transfer_simplify_12.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,27 @@
 +! { dg-do run }
 +! { dg-options "-O -std=legacy" }
@@ -2130,8 +2130,8 @@ Index: gcc/testsuite/gfortran.dg/transfer_simplify_12.f90
 +end program test
 Index: gcc/testsuite/gfortran.dg/substr_8.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/substr_8.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/substr_8.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/substr_8.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/substr_8.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,15 @@
 +! { dg-do run }
 +! PR fortran/71203 - used to ICE on zero-length arrays or substrings
@@ -2150,8 +2150,8 @@ Index: gcc/testsuite/gfortran.dg/substr_8.f90
 +end
 Index: gcc/testsuite/gfortran.dg/allocate_with_mold_3.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/allocate_with_mold_3.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/allocate_with_mold_3.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/allocate_with_mold_3.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/allocate_with_mold_3.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,21 @@
 +! { dg-do  run }
 +! PR fortran/89174 - this used to segfault on execution.
@@ -2176,8 +2176,8 @@ Index: gcc/testsuite/gfortran.dg/allocate_with_mold_3.f90
 +end
 Index: gcc/testsuite/gfortran.dg/c_ptr_tests_19.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/c_ptr_tests_19.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/c_ptr_tests_19.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/c_ptr_tests_19.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/c_ptr_tests_19.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,36 @@
 +! { dg-do run }
 +
@@ -2217,8 +2217,8 @@ Index: gcc/testsuite/gfortran.dg/c_ptr_tests_19.f90
 +end program init_fails
 Index: gcc/testsuite/gfortran.dg/public_private_module_10.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/public_private_module_10.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/public_private_module_10.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/public_private_module_10.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/public_private_module_10.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,18 @@
 +! { dg-do compile }
 +! PR 87734 - this used to issue spurious errors.
@@ -2240,8 +2240,8 @@ Index: gcc/testsuite/gfortran.dg/public_private_module_10.f90
 +end module
 Index: gcc/testsuite/gfortran.dg/dependency_53.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/dependency_53.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/dependency_53.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/dependency_53.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/dependency_53.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,25 @@
 +! { dg-do run }
 +! PR fortran/66089 - used to ICE and, after that ICE was fixed,
@@ -2270,8 +2270,8 @@ Index: gcc/testsuite/gfortran.dg/dependency_53.f90
 +end
 Index: gcc/testsuite/gfortran.dg/binding_label_tests_30.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/binding_label_tests_30.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/binding_label_tests_30.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/binding_label_tests_30.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/binding_label_tests_30.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,7 @@
 +! { dg-do compile }
 +! Make sure this error is flagged.
@@ -2282,8 +2282,8 @@ Index: gcc/testsuite/gfortran.dg/binding_label_tests_30.f90
 +end subroutine bar
 Index: gcc/testsuite/gfortran.dg/whole_file_3.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/whole_file_3.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/whole_file_3.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/whole_file_3.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/whole_file_3.f90	(.../branches/gcc-8-branch)
 @@ -14,8 +14,8 @@
  
        program test
@@ -2297,8 +2297,8 @@ Index: gcc/testsuite/gfortran.dg/whole_file_3.f90
        END program test
 Index: gcc/testsuite/gfortran.dg/pr85797.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/pr85797.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/pr85797.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/pr85797.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/pr85797.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,33 @@
 +! { dg-do compile }
 +! { dg-options "-Wall" }
@@ -2335,8 +2335,8 @@ Index: gcc/testsuite/gfortran.dg/pr85797.f90
 +end
 Index: gcc/testsuite/gfortran.dg/dtio_34.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/dtio_34.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/dtio_34.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/dtio_34.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/dtio_34.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,32 @@
 +! { dg-do run }
 +! PR84387 Defined output does not work for a derived type that
@@ -2372,8 +2372,8 @@ Index: gcc/testsuite/gfortran.dg/dtio_34.f90
 +end program
 Index: gcc/testsuite/gfortran.dg/coarray_data_1.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/coarray_data_1.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/coarray_data_1.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/coarray_data_1.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/coarray_data_1.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +! { dg-do  run }
 +! { dg-options "-fcoarray=lib -lcaf_single " }
@@ -2388,8 +2388,8 @@ Index: gcc/testsuite/gfortran.dg/coarray_data_1.f90
 +end
 Index: gcc/testsuite/gfortran.dg/transfer_check_5.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/transfer_check_5.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/transfer_check_5.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/transfer_check_5.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/transfer_check_5.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,14 @@
 +! { dg-do compile }
 +! { dg-options "-Wsurprising" }
@@ -2407,8 +2407,8 @@ Index: gcc/testsuite/gfortran.dg/transfer_check_5.f90
 +end program test
 Index: gcc/testsuite/gfortran.dg/pr89492.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/pr89492.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/pr89492.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/pr89492.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/pr89492.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,27 @@
 +! { dg-do compile }
 +!
@@ -2439,8 +2439,8 @@ Index: gcc/testsuite/gfortran.dg/pr89492.f90
 +end program bug4a
 Index: gcc/testsuite/gfortran.dg/coarray_allocate_11.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/coarray_allocate_11.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/coarray_allocate_11.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/coarray_allocate_11.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/coarray_allocate_11.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,15 @@
 +! { dg-do compile }
 +! { dg-additional-options -fcoarray=single }
@@ -2459,8 +2459,8 @@ Index: gcc/testsuite/gfortran.dg/coarray_allocate_11.f90
 +end
 Index: gcc/testsuite/gfortran.dg/pointer_intent_8.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/pointer_intent_8.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/pointer_intent_8.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/pointer_intent_8.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/pointer_intent_8.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,22 @@
 +! { dg-do run }
 +! PR 85797 - this used to get wrong results.
@@ -2486,8 +2486,8 @@ Index: gcc/testsuite/gfortran.dg/pointer_intent_8.f90
 +END
 Index: gcc/testsuite/gfortran.dg/ieee/ieee.exp
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/ieee/ieee.exp	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/ieee/ieee.exp	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/ieee/ieee.exp	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/ieee/ieee.exp	(.../branches/gcc-8-branch)
 @@ -22,15 +22,15 @@
  load_lib gfortran-dg.exp
  load_lib target-supports.exp
@@ -2511,8 +2511,8 @@ Index: gcc/testsuite/gfortran.dg/ieee/ieee.exp
     set specpath [get_multilibs ${TOOL_OPTIONS}]
 Index: gcc/testsuite/gfortran.dg/binding_label_tests_33.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/binding_label_tests_33.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/binding_label_tests_33.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/binding_label_tests_33.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/binding_label_tests_33.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,39 @@
 +! { dg-do run }
 +! PR 79485 - used to crash because the wrong routine was called.
@@ -2555,8 +2555,8 @@ Index: gcc/testsuite/gfortran.dg/binding_label_tests_33.f90
 +end
 Index: gcc/testsuite/gfortran.dg/charlen_17.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/charlen_17.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/charlen_17.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/charlen_17.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/charlen_17.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,14 @@
 +! { dg-do compile }
 +! PR 87673 - used to cause errors about non-pure functions.
@@ -2574,8 +2574,8 @@ Index: gcc/testsuite/gfortran.dg/charlen_17.f90
 +end module x
 Index: gcc/testsuite/gfortran.dg/deferred_character_32.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/deferred_character_32.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/deferred_character_32.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/deferred_character_32.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/deferred_character_32.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,13 @@
 +! { dg-do run }
 +!
@@ -2592,8 +2592,8 @@ Index: gcc/testsuite/gfortran.dg/deferred_character_32.f90
 +end
 Index: gcc/testsuite/gfortran.dg/dg.exp
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/dg.exp	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/dg.exp	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/dg.exp	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/dg.exp	(.../branches/gcc-8-branch)
 @@ -36,7 +36,7 @@
      global gfortran_test_path
      global gfortran_aux_module_flags
@@ -2605,8 +2605,8 @@ Index: gcc/testsuite/gfortran.dg/dg.exp
  
 Index: gcc/testsuite/gfortran.dg/substr_simplify.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/substr_simplify.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/substr_simplify.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/substr_simplify.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/substr_simplify.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,20 @@
 +! { dg-do run }
 +!
@@ -2630,8 +2630,8 @@ Index: gcc/testsuite/gfortran.dg/substr_simplify.f90
 +end
 Index: gcc/testsuite/gfortran.dg/altreturn_10.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/altreturn_10.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/altreturn_10.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/altreturn_10.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/altreturn_10.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,19 @@
 +! { dg-do compile }
 +! { dg-options -Os }
@@ -2654,8 +2654,8 @@ Index: gcc/testsuite/gfortran.dg/altreturn_10.f90
 +end
 Index: gcc/testsuite/gfortran.dg/altreturn_9_1.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/altreturn_9_1.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/altreturn_9_1.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/altreturn_9_1.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/altreturn_9_1.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,7 @@
 +! { dg-do compile }
 +! { dg-options "-std=gnu" }
@@ -2666,8 +2666,8 @@ Index: gcc/testsuite/gfortran.dg/altreturn_9_1.f90
 +end subroutine sub
 Index: gcc/testsuite/gfortran.dg/binding_label_tests_32.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/binding_label_tests_32.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/binding_label_tests_32.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/binding_label_tests_32.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/binding_label_tests_32.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,35 @@
 +! { dg-do run }
 +! PR 77746 - this used to crash during execution.
@@ -2706,8 +2706,8 @@ Index: gcc/testsuite/gfortran.dg/binding_label_tests_32.f90
 +end
 Index: gcc/testsuite/gfortran.dg/interface_abstract_5.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/interface_abstract_5.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/interface_abstract_5.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/interface_abstract_5.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/interface_abstract_5.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,32 @@
 +! { dg-do compile }
 +!
@@ -2743,8 +2743,8 @@ Index: gcc/testsuite/gfortran.dg/interface_abstract_5.f90
 +end
 Index: gcc/testsuite/gfortran.dg/pr89266.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/pr89266.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/pr89266.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/pr89266.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/pr89266.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,25 @@
 +! { dg-do run }
 +!
@@ -2773,8 +2773,8 @@ Index: gcc/testsuite/gfortran.dg/pr89266.f90
 +end program test
 Index: gcc/testsuite/gfortran.dg/coarray/caf.exp
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/coarray/caf.exp	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/coarray/caf.exp	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/coarray/caf.exp	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/coarray/caf.exp	(.../branches/gcc-8-branch)
 @@ -51,11 +51,21 @@
      global gfortran_test_path
      global gfortran_aux_module_flags
@@ -2801,8 +2801,8 @@ Index: gcc/testsuite/gfortran.dg/coarray/caf.exp
  # Add -latomic only where supported.  Assume built-in support elsewhere.
 Index: gcc/testsuite/gfortran.dg/lto/20091028-1_0.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/lto/20091028-1_0.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/lto/20091028-1_0.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/lto/20091028-1_0.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/lto/20091028-1_0.f90	(.../branches/gcc-8-branch)
 @@ -1,5 +1,5 @@
  ! { dg-lto-do link }
 -! { dg-extra-ld-options "-r -nostdlib -finline-functions" }
@@ -2812,8 +2812,8 @@ Index: gcc/testsuite/gfortran.dg/lto/20091028-1_0.f90
                                DataHandle, Element, VarName, Data, code )
 Index: gcc/testsuite/gfortran.dg/lto/20091028-2_0.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/lto/20091028-2_0.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/lto/20091028-2_0.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/lto/20091028-2_0.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/lto/20091028-2_0.f90	(.../branches/gcc-8-branch)
 @@ -1,5 +1,5 @@
  ! { dg-lto-do link }
 -! { dg-extra-ld-options "-r -nostdlib -finline-functions" }
@@ -2823,8 +2823,8 @@ Index: gcc/testsuite/gfortran.dg/lto/20091028-2_0.f90
                                DataHandle, Element, VarName, Data, code )
 Index: gcc/testsuite/gfortran.dg/lto/pr87689_0.f
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/lto/pr87689_0.f	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/lto/pr87689_0.f	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/lto/pr87689_0.f	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/lto/pr87689_0.f	(.../branches/gcc-8-branch)
 @@ -0,0 +1,13 @@
 +! { dg-lto-run }
 +! PR 87689 - this used to fail for POWER, plus it used to
@@ -2841,8 +2841,8 @@ Index: gcc/testsuite/gfortran.dg/lto/pr87689_0.f
 +      end program main
 Index: gcc/testsuite/gfortran.dg/lto/pr87689_1.f
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/lto/pr87689_1.f	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/lto/pr87689_1.f	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/lto/pr87689_1.f	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/lto/pr87689_1.f	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +      function doesntwork_p8(c,a1,a2,a3,a4,a5,a6)
 +        implicit none
@@ -2857,8 +2857,8 @@ Index: gcc/testsuite/gfortran.dg/lto/pr87689_1.f
 +       end
 Index: gcc/testsuite/gfortran.dg/pr89664.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/pr89664.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/pr89664.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/pr89664.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/pr89664.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,24 @@
 +! { dg-do compile }
 +! { dg-options "-Ofast" }
@@ -2886,8 +2886,8 @@ Index: gcc/testsuite/gfortran.dg/pr89664.f90
 +end
 Index: gcc/testsuite/gfortran.dg/no_arg_check_2.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/no_arg_check_2.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/no_arg_check_2.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/no_arg_check_2.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/no_arg_check_2.f90	(.../branches/gcc-8-branch)
 @@ -139,7 +139,7 @@
  ! { dg-final { scan-tree-dump-times "sub_scalar .\\(struct t1 .\\) array_class_t1_alloc._data.data" 1 "original" } }
  ! { dg-final { scan-tree-dump-times "sub_scalar .\\(struct t1 .\\) \\(array_class_t1_ptr._data.dat" 1 "original" } }
@@ -2906,8 +2906,8 @@ Index: gcc/testsuite/gfortran.dg/no_arg_check_2.f90
  
 Index: gcc/testsuite/gfortran.dg/pr77583.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/pr77583.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/pr77583.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/pr77583.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/pr77583.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,10 @@
 +! { dg-do compile }
 +!
@@ -2921,8 +2921,8 @@ Index: gcc/testsuite/gfortran.dg/pr77583.f90
 +end
 Index: gcc/testsuite/gfortran.dg/blockdata_11.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/blockdata_11.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/blockdata_11.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/blockdata_11.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/blockdata_11.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,33 @@
 +! { dg-do run }
 +! PR 84394 - this used to complain about private procedures in
@@ -2959,8 +2959,8 @@ Index: gcc/testsuite/gfortran.dg/blockdata_11.f90
 +
 Index: gcc/testsuite/gfortran.dg/altreturn_9_0.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/altreturn_9_0.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/altreturn_9_0.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/altreturn_9_0.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/altreturn_9_0.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,10 @@
 +! { dg-do  run }
 +! { dg-options -std=gnu }
@@ -2974,8 +2974,8 @@ Index: gcc/testsuite/gfortran.dg/altreturn_9_0.f90
 +end program main
 Index: gcc/testsuite/gfortran.dg/binding_label_tests_31.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/binding_label_tests_31.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/binding_label_tests_31.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/binding_label_tests_31.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/binding_label_tests_31.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,19 @@
 +! { dg-do compile }
 +! PR fortran/66695 - this used to ICE.
@@ -2998,8 +2998,8 @@ Index: gcc/testsuite/gfortran.dg/binding_label_tests_31.f90
 +end module
 Index: gcc/testsuite/gfortran.dg/pr88326.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/pr88326.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/pr88326.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/pr88326.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/pr88326.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +! { dg-do compile }
 +!
@@ -3014,8 +3014,8 @@ Index: gcc/testsuite/gfortran.dg/pr88326.f90
 +end
 Index: gcc/testsuite/gfortran.dg/warn_conversion_11.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/warn_conversion_11.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/warn_conversion_11.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/warn_conversion_11.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/warn_conversion_11.f90	(.../branches/gcc-8-branch)
 @@ -0,0 +1,18 @@
 +! { dg-do compile }
 +! { dg-options "-Wconversion" }
@@ -3037,8 +3037,8 @@ Index: gcc/testsuite/gfortran.dg/warn_conversion_11.f90
 +end program proglen
 Index: gcc/testsuite/gfortran.dg/assumed_type_2.f90
 ===================================================================
---- a/src/gcc/testsuite/gfortran.dg/assumed_type_2.f90	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gfortran.dg/assumed_type_2.f90	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gfortran.dg/assumed_type_2.f90	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gfortran.dg/assumed_type_2.f90	(.../branches/gcc-8-branch)
 @@ -157,7 +157,7 @@
  ! { dg-final { scan-tree-dump-times "sub_scalar .\\(struct t1 .\\) array_class_t1_alloc._data.data" 1 "original" } }
  ! { dg-final { scan-tree-dump-times "sub_scalar .\\(struct t1 .\\) \\(array_class_t1_ptr._data.dat" 1 "original" } }
@@ -3059,8 +3059,8 @@ Index: gcc/testsuite/gfortran.dg/assumed_type_2.f90
  ! { dg-final { scan-tree-dump-times "sub_array_shape \\(&array_char_ptr," 1 "original" } }
 Index: gcc/testsuite/gcc.c-torture/execute/20190228-1.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.c-torture/execute/20190228-1.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.c-torture/execute/20190228-1.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.c-torture/execute/20190228-1.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.c-torture/execute/20190228-1.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,16 @@
 +/* PR tree-optimization/89536 */
 +/* Testcase by Zhendong Su <su@cs.ucdavis.edu> */
@@ -3080,8 +3080,8 @@ Index: gcc/testsuite/gcc.c-torture/execute/20190228-1.c
 +}
 Index: gcc/testsuite/gnat.dg/opt77.adb
 ===================================================================
---- a/src/gcc/testsuite/gnat.dg/opt77.adb	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gnat.dg/opt77.adb	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gnat.dg/opt77.adb	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gnat.dg/opt77.adb	(.../branches/gcc-8-branch)
 @@ -0,0 +1,14 @@
 +-- { dg-do run }
 +-- { dg-options "-O -fno-inline" }
@@ -3099,8 +3099,8 @@ Index: gcc/testsuite/gnat.dg/opt77.adb
 +end;
 Index: gcc/testsuite/gnat.dg/opt77_pkg.adb
 ===================================================================
---- a/src/gcc/testsuite/gnat.dg/opt77_pkg.adb	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gnat.dg/opt77_pkg.adb	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gnat.dg/opt77_pkg.adb	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gnat.dg/opt77_pkg.adb	(.../branches/gcc-8-branch)
 @@ -0,0 +1,28 @@
 +package body Opt77_Pkg is
 +
@@ -3132,8 +3132,8 @@ Index: gcc/testsuite/gnat.dg/opt77_pkg.adb
 +end Opt77_Pkg;
 Index: gcc/testsuite/gnat.dg/opt77_pkg.ads
 ===================================================================
---- a/src/gcc/testsuite/gnat.dg/opt77_pkg.ads	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gnat.dg/opt77_pkg.ads	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gnat.dg/opt77_pkg.ads	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gnat.dg/opt77_pkg.ads	(.../branches/gcc-8-branch)
 @@ -0,0 +1,5 @@
 +package Opt77_Pkg is
 +
@@ -3142,8 +3142,8 @@ Index: gcc/testsuite/gnat.dg/opt77_pkg.ads
 +end Opt77_Pkg;
 Index: gcc/testsuite/gcc.dg/Wrestrict-19.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.dg/Wrestrict-19.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.dg/Wrestrict-19.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.dg/Wrestrict-19.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.dg/Wrestrict-19.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,33 @@
 +/* PR middle-end/89934 - ICE on a call with fewer arguments to strncpy
 +   declared without prototype
@@ -3180,8 +3180,8 @@ Index: gcc/testsuite/gcc.dg/Wrestrict-19.c
 +
 Index: gcc/testsuite/gcc.dg/torture/pr89572.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.dg/torture/pr89572.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.dg/torture/pr89572.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.dg/torture/pr89572.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.dg/torture/pr89572.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,28 @@
 +/* { dg-do compile } */
 +/* { dg-additional-options "-finline-functions" } */
@@ -3213,8 +3213,8 @@ Index: gcc/testsuite/gcc.dg/torture/pr89572.c
 +}
 Index: gcc/testsuite/gcc.dg/torture/pr89677.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.dg/torture/pr89677.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.dg/torture/pr89677.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.dg/torture/pr89677.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.dg/torture/pr89677.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,15 @@
 +/* { dg-do compile } */
 +/* { dg-require-effective-target int32plus } */
@@ -3233,8 +3233,8 @@ Index: gcc/testsuite/gcc.dg/torture/pr89677.c
 +}
 Index: gcc/testsuite/gcc.dg/torture/pr89505.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.dg/torture/pr89505.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.dg/torture/pr89505.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.dg/torture/pr89505.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.dg/torture/pr89505.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,22 @@
 +/* { dg-do run } */
 +
@@ -3260,8 +3260,8 @@ Index: gcc/testsuite/gcc.dg/torture/pr89505.c
 +}
 Index: gcc/testsuite/gcc.dg/uninit-pr89296.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.dg/uninit-pr89296.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.dg/uninit-pr89296.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.dg/uninit-pr89296.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.dg/uninit-pr89296.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,13 @@
 +/* { dg-do compile } */
 +/* { dg-options "-O2 -Wuninitialized" } */
@@ -3278,8 +3278,8 @@ Index: gcc/testsuite/gcc.dg/uninit-pr89296.c
 +}
 Index: gcc/testsuite/gcc.dg/ipa/ipcp-5.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.dg/ipa/ipcp-5.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.dg/ipa/ipcp-5.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.dg/ipa/ipcp-5.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.dg/ipa/ipcp-5.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,45 @@
 +/* Test that estimated local cloning time benefit of extern inline functions is
 +   zero.  */
@@ -3328,8 +3328,8 @@ Index: gcc/testsuite/gcc.dg/ipa/ipcp-5.c
 +
 Index: gcc/testsuite/gcc.dg/uninit-pred-8_b.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.dg/uninit-pred-8_b.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.dg/uninit-pred-8_b.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.dg/uninit-pred-8_b.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.dg/uninit-pred-8_b.c	(.../branches/gcc-8-branch)
 @@ -1,6 +1,7 @@
 -
  /* { dg-do compile } */
@@ -3342,8 +3342,8 @@ Index: gcc/testsuite/gcc.dg/uninit-pred-8_b.c
  void bar();
 Index: gcc/testsuite/gcc.dg/Wrestrict-5.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.dg/Wrestrict-5.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.dg/Wrestrict-5.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.dg/Wrestrict-5.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.dg/Wrestrict-5.c	(.../branches/gcc-8-branch)
 @@ -1,19 +1,11 @@
 -/* Test to verify that valid calls to common restrict-qualified built-in
 +/* PR tree-optimization/83655 - ICE on an invalid call to memcpy declared
@@ -3376,8 +3376,8 @@ Index: gcc/testsuite/gcc.dg/Wrestrict-5.c
 +   { dg-prune-output "\\\[-Wint-conversion]" } */
 Index: gcc/testsuite/gcc.dg/tree-ssa/reassoc-43.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.dg/tree-ssa/reassoc-43.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.dg/tree-ssa/reassoc-43.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.dg/tree-ssa/reassoc-43.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.dg/tree-ssa/reassoc-43.c	(.../branches/gcc-8-branch)
 @@ -50,4 +50,4 @@
  	}
      }
@@ -3386,8 +3386,8 @@ Index: gcc/testsuite/gcc.dg/tree-ssa/reassoc-43.c
 +/* { dg-final { scan-tree-dump-not "\[ (\]0 != 0" "reassoc2"} } */
 Index: gcc/testsuite/gcc.dg/tree-ssa/pr89546.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.dg/tree-ssa/pr89546.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.dg/tree-ssa/pr89546.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.dg/tree-ssa/pr89546.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.dg/tree-ssa/pr89546.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,100 @@
 +/* { dg-do run } */
 +/* { dg-options "-O" } */
@@ -3491,8 +3491,8 @@ Index: gcc/testsuite/gcc.dg/tree-ssa/pr89546.c
 +}
 Index: gcc/testsuite/gcc.dg/Warray-bounds-38.c
 ===================================================================
---- a/src/gcc/testsuite/gcc.dg/Warray-bounds-38.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/gcc.dg/Warray-bounds-38.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/gcc.dg/Warray-bounds-38.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/gcc.dg/Warray-bounds-38.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,30 @@
 +/* PR middle-end/88273 - bogus warning: 'memcpy' offset [-527, -529]
 +   is out of the bounds [0, 16]
@@ -3526,8 +3526,8 @@ Index: gcc/testsuite/gcc.dg/Warray-bounds-38.c
 +}
 Index: gcc/testsuite/ChangeLog
 ===================================================================
---- a/src/gcc/testsuite/ChangeLog	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/ChangeLog	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/ChangeLog	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/ChangeLog	(.../branches/gcc-8-branch)
 @@ -1,3 +1,430 @@
 +019-04-07  Uroš Bizjak  <ubizjak@gmail.com>
 +
@@ -3961,8 +3961,8 @@ Index: gcc/testsuite/ChangeLog
  	* GCC 8.3.0 released.
 Index: gcc/testsuite/g++.dg/tree-prof/devirt.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/tree-prof/devirt.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/tree-prof/devirt.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/tree-prof/devirt.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/tree-prof/devirt.C	(.../branches/gcc-8-branch)
 @@ -1,5 +1,5 @@
  /* PR ipa/88561 */
 -/* { dg-options "-O3 -fdump-tree-dom3-details" } */
@@ -3982,8 +3982,8 @@ Index: gcc/testsuite/g++.dg/tree-prof/devirt.C
 +/* { dg-final-use-not-autofdo { scan-tree-dump-times "folding virtual function call to virtual unsigned int mozPersonalDictionary::AddRef" 1 "tracer" } } */
 Index: gcc/testsuite/g++.dg/asm-qual-3.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/asm-qual-3.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/asm-qual-3.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/asm-qual-3.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/asm-qual-3.C	(.../branches/gcc-8-branch)
 @@ -2,11 +2,11 @@
  // { dg-do compile }
  // { dg-options "-std=gnu++98" }
@@ -4002,8 +4002,8 @@ Index: gcc/testsuite/g++.dg/asm-qual-3.C
  // { dg-excess-errors "" }
 Index: gcc/testsuite/g++.dg/cpp0x/lambda/lambda-defarg9.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp0x/lambda/lambda-defarg9.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp0x/lambda/lambda-defarg9.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp0x/lambda/lambda-defarg9.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp0x/lambda/lambda-defarg9.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,10 @@
 +// PR c++/89422
 +// { dg-do compile { target c++11 } }
@@ -4017,8 +4017,8 @@ Index: gcc/testsuite/g++.dg/cpp0x/lambda/lambda-defarg9.C
 +S<0> t;
 Index: gcc/testsuite/g++.dg/cpp0x/implicit16.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp0x/implicit16.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp0x/implicit16.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp0x/implicit16.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp0x/implicit16.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,37 @@
 +// PR c++/89381
 +// { dg-do compile { target c++11 } }
@@ -4059,8 +4059,8 @@ Index: gcc/testsuite/g++.dg/cpp0x/implicit16.C
 +}
 Index: gcc/testsuite/g++.dg/cpp0x/nullptr41.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp0x/nullptr41.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp0x/nullptr41.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp0x/nullptr41.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp0x/nullptr41.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,19 @@
 +// PR c++/89212
 +// { dg-do compile { target c++11 } }
@@ -4083,8 +4083,8 @@ Index: gcc/testsuite/g++.dg/cpp0x/nullptr41.C
 +};
 Index: gcc/testsuite/g++.dg/cpp0x/decltype-tid1.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp0x/decltype-tid1.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp0x/decltype-tid1.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp0x/decltype-tid1.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp0x/decltype-tid1.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,9 @@
 +// PR c++/87513
 +// { dg-do compile { target c++11 } }
@@ -4097,8 +4097,8 @@ Index: gcc/testsuite/g++.dg/cpp0x/decltype-tid1.C
 +}
 Index: gcc/testsuite/g++.dg/cpp0x/nullptr40.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp0x/nullptr40.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp0x/nullptr40.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp0x/nullptr40.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp0x/nullptr40.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,19 @@
 +// PR c++/89212
 +// { dg-do compile { target c++11 } }
@@ -4121,8 +4121,8 @@ Index: gcc/testsuite/g++.dg/cpp0x/nullptr40.C
 +};
 Index: gcc/testsuite/g++.dg/ipa/pr88235.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/ipa/pr88235.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/ipa/pr88235.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/ipa/pr88235.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/ipa/pr88235.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,55 @@
 +// { dg-do compile }
 +// { dg-options "-O1 -fdevirtualize -finline-small-functions -fipa-cp -fipa-cp-clone --param ipa-cp-eval-threshold=125 --param max-inline-insns-single=4" }
@@ -4181,8 +4181,8 @@ Index: gcc/testsuite/g++.dg/ipa/pr88235.C
 +}
 Index: gcc/testsuite/g++.dg/cpp1z/constexpr-if28.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp1z/constexpr-if28.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp1z/constexpr-if28.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp1z/constexpr-if28.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp1z/constexpr-if28.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +// PR c++/89576
 +// { dg-do compile { target c++17 } }
@@ -4197,8 +4197,8 @@ Index: gcc/testsuite/g++.dg/cpp1z/constexpr-if28.C
 +}
 Index: gcc/testsuite/g++.dg/cpp1z/aggr-base7.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp1z/aggr-base7.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp1z/aggr-base7.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp1z/aggr-base7.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp1z/aggr-base7.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,8 @@
 +// PR c++/88690
 +// { dg-do compile { target c++11 } }
@@ -4210,8 +4210,8 @@ Index: gcc/testsuite/g++.dg/cpp1z/aggr-base7.C
 +struct E : A { D f; } g{};
 Index: gcc/testsuite/g++.dg/cpp1z/inline-var5.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp1z/inline-var5.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp1z/inline-var5.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp1z/inline-var5.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp1z/inline-var5.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,16 @@
 +// PR c++/87921
 +// { dg-do compile { target c++17 } }
@@ -4231,8 +4231,8 @@ Index: gcc/testsuite/g++.dg/cpp1z/inline-var5.C
 +}
 Index: gcc/testsuite/g++.dg/cpp1z/class-deduction62.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp1z/class-deduction62.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp1z/class-deduction62.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp1z/class-deduction62.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp1z/class-deduction62.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,22 @@
 +// PR c++/88419
 +// { dg-do compile { target c++17 } }
@@ -4258,8 +4258,8 @@ Index: gcc/testsuite/g++.dg/cpp1z/class-deduction62.C
 +};
 Index: gcc/testsuite/g++.dg/cpp1z/class-deduction63.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp1z/class-deduction63.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp1z/class-deduction63.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp1z/class-deduction63.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp1z/class-deduction63.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +// PR c++/88869
 +// { dg-do compile { target c++17 } }
@@ -4274,8 +4274,8 @@ Index: gcc/testsuite/g++.dg/cpp1z/class-deduction63.C
 +};
 Index: gcc/testsuite/g++.dg/cpp1z/class-deduction64.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp1z/class-deduction64.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp1z/class-deduction64.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp1z/class-deduction64.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp1z/class-deduction64.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,9 @@
 +// PR c++/88820
 +// { dg-do compile { target c++17 } }
@@ -4288,8 +4288,8 @@ Index: gcc/testsuite/g++.dg/cpp1z/class-deduction64.C
 +};
 Index: gcc/testsuite/g++.dg/cpp1z/fold-lambda3.C
 ===================================================================
---- a/src/gcc/testsuite/g++.dg/cpp1z/fold-lambda3.C	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/g++.dg/cpp1z/fold-lambda3.C	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/g++.dg/cpp1z/fold-lambda3.C	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/g++.dg/cpp1z/fold-lambda3.C	(.../branches/gcc-8-branch)
 @@ -0,0 +1,19 @@
 +// PR c++/88183
 +// { dg-do compile { target c++17 } }
@@ -4312,8 +4312,8 @@ Index: gcc/testsuite/g++.dg/cpp1z/fold-lambda3.C
 +}
 Index: gcc/testsuite/c-c++-common/unroll-6.c
 ===================================================================
---- a/src/gcc/testsuite/c-c++-common/unroll-6.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/c-c++-common/unroll-6.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/c-c++-common/unroll-6.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/c-c++-common/unroll-6.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,9 @@
 +/* { dg-do compile } */
 +/* { dg-options "-O -fno-tree-loop-optimize" } */
@@ -4326,8 +4326,8 @@ Index: gcc/testsuite/c-c++-common/unroll-6.c
 +}
 Index: gcc/testsuite/c-c++-common/unroll-7.c
 ===================================================================
---- a/src/gcc/testsuite/c-c++-common/unroll-7.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/testsuite/c-c++-common/unroll-7.c	(.../branches/gcc-8-branch)
+--- a/gcc/testsuite/c-c++-common/unroll-7.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/testsuite/c-c++-common/unroll-7.c	(.../branches/gcc-8-branch)
 @@ -0,0 +1,11 @@
 +/* { dg-do compile } */
 +/* { dg-options "-O -fno-tree-dominator-opts" } */
@@ -4342,8 +4342,8 @@ Index: gcc/testsuite/c-c++-common/unroll-7.c
 +}
 Index: gcc/cp/typeck.c
 ===================================================================
---- a/src/gcc/cp/typeck.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/cp/typeck.c	(.../branches/gcc-8-branch)
+--- a/gcc/cp/typeck.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/cp/typeck.c	(.../branches/gcc-8-branch)
 @@ -5747,18 +5747,17 @@
      return c_common_truthvalue_conversion (input_location, expr);
  }
@@ -4369,8 +4369,8 @@ Index: gcc/cp/typeck.c
  
 Index: gcc/cp/class.c
 ===================================================================
---- a/src/gcc/cp/class.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/cp/class.c	(.../branches/gcc-8-branch)
+--- a/gcc/cp/class.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/cp/class.c	(.../branches/gcc-8-branch)
 @@ -5171,7 +5171,9 @@
      for (ovl_iterator iter (get_class_binding_direct
  			    (t, assign_op_identifier));
@@ -4384,8 +4384,8 @@ Index: gcc/cp/class.c
    return false;
 Index: gcc/cp/ChangeLog
 ===================================================================
---- a/src/gcc/cp/ChangeLog	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/cp/ChangeLog	(.../branches/gcc-8-branch)
+--- a/gcc/cp/ChangeLog	(.../tags/gcc_8_3_0_release)
++++ b/gcc/cp/ChangeLog	(.../branches/gcc-8-branch)
 @@ -1,3 +1,58 @@
 +2019-03-08  Jason Merrill  <jason@redhat.com>
 +
@@ -4447,8 +4447,8 @@ Index: gcc/cp/ChangeLog
  	* GCC 8.3.0 released.
 Index: gcc/cp/typeck2.c
 ===================================================================
---- a/src/gcc/cp/typeck2.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/cp/typeck2.c	(.../branches/gcc-8-branch)
+--- a/gcc/cp/typeck2.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/cp/typeck2.c	(.../branches/gcc-8-branch)
 @@ -1538,6 +1538,13 @@
  	    }
  	}
@@ -4465,8 +4465,8 @@ Index: gcc/cp/typeck2.c
  	next = cp_convert_and_check (TREE_TYPE (field), next, complain);
 Index: gcc/cp/pt.c
 ===================================================================
---- a/src/gcc/cp/pt.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/cp/pt.c	(.../branches/gcc-8-branch)
+--- a/gcc/cp/pt.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/cp/pt.c	(.../branches/gcc-8-branch)
 @@ -11732,8 +11732,6 @@
      {
      case COMPOUND_EXPR:
@@ -4546,8 +4546,8 @@ Index: gcc/cp/pt.c
        type = TREE_TYPE (most_general_template (tmpl));
 Index: gcc/cp/semantics.c
 ===================================================================
---- a/src/gcc/cp/semantics.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/cp/semantics.c	(.../branches/gcc-8-branch)
+--- a/gcc/cp/semantics.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/cp/semantics.c	(.../branches/gcc-8-branch)
 @@ -645,10 +645,13 @@
      return NULL_TREE;
  
@@ -4566,8 +4566,8 @@ Index: gcc/cp/semantics.c
    /* Do the conversion.  */
 Index: gcc/cp/decl2.c
 ===================================================================
---- a/src/gcc/cp/decl2.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/cp/decl2.c	(.../branches/gcc-8-branch)
+--- a/gcc/cp/decl2.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/cp/decl2.c	(.../branches/gcc-8-branch)
 @@ -4905,7 +4905,10 @@
  	{
  	  if (var_finalized_p (decl) || DECL_REALLY_EXTERN (decl)
@@ -4582,8 +4582,8 @@ Index: gcc/cp/decl2.c
  	  /* If this static data member is needed, provide it to the
 Index: gcc/cp/parser.c
 ===================================================================
---- a/src/gcc/cp/parser.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/cp/parser.c	(.../branches/gcc-8-branch)
+--- a/gcc/cp/parser.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/cp/parser.c	(.../branches/gcc-8-branch)
 @@ -19125,8 +19125,9 @@
    location_t volatile_loc = UNKNOWN_LOCATION;
    location_t inline_loc = UNKNOWN_LOCATION;
@@ -4628,8 +4628,8 @@ Index: gcc/cp/parser.c
      return;
 Index: gcc/cp/mangle.c
 ===================================================================
---- a/src/gcc/cp/mangle.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/cp/mangle.c	(.../branches/gcc-8-branch)
+--- a/gcc/cp/mangle.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/cp/mangle.c	(.../branches/gcc-8-branch)
 @@ -3047,7 +3047,8 @@
  	{
  	  scope = TREE_OPERAND (expr, 0);
@@ -4642,8 +4642,8 @@ Index: gcc/cp/mangle.c
  	{
 Index: gcc/tree-ssa-math-opts.c
 ===================================================================
---- a/src/gcc/tree-ssa-math-opts.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/tree-ssa-math-opts.c	(.../branches/gcc-8-branch)
+--- a/gcc/tree-ssa-math-opts.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/tree-ssa-math-opts.c	(.../branches/gcc-8-branch)
 @@ -603,7 +603,7 @@
  
    /* If it is more profitable to optimize 1 / x, don't optimize 1 / (x * x).  */
@@ -4663,8 +4663,8 @@ Index: gcc/tree-ssa-math-opts.c
  
 Index: gcc/tree-ssa-dom.c
 ===================================================================
---- a/src/gcc/tree-ssa-dom.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/tree-ssa-dom.c	(.../branches/gcc-8-branch)
+--- a/gcc/tree-ssa-dom.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/tree-ssa-dom.c	(.../branches/gcc-8-branch)
 @@ -170,11 +170,10 @@
    gimple *def_stmt = SSA_NAME_DEF_STMT (name);
    if (is_gimple_assign (def_stmt))
@@ -4728,8 +4728,8 @@ Index: gcc/tree-ssa-dom.c
  	  }
 Index: gcc/gimple-ssa-warn-restrict.c
 ===================================================================
---- a/src/gcc/gimple-ssa-warn-restrict.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/gimple-ssa-warn-restrict.c	(.../branches/gcc-8-branch)
+--- a/gcc/gimple-ssa-warn-restrict.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/gimple-ssa-warn-restrict.c	(.../branches/gcc-8-branch)
 @@ -314,13 +314,9 @@
  	  offrange[0] += offset_int::from (min, SIGNED);
  	  offrange[1] += offset_int::from (max, SIGNED);
@@ -4758,8 +4758,8 @@ Index: gcc/gimple-ssa-warn-restrict.c
        if (get_size_range (size, range, true))
 Index: gcc/lto-wrapper.c
 ===================================================================
---- a/src/gcc/lto-wrapper.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/lto-wrapper.c	(.../branches/gcc-8-branch)
+--- a/gcc/lto-wrapper.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/lto-wrapper.c	(.../branches/gcc-8-branch)
 @@ -1669,7 +1669,9 @@
  	  struct pex_obj *pex;
  	  char jobs[32];
@@ -4773,8 +4773,8 @@ Index: gcc/lto-wrapper.c
  	      int j = ltrans_priorities[i*2 + 1];
 Index: gcc/dwarf2out.c
 ===================================================================
---- a/src/gcc/dwarf2out.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/dwarf2out.c	(.../branches/gcc-8-branch)
+--- a/gcc/dwarf2out.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/dwarf2out.c	(.../branches/gcc-8-branch)
 @@ -2875,9 +2875,13 @@
     separate comdat sections since the linker will then be able to
     remove duplicates.  But not all tools support .debug_types sections
@@ -4874,8 +4874,8 @@ Index: gcc/dwarf2out.c
  
 Index: gcc/opts.c
 ===================================================================
---- a/src/gcc/opts.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/opts.c	(.../branches/gcc-8-branch)
+--- a/gcc/opts.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/opts.c	(.../branches/gcc-8-branch)
 @@ -922,6 +922,14 @@
  		      "linker plugin");
  	  opts->x_flag_fat_lto_objects = 1;
@@ -4893,8 +4893,8 @@ Index: gcc/opts.c
    /* We initialize opts->x_flag_split_stack to -1 so that targets can set a
 Index: gcc/tree-ssa-loop-ivcanon.c
 ===================================================================
---- a/src/gcc/tree-ssa-loop-ivcanon.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/tree-ssa-loop-ivcanon.c	(.../branches/gcc-8-branch)
+--- a/gcc/tree-ssa-loop-ivcanon.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/tree-ssa-loop-ivcanon.c	(.../branches/gcc-8-branch)
 @@ -1177,7 +1177,7 @@
  	= niter_desc.may_be_zero && !integer_zerop (niter_desc.may_be_zero);
      }
@@ -4915,8 +4915,8 @@ Index: gcc/tree-ssa-loop-ivcanon.c
  	exit = NULL;
 Index: gcc/ada/ChangeLog
 ===================================================================
---- a/src/gcc/ada/ChangeLog	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/ada/ChangeLog	(.../branches/gcc-8-branch)
+--- a/gcc/ada/ChangeLog	(.../tags/gcc_8_3_0_release)
++++ b/gcc/ada/ChangeLog	(.../branches/gcc-8-branch)
 @@ -1,3 +1,13 @@
 +2019-02-23  Eric Botcazou  <ebotcazou@adacore.com>
 +
@@ -4933,8 +4933,8 @@ Index: gcc/ada/ChangeLog
  	* GCC 8.3.0 released.
 Index: gcc/ada/osint.adb
 ===================================================================
---- a/src/gcc/ada/osint.adb	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/ada/osint.adb	(.../branches/gcc-8-branch)
+--- a/gcc/ada/osint.adb	(.../tags/gcc_8_3_0_release)
++++ b/gcc/ada/osint.adb	(.../branches/gcc-8-branch)
 @@ -250,8 +250,7 @@
        Attr : aliased File_Attributes;
     end record;
@@ -4947,8 +4947,8 @@ Index: gcc/ada/osint.adb
       Header_Num => File_Hash_Num,
 Index: gcc/ada/osint.ads
 ===================================================================
---- a/src/gcc/ada/osint.ads	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/ada/osint.ads	(.../branches/gcc-8-branch)
+--- a/gcc/ada/osint.ads	(.../tags/gcc_8_3_0_release)
++++ b/gcc/ada/osint.ads	(.../branches/gcc-8-branch)
 @@ -255,10 +255,26 @@
     --  from the disk and then cached in the File_Attributes parameter (possibly
     --  along with other values).
@@ -5004,8 +5004,8 @@ Index: gcc/ada/osint.ads
  end Osint;
 Index: gcc/common/config/aarch64/aarch64-common.c
 ===================================================================
---- a/src/gcc/common/config/aarch64/aarch64-common.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/common/config/aarch64/aarch64-common.c	(.../branches/gcc-8-branch)
+--- a/gcc/common/config/aarch64/aarch64-common.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/common/config/aarch64/aarch64-common.c	(.../branches/gcc-8-branch)
 @@ -41,6 +41,8 @@
  
  #undef	TARGET_OPTION_OPTIMIZATION_TABLE
@@ -5261,8 +5261,8 @@ Index: gcc/common/config/aarch64/aarch64-common.c
  
 Index: gcc/tree-ssa-ifcombine.c
 ===================================================================
---- a/src/gcc/tree-ssa-ifcombine.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/tree-ssa-ifcombine.c	(.../branches/gcc-8-branch)
+--- a/gcc/tree-ssa-ifcombine.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/tree-ssa-ifcombine.c	(.../branches/gcc-8-branch)
 @@ -40,6 +40,7 @@
  #include "gimplify-me.h"
  #include "tree-cfg.h"
@@ -5286,8 +5286,8 @@ Index: gcc/tree-ssa-ifcombine.c
  	  if (!gsi_one_before_end_p (gsi_start_nondebug_after_labels_bb (inner_cond_bb)))
 Index: gcc/fortran/interface.c
 ===================================================================
---- a/src/gcc/fortran/interface.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/interface.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/interface.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/interface.c	(.../branches/gcc-8-branch)
 @@ -2941,9 +2941,11 @@
  
        if (f->sym == NULL)
@@ -5315,8 +5315,8 @@ Index: gcc/fortran/interface.c
  
 Index: gcc/fortran/trans-expr.c
 ===================================================================
---- a/src/gcc/fortran/trans-expr.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/trans-expr.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/trans-expr.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/trans-expr.c	(.../branches/gcc-8-branch)
 @@ -352,7 +352,7 @@
     of refs following.  */
  
@@ -5368,8 +5368,8 @@ Index: gcc/fortran/trans-expr.c
  
 Index: gcc/fortran/trans-array.c
 ===================================================================
---- a/src/gcc/fortran/trans-array.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/trans-array.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/trans-array.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/trans-array.c	(.../branches/gcc-8-branch)
 @@ -2652,6 +2652,9 @@
    if (ss_info->type != GFC_SS_REFERENCE)
      return false;
@@ -5391,8 +5391,8 @@ Index: gcc/fortran/trans-array.c
        break;
 Index: gcc/fortran/symbol.c
 ===================================================================
---- a/src/gcc/fortran/symbol.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/symbol.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/symbol.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/symbol.c	(.../branches/gcc-8-branch)
 @@ -522,7 +522,7 @@
    /* The copying of procedure dummy arguments for module procedures in
       a submodule occur whilst the current state is COMP_CONTAINS. It
@@ -5456,8 +5456,8 @@ Index: gcc/fortran/symbol.c
  
 Index: gcc/fortran/class.c
 ===================================================================
---- a/src/gcc/fortran/class.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/class.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/class.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/class.c	(.../branches/gcc-8-branch)
 @@ -561,7 +561,7 @@
     ref to the _len component.  */
  
@@ -5509,8 +5509,8 @@ Index: gcc/fortran/class.c
  	      /* Add component _extends.  */
 Index: gcc/fortran/decl.c
 ===================================================================
---- a/src/gcc/fortran/decl.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/decl.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/decl.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/decl.c	(.../branches/gcc-8-branch)
 @@ -1678,6 +1678,14 @@
        free (expr->value.character.string);
        expr->value.character.string = s;
@@ -5546,8 +5546,8 @@ Index: gcc/fortran/decl.c
  	{
 Index: gcc/fortran/gfortran.h
 ===================================================================
---- a/src/gcc/fortran/gfortran.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/gfortran.h	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/gfortran.h	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/gfortran.h	(.../branches/gcc-8-branch)
 @@ -1883,6 +1883,7 @@
    enum gfc_symbol_type type;
  
@@ -5576,8 +5576,8 @@ Index: gcc/fortran/gfortran.h
  gfc_symbol *gfc_find_derived_vtab (gfc_symbol *);
 Index: gcc/fortran/ChangeLog
 ===================================================================
---- a/src/gcc/fortran/ChangeLog	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/ChangeLog	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/ChangeLog	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/ChangeLog	(.../branches/gcc-8-branch)
 @@ -1,3 +1,214 @@
 +2019-03-31  Harald Anlauf  <anlauf@gmx.de>
 +
@@ -5795,8 +5795,8 @@ Index: gcc/fortran/ChangeLog
  	* GCC 8.3.0 released.
 Index: gcc/fortran/trans-stmt.c
 ===================================================================
---- a/src/gcc/fortran/trans-stmt.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/trans-stmt.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/trans-stmt.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/trans-stmt.c	(.../branches/gcc-8-branch)
 @@ -6606,7 +6606,7 @@
  	  /* Use class_init_assign to initialize expr.  */
  	  gfc_code *ini;
@@ -5808,8 +5808,8 @@ Index: gcc/fortran/trans-stmt.c
  	  gfc_add_expr_to_block (&block, tmp);
 Index: gcc/fortran/expr.c
 ===================================================================
---- a/src/gcc/fortran/expr.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/expr.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/expr.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/expr.c	(.../branches/gcc-8-branch)
 @@ -1784,8 +1784,14 @@
  			string_len = 0;
  
@@ -5829,8 +5829,8 @@ Index: gcc/fortran/expr.c
  
 Index: gcc/fortran/trans-types.c
 ===================================================================
---- a/src/gcc/fortran/trans-types.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/trans-types.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/trans-types.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/trans-types.c	(.../branches/gcc-8-branch)
 @@ -1213,7 +1213,8 @@
          {
            spec->type = BT_INTEGER;
@@ -5933,8 +5933,8 @@ Index: gcc/fortran/trans-types.c
    for (f = gfc_sym_get_dummy_args (sym); f; f = f->next)
 Index: gcc/fortran/trans.h
 ===================================================================
---- a/src/gcc/fortran/trans.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/trans.h	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/trans.h	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/trans.h	(.../branches/gcc-8-branch)
 @@ -412,7 +412,7 @@
  tree gfc_class_vptr_get (tree);
  tree gfc_class_len_get (tree);
@@ -5956,8 +5956,8 @@ Index: gcc/fortran/trans.h
  tree gfc_get_function_decl (gfc_symbol *);
 Index: gcc/fortran/trans-types.h
 ===================================================================
---- a/src/gcc/fortran/trans-types.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/trans-types.h	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/trans-types.h	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/trans-types.h	(.../branches/gcc-8-branch)
 @@ -88,7 +88,7 @@
  tree gfc_typenode_for_spec (gfc_typespec *, int c = 0);
  int gfc_copy_dt_decls_ifequal (gfc_symbol *, gfc_symbol *, bool);
@@ -5969,8 +5969,8 @@ Index: gcc/fortran/trans-types.h
  tree gfc_type_for_mode (machine_mode, int);
 Index: gcc/fortran/resolve.c
 ===================================================================
---- a/src/gcc/fortran/resolve.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/resolve.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/resolve.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/resolve.c	(.../branches/gcc-8-branch)
 @@ -1045,7 +1045,7 @@
  	}
        if (!gsym)
@@ -6235,8 +6235,8 @@ Index: gcc/fortran/resolve.c
        gsym->binding_label = sym->binding_label;
 Index: gcc/fortran/iresolve.c
 ===================================================================
---- a/src/gcc/fortran/iresolve.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/iresolve.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/iresolve.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/iresolve.c	(.../branches/gcc-8-branch)
 @@ -35,6 +35,7 @@
  #include "intrinsic.h"
  #include "constructor.h"
@@ -6258,8 +6258,8 @@ Index: gcc/fortran/iresolve.c
  void
 Index: gcc/fortran/trans-decl.c
 ===================================================================
---- a/src/gcc/fortran/trans-decl.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/trans-decl.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/trans-decl.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/trans-decl.c	(.../branches/gcc-8-branch)
 @@ -839,7 +839,7 @@
  	{
  	  if (!gsym)
@@ -6350,8 +6350,8 @@ Index: gcc/fortran/trans-decl.c
  				  true, false);
 Index: gcc/fortran/target-memory.c
 ===================================================================
---- a/src/gcc/fortran/target-memory.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/target-memory.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/target-memory.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/target-memory.c	(.../branches/gcc-8-branch)
 @@ -73,10 +73,10 @@
  
  
@@ -6493,8 +6493,8 @@ Index: gcc/fortran/target-memory.c
  
 Index: gcc/fortran/match.c
 ===================================================================
---- a/src/gcc/fortran/match.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/match.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/match.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/match.c	(.../branches/gcc-8-branch)
 @@ -2105,8 +2105,6 @@
        ts->type = BT_CHARACTER;
  
@@ -6506,8 +6506,8 @@ Index: gcc/fortran/match.c
  	m = MATCH_YES;
 Index: gcc/fortran/trans-io.c
 ===================================================================
---- a/src/gcc/fortran/trans-io.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/trans-io.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/trans-io.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/trans-io.c	(.../branches/gcc-8-branch)
 @@ -2408,8 +2408,6 @@
  
      case_bt_struct:
@@ -6519,8 +6519,8 @@ Index: gcc/fortran/trans-io.c
  	  gfc_symbol *derived;
 Index: gcc/fortran/target-memory.h
 ===================================================================
---- a/src/gcc/fortran/target-memory.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/target-memory.h	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/target-memory.h	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/target-memory.h	(.../branches/gcc-8-branch)
 @@ -24,8 +24,8 @@
  /* Convert a BOZ to REAL or COMPLEX.  */
  bool gfc_convert_boz (gfc_expr *, gfc_typespec *);
@@ -6534,8 +6534,8 @@ Index: gcc/fortran/target-memory.h
  size_t gfc_encode_character (int, size_t, const gfc_char_t *, unsigned char *,
 Index: gcc/fortran/arith.c
 ===================================================================
---- a/src/gcc/fortran/arith.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/arith.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/arith.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/arith.c	(.../branches/gcc-8-branch)
 @@ -2548,10 +2548,10 @@
  static void
  hollerith2representation (gfc_expr *result, gfc_expr *src)
@@ -6551,8 +6551,8 @@ Index: gcc/fortran/arith.c
      {
 Index: gcc/fortran/parse.c
 ===================================================================
---- a/src/gcc/fortran/parse.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/parse.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/parse.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/parse.c	(.../branches/gcc-8-branch)
 @@ -5830,7 +5830,7 @@
      }
    else
@@ -6600,8 +6600,8 @@ Index: gcc/fortran/parse.c
      gfc_global_used (s, &gfc_new_block->declared_at);
 Index: gcc/fortran/check.c
 ===================================================================
---- a/src/gcc/fortran/check.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/check.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/check.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/check.c	(.../branches/gcc-8-branch)
 @@ -5413,17 +5413,42 @@
      return false;
  
@@ -6652,8 +6652,8 @@ Index: gcc/fortran/check.c
        if (size)
 Index: gcc/fortran/simplify.c
 ===================================================================
---- a/src/gcc/fortran/simplify.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/fortran/simplify.c	(.../branches/gcc-8-branch)
+--- a/gcc/fortran/simplify.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/fortran/simplify.c	(.../branches/gcc-8-branch)
 @@ -4469,7 +4469,7 @@
      /* The expression in assoc->target points to a ref to the _data component
         of the unlimited polymorphic entity.  To get the _len component the last
@@ -6701,8 +6701,8 @@ Index: gcc/fortran/simplify.c
    return range_check (result, "STORAGE_SIZE");
 Index: gcc/loop-unroll.c
 ===================================================================
---- a/src/gcc/loop-unroll.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/loop-unroll.c	(.../branches/gcc-8-branch)
+--- a/gcc/loop-unroll.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/loop-unroll.c	(.../branches/gcc-8-branch)
 @@ -399,7 +399,7 @@
      {
        /* However we cannot unroll completely at the RTL level a loop with
@@ -6714,8 +6714,8 @@ Index: gcc/loop-unroll.c
  	    fprintf (dump_file, ";; Loop should have been peeled\n");
 Index: gcc/lra-constraints.c
 ===================================================================
---- a/src/gcc/lra-constraints.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/lra-constraints.c	(.../branches/gcc-8-branch)
+--- a/gcc/lra-constraints.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/lra-constraints.c	(.../branches/gcc-8-branch)
 @@ -6293,6 +6293,7 @@
  			add_to_hard_reg_set (&s, PSEUDO_REGNO_MODE (dst_regno),
  					     reg_renumber[dst_regno]);
@@ -6726,8 +6726,8 @@ Index: gcc/lra-constraints.c
  		     splitting for the current insn usages to the next
 Index: gcc/tree-cfgcleanup.c
 ===================================================================
---- a/src/gcc/tree-cfgcleanup.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/tree-cfgcleanup.c	(.../branches/gcc-8-branch)
+--- a/gcc/tree-cfgcleanup.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/tree-cfgcleanup.c	(.../branches/gcc-8-branch)
 @@ -43,6 +43,8 @@
  #include "gimple-match.h"
  #include "gimple-fold.h"
@@ -6787,8 +6787,8 @@ Index: gcc/tree-cfgcleanup.c
        && loops_state_satisfies_p (LOOPS_NEED_FIXUP))
 Index: gcc/tree-cfgcleanup.h
 ===================================================================
---- a/src/gcc/tree-cfgcleanup.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/tree-cfgcleanup.h	(.../branches/gcc-8-branch)
+--- a/gcc/tree-cfgcleanup.h	(.../tags/gcc_8_3_0_release)
++++ b/gcc/tree-cfgcleanup.h	(.../branches/gcc-8-branch)
 @@ -22,7 +22,7 @@
  
  /* In tree-cfgcleanup.c  */
@@ -6800,8 +6800,8 @@ Index: gcc/tree-cfgcleanup.h
  #endif /* GCC_TREE_CFGCLEANUP_H */
 Index: gcc/tree-sra.c
 ===================================================================
---- a/src/gcc/tree-sra.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/tree-sra.c	(.../branches/gcc-8-branch)
+--- a/gcc/tree-sra.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/tree-sra.c	(.../branches/gcc-8-branch)
 @@ -2729,8 +2729,12 @@
  
  	      rchild->grp_hint = 1;
@@ -6819,8 +6819,8 @@ Index: gcc/tree-sra.c
  	    {
 Index: gcc/rtl.h
 ===================================================================
---- a/src/gcc/rtl.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/rtl.h	(.../branches/gcc-8-branch)
+--- a/gcc/rtl.h	(.../tags/gcc_8_3_0_release)
++++ b/gcc/rtl.h	(.../branches/gcc-8-branch)
 @@ -4355,6 +4355,7 @@
  {
    switch (GET_CODE (x))
@@ -6831,8 +6831,8 @@ Index: gcc/rtl.h
      case SIGN_EXTRACT:
 Index: gcc/tree-ssa-structalias.c
 ===================================================================
---- a/src/gcc/tree-ssa-structalias.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/tree-ssa-structalias.c	(.../branches/gcc-8-branch)
+--- a/gcc/tree-ssa-structalias.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/tree-ssa-structalias.c	(.../branches/gcc-8-branch)
 @@ -7552,7 +7552,10 @@
  	    }
  	  if (used)
@@ -6847,8 +6847,8 @@ Index: gcc/tree-ssa-structalias.c
  		escaped_p = true;
 Index: gcc/passes.c
 ===================================================================
---- a/src/gcc/passes.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/passes.c	(.../branches/gcc-8-branch)
+--- a/gcc/passes.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/passes.c	(.../branches/gcc-8-branch)
 @@ -1944,7 +1944,7 @@
    /* Always cleanup the CFG before trying to update SSA.  */
    if (flags & TODO_cleanup_cfg)
@@ -6860,8 +6860,8 @@ Index: gcc/passes.c
  	 perform some simplistic propagation when removing single
 Index: gcc/config/s390/s390-c.c
 ===================================================================
---- a/src/gcc/config/s390/s390-c.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/s390/s390-c.c	(.../branches/gcc-8-branch)
+--- a/gcc/config/s390/s390-c.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/s390/s390-c.c	(.../branches/gcc-8-branch)
 @@ -477,16 +477,30 @@
      case S390_OVERLOADED_BUILTIN_s390_vec_xl:
      case S390_OVERLOADED_BUILTIN_s390_vec_xld2:
@@ -6902,8 +6902,8 @@ Index: gcc/config/s390/s390-c.c
  				   NULL_TREE, (*arglist)[0],
 Index: gcc/config/s390/s390-builtin-types.def
 ===================================================================
---- a/src/gcc/config/s390/s390-builtin-types.def	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/s390/s390-builtin-types.def	(.../branches/gcc-8-branch)
+--- a/gcc/config/s390/s390-builtin-types.def	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/s390/s390-builtin-types.def	(.../branches/gcc-8-branch)
 @@ -260,6 +260,7 @@
  DEF_FN_TYPE_2 (BT_FN_V4SF_V4SF_UCHAR, BT_V4SF, BT_V4SF, BT_UCHAR)
  DEF_FN_TYPE_2 (BT_FN_V4SF_V4SF_V4SF, BT_V4SF, BT_V4SF, BT_V4SF)
@@ -7004,8 +7004,8 @@ Index: gcc/config/s390/s390-builtin-types.def
  DEF_OV_TYPE (BT_OV_VOID_UV4SI_UV4SI_UINTPTR_ULONGLONG, BT_VOID, BT_UV4SI, BT_UV4SI, BT_UINTPTR, BT_ULONGLONG)
 Index: gcc/config/s390/s390.c
 ===================================================================
---- a/src/gcc/config/s390/s390.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/s390/s390.c	(.../branches/gcc-8-branch)
+--- a/gcc/config/s390/s390.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/s390/s390.c	(.../branches/gcc-8-branch)
 @@ -937,6 +937,8 @@
  	  continue;
  	}
@@ -7148,8 +7148,8 @@ Index: gcc/config/s390/s390.c
  
 Index: gcc/config/s390/s390-builtins.def
 ===================================================================
---- a/src/gcc/config/s390/s390-builtins.def	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/s390/s390-builtins.def	(.../branches/gcc-8-branch)
+--- a/gcc/config/s390/s390-builtins.def	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/s390/s390-builtins.def	(.../branches/gcc-8-branch)
 @@ -328,36 +328,38 @@
  B_DEF      (s390_vgmf,                  vec_genmaskv4si,    0,                  B_VX,               O1_U8 | O2_U8,      BT_FN_UV4SI_UCHAR_UCHAR)
  B_DEF      (s390_vgmg,                  vec_genmaskv2di,    0,                  B_VX,               O1_U8 | O2_U8,      BT_FN_UV2DI_UCHAR_UCHAR)
@@ -7236,8 +7236,8 @@ Index: gcc/config/s390/s390-builtins.def
  OB_DEF_VAR (s390_vec_store_len_s8,      s390_vstl,          0,                  0,                  BT_OV_VOID_V16QI_SCHARPTR_UINT)
 Index: gcc/config/i386/i386.md
 ===================================================================
---- a/src/gcc/config/i386/i386.md	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/i386/i386.md	(.../branches/gcc-8-branch)
+--- a/gcc/config/i386/i386.md	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/i386/i386.md	(.../branches/gcc-8-branch)
 @@ -8942,7 +8942,16 @@
    [(parallel [(set (match_dup 0)
  		   (zero_extend:DI (and:SI (match_dup 1) (match_dup 2))))
@@ -7258,8 +7258,8 @@ Index: gcc/config/i386/i386.md
  (define_insn "*andsi_1_zext"
 Index: gcc/config/i386/sse.md
 ===================================================================
---- a/src/gcc/config/i386/sse.md	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/i386/sse.md	(.../branches/gcc-8-branch)
+--- a/gcc/config/i386/sse.md	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/i386/sse.md	(.../branches/gcc-8-branch)
 @@ -1908,7 +1908,7 @@
    [(set (match_operand:VF1_128_256 0 "register_operand")
  	(unspec:VF1_128_256
@@ -7437,8 +7437,8 @@ Index: gcc/config/i386/sse.md
     (set_attr "mode" "<sseinsnmode>")])
 Index: gcc/config/i386/i386.c
 ===================================================================
---- a/src/gcc/config/i386/i386.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/i386/i386.c	(.../branches/gcc-8-branch)
+--- a/gcc/config/i386/i386.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/i386/i386.c	(.../branches/gcc-8-branch)
 @@ -1024,17 +1024,9 @@
  
      case ASHIFT:
@@ -7705,8 +7705,8 @@ Index: gcc/config/i386/i386.c
  	      return FLT_EVAL_METHOD_PROMOTE_TO_FLOAT;
 Index: gcc/config/aarch64/driver-aarch64.c
 ===================================================================
---- a/src/gcc/config/aarch64/driver-aarch64.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/aarch64/driver-aarch64.c	(.../branches/gcc-8-branch)
+--- a/gcc/config/aarch64/driver-aarch64.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/aarch64/driver-aarch64.c	(.../branches/gcc-8-branch)
 @@ -36,7 +36,8 @@
    const char *feat_string;
  };
@@ -7781,8 +7781,8 @@ Index: gcc/config/aarch64/driver-aarch64.c
  
 Index: gcc/config/aarch64/aarch64-option-extensions.def
 ===================================================================
---- a/src/gcc/config/aarch64/aarch64-option-extensions.def	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/aarch64/aarch64-option-extensions.def	(.../branches/gcc-8-branch)
+--- a/gcc/config/aarch64/aarch64-option-extensions.def	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/aarch64/aarch64-option-extensions.def	(.../branches/gcc-8-branch)
 @@ -21,88 +21,97 @@
  
     Before using #include to read this file, define a macro:
@@ -7922,8 +7922,8 @@ Index: gcc/config/aarch64/aarch64-option-extensions.def
  #undef AARCH64_OPT_EXTENSION
 Index: gcc/config/rs6000/mmintrin.h
 ===================================================================
---- a/src/gcc/config/rs6000/mmintrin.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/rs6000/mmintrin.h	(.../branches/gcc-8-branch)
+--- a/gcc/config/rs6000/mmintrin.h	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/rs6000/mmintrin.h	(.../branches/gcc-8-branch)
 @@ -581,7 +581,7 @@
  extern __inline __m64 __attribute__((__gnu_inline__, __always_inline__, __artificial__))
  _m_psubd (__m64 __m1, __m64 __m2)
@@ -7935,8 +7935,8 @@ Index: gcc/config/rs6000/mmintrin.h
  extern __inline __m64 __attribute__((__gnu_inline__, __always_inline__, __artificial__))
 Index: gcc/config/rs6000/rs6000-builtin.def
 ===================================================================
---- a/src/gcc/config/rs6000/rs6000-builtin.def	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/rs6000/rs6000-builtin.def	(.../branches/gcc-8-branch)
+--- a/gcc/config/rs6000/rs6000-builtin.def	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/rs6000/rs6000-builtin.def	(.../branches/gcc-8-branch)
 @@ -2442,13 +2442,22 @@
  BU_P9_OVERLOAD_2 (CMPEQB,	"byte_in_set")
  
@@ -7967,8 +7967,8 @@ Index: gcc/config/rs6000/rs6000-builtin.def
  BU_CRYPTO_2A (VPMSUMW,		"vpmsumw",	  CONST, crypto_vpmsumw)
 Index: gcc/config/rs6000/rs6000-p8swap.c
 ===================================================================
---- a/src/gcc/config/rs6000/rs6000-p8swap.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/rs6000/rs6000-p8swap.c	(.../branches/gcc-8-branch)
+--- a/gcc/config/rs6000/rs6000-p8swap.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/rs6000/rs6000-p8swap.c	(.../branches/gcc-8-branch)
 @@ -2317,7 +2317,14 @@
  
    /* Pre-pass to recombine lvx and stvx patterns so we don't lose info.  */
@@ -7986,8 +7986,8 @@ Index: gcc/config/rs6000/rs6000-p8swap.c
    insn_entry = XCNEWVEC (swap_web_entry, get_max_uid ());
 Index: gcc/config/rs6000/rs6000.c
 ===================================================================
---- a/src/gcc/config/rs6000/rs6000.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/rs6000/rs6000.c	(.../branches/gcc-8-branch)
+--- a/gcc/config/rs6000/rs6000.c	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/rs6000/rs6000.c	(.../branches/gcc-8-branch)
 @@ -16765,15 +16765,6 @@
      case ALTIVEC_BUILTIN_VSPLTISH:
      case ALTIVEC_BUILTIN_VSPLTISW:
@@ -8038,8 +8038,8 @@ Index: gcc/config/rs6000/rs6000.c
      case CRYPTO_BUILTIN_VPMSUMW:
 Index: gcc/config/rs6000/crypto.md
 ===================================================================
---- a/src/gcc/config/rs6000/crypto.md	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/rs6000/crypto.md	(.../branches/gcc-8-branch)
+--- a/gcc/config/rs6000/crypto.md	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/rs6000/crypto.md	(.../branches/gcc-8-branch)
 @@ -48,6 +48,9 @@
  ;; Iterator for VSHASIGMAD/VSHASIGMAW
  (define_mode_iterator CR_hash [V4SI V2DI])
@@ -8080,8 +8080,8 @@ Index: gcc/config/rs6000/crypto.md
    "vsbox %0,%1"
 Index: gcc/config/rs6000/rs6000.md
 ===================================================================
---- a/src/gcc/config/rs6000/rs6000.md	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/rs6000/rs6000.md	(.../branches/gcc-8-branch)
+--- a/gcc/config/rs6000/rs6000.md	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/rs6000/rs6000.md	(.../branches/gcc-8-branch)
 @@ -12699,7 +12699,7 @@
  				const0_rtx);
    emit_insn (gen_rtx_SET (operands[3],
@@ -8111,8 +8111,8 @@ Index: gcc/config/rs6000/rs6000.md
      {
 Index: gcc/config/rs6000/altivec.h
 ===================================================================
---- a/src/gcc/config/rs6000/altivec.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/rs6000/altivec.h	(.../branches/gcc-8-branch)
+--- a/gcc/config/rs6000/altivec.h	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/rs6000/altivec.h	(.../branches/gcc-8-branch)
 @@ -418,6 +418,11 @@
  #define vec_vupkhsw __builtin_vec_vupkhsw
  #define vec_vupklsw __builtin_vec_vupklsw
@@ -8127,8 +8127,8 @@ Index: gcc/config/rs6000/altivec.h
  #ifdef __POWER9_VECTOR__
 Index: gcc/config/arm/arm.h
 ===================================================================
---- a/src/gcc/config/arm/arm.h	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/config/arm/arm.h	(.../branches/gcc-8-branch)
+--- a/gcc/config/arm/arm.h	(.../tags/gcc_8_3_0_release)
++++ b/gcc/config/arm/arm.h	(.../branches/gcc-8-branch)
 @@ -191,7 +191,7 @@
  /* FPU supports converting between HFmode and DFmode in a single hardware
     step.  */
@@ -8140,8 +8140,8 @@ Index: gcc/config/arm/arm.h
  #define TARGET_FMA (bitmap_bit_p (arm_active_target.isa, isa_bit_vfpv4))
 Index: gcc/params.def
 ===================================================================
---- a/src/gcc/params.def	(.../tags/gcc_8_3_0_release)
-+++ b/src/gcc/params.def	(.../branches/gcc-8-branch)
+--- a/gcc/params.def	(.../tags/gcc_8_3_0_release)
++++ b/gcc/params.def	(.../branches/gcc-8-branch)
 @@ -1331,6 +1331,11 @@
  	 "Maximum number of bits for which we avoid creating FMAs.",
  	 0, 0, 512)
@@ -8156,8 +8156,8 @@ Index: gcc/params.def
  Local variables:
 Index: libgfortran/ChangeLog
 ===================================================================
---- a/src/libgfortran/ChangeLog	(.../tags/gcc_8_3_0_release)
-+++ b/src/libgfortran/ChangeLog	(.../branches/gcc-8-branch)
+--- a/libgfortran/ChangeLog	(.../tags/gcc_8_3_0_release)
++++ b/libgfortran/ChangeLog	(.../branches/gcc-8-branch)
 @@ -1,3 +1,9 @@
 +2019-03-02  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
 +
@@ -8170,8 +8170,8 @@ Index: libgfortran/ChangeLog
  	* GCC 8.3.0 released.
 Index: libgfortran/io/close.c
 ===================================================================
---- a/src/libgfortran/io/close.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/libgfortran/io/close.c	(.../branches/gcc-8-branch)
+--- a/libgfortran/io/close.c	(.../tags/gcc_8_3_0_release)
++++ b/libgfortran/io/close.c	(.../branches/gcc-8-branch)
 @@ -90,7 +90,10 @@
  	      else
  		{
@@ -8197,8 +8197,8 @@ Index: libgfortran/io/close.c
  #endif
 Index: libcpp/line-map.c
 ===================================================================
---- a/src/libcpp/line-map.c	(.../tags/gcc_8_3_0_release)
-+++ b/src/libcpp/line-map.c	(.../branches/gcc-8-branch)
+--- a/libcpp/line-map.c	(.../tags/gcc_8_3_0_release)
++++ b/libcpp/line-map.c	(.../branches/gcc-8-branch)
 @@ -755,6 +755,11 @@
        if (line_delta < 0
  	  || last_line != ORDINARY_MAP_STARTING_LINE_NUMBER (map)
@@ -8213,8 +8213,8 @@ Index: libcpp/line-map.c
  	        (const_cast <line_map *>
 Index: libcpp/ChangeLog
 ===================================================================
---- a/src/libcpp/ChangeLog	(.../tags/gcc_8_3_0_release)
-+++ b/src/libcpp/ChangeLog	(.../branches/gcc-8-branch)
+--- a/libcpp/ChangeLog	(.../tags/gcc_8_3_0_release)
++++ b/libcpp/ChangeLog	(.../branches/gcc-8-branch)
 @@ -1,3 +1,22 @@
 +2019-03-11  Martin Liska  <mliska@suse.cz>
 +
@@ -8240,8 +8240,8 @@ Index: libcpp/ChangeLog
  	* GCC 8.3.0 released.
 Index: .
 ===================================================================
---- a/src/.	(.../tags/gcc_8_3_0_release)
-+++ b/src/.	(.../branches/gcc-8-branch)
+--- a/.	(.../tags/gcc_8_3_0_release)
++++ b/.	(.../branches/gcc-8-branch)
 
 Property changes on: .
 ___________________________________________________________________
