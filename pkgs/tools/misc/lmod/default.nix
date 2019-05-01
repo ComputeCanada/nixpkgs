@@ -3,10 +3,10 @@
 stdenv.mkDerivation rec {
   name = "Lmod-${version}";
 
-  version = "7.8.15";
+  version = "8.0.8";
   src = fetchurl {
     url = "http://github.com/TACC/Lmod/archive/${version}.tar.gz";
-    sha256 = "1rp6pvb0qayvnxbiq7whdm7plfrjiz19fn84fgf6lr9x0zsmg8h0";
+    sha256 = "1d2hysx38c24gwda180y4zi9j5ap4a4gfycasyjp7wq75lnhjg0m";
   };
 
   buildInputs = [ lua tcl perl rsync procps ];
@@ -20,7 +20,7 @@ stdenv.mkDerivation rec {
     sed -i -e "s;/cvmfs/soft.computecanada.ca/nix/store/[^/]*;/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09;g" $out/lmod/lmod/init/* ;
     sed -i -e 's;/cvmfs/soft.computecanada.ca/nix/store/[^/"]*;/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09;g' \
     	   -e 's:/usr/share/lua/5.2/?.lua;/usr/share/lua/5.2/?/init.lua;/usr/lib/lua/5.2/?.lua;/usr/lib/lua/5.2/?/init.lua;./?.lua;::g' \
-    	   -e 's:/usr/lib/lua/5.2/?.so;/usr/lib/lua/5.2/loadall.so;./?.so;::g' $(grep -rl "nix/store" $out | grep lua)
+    	   -e 's:/usr/lib/lua/5.2/?.so;/usr/lib/lua/5.2/loadall.so;./?.so;::g' $(grep -rl "nix/store" $out | grep '\.lua')
     sed -i -e 's;/cvmfs/soft.computecanada.ca/nix/store/[^/"]*;/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09;g' \
     	   -e 's:/usr/share/lua/5.2/?.lua;/usr/share/lua/5.2/?/init.lua;/usr/lib/lua/5.2/?.lua;/usr/lib/lua/5.2/?/init.lua;./?.lua;::g' \
     	   -e 's:/usr/lib/lua/5.2/?.so;/usr/lib/lua/5.2/loadall.so;./?.so;::g' $out/lmod/lmod/libexec/{computeHashSum,lmod,addto,spider,clearMT_cmd,ml_cmd,spiderCacheSupport,sh_to_modulefile,update_lmod_system_cache_files} $out/lmod/lmod/settarg/{settarg_cmd,targ}
