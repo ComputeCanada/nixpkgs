@@ -102,6 +102,8 @@ stdenv.mkDerivation rec {
     shopt -s extglob
     rm -rf $out/{bin,include,share,man,info}
     rm -f $out/lib/*.a
+    rm -f $out/lib/*.so
+    rm -f $out/lib/*.la
     rm -rf $out/lib/!(libstdc++*)
   '';
 
