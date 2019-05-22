@@ -1,8 +1,8 @@
-{stdenv, gfortran48, gfortran5, gfortran6, gfortran7, gfortran8}:
+{stdenv, gfortran48, gfortran5, gfortran6, gfortran7, gfortran8, gfortran9}:
 
 let
   name = "gccruntime-${version}";
-  version = "1.0.1";
+  version = "1.0.2";
 
 in
 stdenv.mkDerivation {
@@ -25,6 +25,9 @@ stdenv.mkDerivation {
       ln -sf $i "$out"/lib
     done
     for i in ${gfortran8.cc.lib}/lib/lib*.so.*; do
+      ln -sf $i "$out"/lib
+    done
+    for i in ${gfortran9.cc.lib}/lib/lib*.so.*; do
       ln -sf $i "$out"/lib
     done
     ln -s ${gfortran5.cc}/bin "$out"/bin
