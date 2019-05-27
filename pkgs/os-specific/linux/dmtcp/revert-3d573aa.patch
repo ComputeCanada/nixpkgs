@@ -1,0 +1,139 @@
+reverted:
+From 3d573aacc7d22b381b33aaeced0d6d14606acad3 Mon Sep 17 00:00:00 2001
+From: Rohan Garg <rohgarg@ccs.neu.edu>
+Date: Sun, 15 Jan 2017 22:10:46 -0500
+Subject: [PATCH] Warn the user if restart machine has a different vDSO layout
+
+--- b/src/Makefile.am
++++ a/src/Makefile.am
+@@ -74,7 +74,6 @@
+ #   should not need wrappers.
+ libdmtcpinternal_a_SOURCES = dmtcpmessagetypes.cpp  coordinatorapi.cpp \
+ 			     workerstate.cpp \
+-			     dmtcp_dlsym.cpp \
+ 			     uniquepid.cpp shareddata.cpp \
+ 			     util_exec.cpp util_misc.cpp util_init.cpp \
+ 			     jalibinterface.cpp processinfo.cpp procselfmaps.cpp
+reverted:
+--- b/src/Makefile.in
++++ a/src/Makefile.in
+@@ -129,8 +129,8 @@
+ libdmtcpinternal_a_LIBADD =
+ am_libdmtcpinternal_a_OBJECTS = dmtcpmessagetypes.$(OBJEXT) \
+ 	coordinatorapi.$(OBJEXT) workerstate.$(OBJEXT) \
++	uniquepid.$(OBJEXT) shareddata.$(OBJEXT) util_exec.$(OBJEXT) \
++	util_misc.$(OBJEXT) util_init.$(OBJEXT) \
+-	dmtcp_dlsym.$(OBJEXT) uniquepid.$(OBJEXT) shareddata.$(OBJEXT) \
+-	util_exec.$(OBJEXT) util_misc.$(OBJEXT) util_init.$(OBJEXT) \
+ 	jalibinterface.$(OBJEXT) processinfo.$(OBJEXT) \
+ 	procselfmaps.$(OBJEXT)
+ libdmtcpinternal_a_OBJECTS = $(am_libdmtcpinternal_a_OBJECTS)
+@@ -555,7 +555,6 @@
+ #   should not need wrappers.
+ libdmtcpinternal_a_SOURCES = dmtcpmessagetypes.cpp  coordinatorapi.cpp \
+ 			     workerstate.cpp \
+-			     dmtcp_dlsym.cpp \
+ 			     uniquepid.cpp shareddata.cpp \
+ 			     util_exec.cpp util_misc.cpp util_init.cpp \
+ 			     jalibinterface.cpp processinfo.cpp procselfmaps.cpp
+reverted:
+--- b/src/dmtcp_restart.cpp
++++ a/src/dmtcp_restart.cpp
+@@ -35,7 +35,6 @@
+ #include "coordinatorapi.h"
+ #include "util.h"
+ #include "uniquepid.h"
+-#include "dmtcp_dlsym.h"
+ #include "processinfo.h"
+ #include "shareddata.h"
+ #include  "../jalib/jassert.h"
+@@ -138,22 +137,6 @@
+         .Text ( "checkpoint file missing" );
+ 
+       _fd = readCkptHeader(_path, &_pInfo);
+-      ptrdiff_t clock_gettime_offset =
+-                            dmtcp_dlsym_lib_fnc_offset("linux-vdso",
+-                                                       "__vdso_clock_gettime");
+-      ptrdiff_t getcpu_offset = dmtcp_dlsym_lib_fnc_offset("linux-vdso",
+-                                                           "__vdso_getcpu");
+-      ptrdiff_t gettimeofday_offset =
+-                              dmtcp_dlsym_lib_fnc_offset("linux-vdso",
+-                                                         "__vdso_gettimeofday");
+-      ptrdiff_t time_offset = dmtcp_dlsym_lib_fnc_offset("linux-vdso",
+-                                                         "__vdso_time");
+-      JWARNING(!_pInfo.vdsoOffsetMismatch(clock_gettime_offset, getcpu_offset,
+-                                          gettimeofday_offset, time_offset))
+-              .Text("The vDSO section on the current system is different than"
+-                    " the host where the checkpoint image was generated. "
+-                    "Restart may fail if the program calls a function in to"
+-                    " vDSO, like, gettimeofday(), clock_gettime(), etc.");
+       JTRACE("restore target") (_path) (_pInfo.numPeers()) (_pInfo.compGroup());
+       JASSERT(_pInfo.getMaxUserFd() < PROTECTED_FD_START)
+              (_pInfo.getMaxUserFd())(PROTECTED_FD_START)
+reverted:
+--- b/src/processinfo.cpp
++++ a/src/processinfo.cpp
+@@ -26,7 +26,6 @@
+ #include <sys/time.h>
+ #include <sys/resource.h>
+ #include "util.h"
+-#include "dmtcp_dlsym.h"
+ #include "syscallwrappers.h"
+ #include "uniquepid.h"
+ #include "processinfo.h"
+@@ -601,30 +600,14 @@
+   }
+ }
+ 
+-bool ProcessInfo::vdsoOffsetMismatch(ptrdiff_t f1, ptrdiff_t f2,
+-                                     ptrdiff_t f3, ptrdiff_t f4)
+-{
+-  return (f1 != _clock_gettime_offset) || (f2 != _getcpu_offset) ||
+-         (f3 != _gettimeofday_offset) || (f4 != _time_offset);
+-}
+-
+ void ProcessInfo::serialize(jalib::JBinarySerializer& o)
+ {
+   JSERIALIZE_ASSERT_POINT("ProcessInfo:");
+   _savedBrk = (uint64_t) sbrk(0);
+-  _clock_gettime_offset = dmtcp_dlsym_lib_fnc_offset("linux-vdso",
+-                                                     "__vdso_clock_gettime");
+-  _getcpu_offset = dmtcp_dlsym_lib_fnc_offset("linux-vdso",
+-                                              "__vdso_getcpu");
+-  _gettimeofday_offset = dmtcp_dlsym_lib_fnc_offset("linux-vdso",
+-                                                    "__vdso_gettimeofday");
+-  _time_offset = dmtcp_dlsym_lib_fnc_offset("linux-vdso", "__vdso_time");
+ 
+   o & _elfType;
+   o & _isRootOfProcessTree & _pid & _sid & _ppid & _gid & _fgid & _generation;
+   o & _procname & _procSelfExe & _hostname & _launchCWD & _ckptCWD & _upid & _uppid;
+-  o & _clock_gettime_offset & _getcpu_offset
+-    & _gettimeofday_offset & _time_offset;
+   o & _compGroup & _numPeers & _noCoordinator & _argvSize & _envSize;
+   o & _restoreBufAddr & _maxUserFd & _savedHeapStart & _savedBrk;
+   o & _vdsoStart & _vdsoEnd & _vvarStart & _vvarEnd;
+reverted:
+--- b/src/processinfo.h
++++ a/src/processinfo.h
+@@ -112,9 +112,6 @@
+       uint64_t vvarStart(void) const { return _vvarStart;}
+       uint64_t vvarEnd(void) const { return _vvarEnd;}
+ 
+-      bool vdsoOffsetMismatch(ptrdiff_t f1, ptrdiff_t f2,
+-                              ptrdiff_t f3, ptrdiff_t f4);
+-
+       string getCkptFilename() const { return _ckptFileName; }
+       string getCkptFilesSubDir() const { return _ckptFilesSubDir; }
+       string getCkptDir() const { return _ckptDir; }
+@@ -173,11 +170,6 @@
+       uint64_t      _vdsoEnd;
+       uint64_t      _vvarStart;
+       uint64_t      _vvarEnd;
+-
+-      ptrdiff_t _clock_gettime_offset;
+-      ptrdiff_t _getcpu_offset;
+-      ptrdiff_t _gettimeofday_offset;
+-      ptrdiff_t _time_offset;
+   };
+ 
+ }
