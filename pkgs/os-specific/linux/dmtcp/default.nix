@@ -12,6 +12,7 @@ stdenv.mkDerivation rec {
   };
 
   dontDisableStatic = true;
+  hardeningDisable = [ "stackprotector" ];
 
   patches = [ ./ld-linux-so-buffer-size.patch ./revert-3d573aa.patch ];
 
