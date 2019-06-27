@@ -78,7 +78,8 @@ stdenv.mkDerivation rec {
     [ "--enable-shared" "--enable-deterministic-archives" "--disable-werror" ]
     ++ optional (stdenv.system == "mips64el-linux") "--enable-fix-loongson2f-nop"
     ++ optional (cross != null) "--target=${cross.config}"
-    ++ optionals gold [ "--enable-gold" "--enable-plugins" ]
+    ++ optionals gold [ "--enable-gold" "--enable-plugins"
+                        "--with-lib-path=/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09/lib" ]
     ++ optional (stdenv.system == "i686-linux") "--enable-targets=x86_64-linux-gnu";
 
   enableParallelBuilding = true;
