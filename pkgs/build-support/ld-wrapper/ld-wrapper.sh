@@ -64,7 +64,7 @@ if [ "$NIX_DONT_SET_RPATH" != 1 -a -n "$NIXUSER_PROFILE" -a -n "$EASYBUILD_CONFI
 fi
 
 LD=@prog@
-source @out@/nix-support/add-hardening.sh
+#source @out@/nix-support/add-hardening.sh
 
 extra=(${hardeningLDFlags[@]})
 extraBefore=()
