@@ -3,10 +3,10 @@
 stdenv.mkDerivation rec {
   name = "Lmod-${version}";
 
-  version = "8.0.8";
+  version = "8.1.13";
   src = fetchurl {
     url = "http://github.com/TACC/Lmod/archive/${version}.tar.gz";
-    sha256 = "1d2hysx38c24gwda180y4zi9j5ap4a4gfycasyjp7wq75lnhjg0m";
+    sha256 = "1r4zcianca9ikmz36ryx4fx29lc421bz23z6dcgqc60z03cdgk2g";
   };
 
   buildInputs = [ lua tcl perl rsync procps ];
@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
 
   # replace nix-store paths in the environment with nix-profile paths to allow easy upgrade
   postInstall = ''
-    sed -i -e "s;/cvmfs/soft.computecanada.ca/nix/store/[^/]*;/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09;g" $out/lmod/lmod/init/* ;
+    find $out/lmod/lmod/init/ -type f -print0 | xargs -0 sed -i -e "s;/cvmfs/soft.computecanada.ca/nix/store/[^/]*;/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09;g" ;
     sed -i -e 's;/cvmfs/soft.computecanada.ca/nix/store/[^/"]*;/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09;g' \
     	   -e 's:/usr/share/lua/5.2/?.lua;/usr/share/lua/5.2/?/init.lua;/usr/lib/lua/5.2/?.lua;/usr/lib/lua/5.2/?/init.lua;./?.lua;::g' \
     	   -e 's:/usr/lib/lua/5.2/?.so;/usr/lib/lua/5.2/loadall.so;./?.so;::g' $(grep -rl "nix/store" $out | grep '\.lua')
