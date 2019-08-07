@@ -1,4 +1,4 @@
-{ stdenv, requireFile, libuuid, numactl }:
+{ stdenv, requireFile, libuuid, numactl, cudatoolkit }:
 
 stdenv.mkDerivation rec {
   name = "opa-psm2-11.2.80";
@@ -15,8 +15,8 @@ stdenv.mkDerivation rec {
 
   hardeningDisable = [ "format" ];
 
-  buildInputs = [ libuuid numactl ];
-  buildPhase = "make arch=x86_64 USE_PSM_UUID=1";
+  buildInputs = [ libuuid numactl cudatoolkit ];
+  buildPhase = "make arch=x86_64 USE_PSM_UUID=1 PSM_CUDA=1";
 
   installPhase = "make install arch=x86_64 DESTDIR=$out";
 
