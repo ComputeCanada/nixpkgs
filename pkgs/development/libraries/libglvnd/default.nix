@@ -22,6 +22,10 @@ stdenv.mkDerivation rec {
     "-DDEFAULT_EGL_VENDOR_CONFIG_DIRS=\"/etc/glvnd/egl_vendor.d:/usr/share/glvnd/egl_vendor.d\""
   ];
 
+  postInstall = ''
+    cp -rp include/EGL $dev/include/EGL
+  '';
+
   outputs = [ "out" "dev" ];
 
   meta = with stdenv.lib; {
