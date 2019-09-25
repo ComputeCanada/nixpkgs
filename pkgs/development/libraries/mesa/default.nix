@@ -132,6 +132,10 @@ stdenv.mkDerivation {
 
     # now fix references in .la files
     sed "/^libdir=/s,$out,$osmesa," -i $osmesa/lib/libOSMesa*.la
+
+    # remove GLES libraries; they are provided by libglvnd
+    rm $out/lib/lib{GLESv1_CM,GLESv2}.*
+    rm $dev/lib/pkgconfig/{glesv1_cm,glesv2}.pc
   '';
 
   # TODO:

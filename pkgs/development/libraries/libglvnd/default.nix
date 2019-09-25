@@ -14,7 +14,7 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [ autoreconfHook pkgconfig python2 ];
   buildInputs = [ libX11 libXext glproto ];
 
-  configureFlags = [ "--disable-glx" "--disable-gles" ];
+  configureFlags = [ "--disable-glx" ];
 
   NIX_CFLAGS_COMPILE = [
     "-UDEFAULT_EGL_VENDOR_CONFIG_DIRS"
@@ -24,6 +24,7 @@ stdenv.mkDerivation rec {
 
   postInstall = ''
     cp -rp include/EGL $dev/include/EGL
+    cp -rp include/KHR $dev/include/KHR
   '';
 
   outputs = [ "out" "dev" ];
