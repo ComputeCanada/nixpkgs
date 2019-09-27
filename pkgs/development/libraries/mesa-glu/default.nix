@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, pkgconfig, mesa_noglu }:
+{ stdenv, fetchurl, pkgconfig, libGL }:
 
 stdenv.mkDerivation rec {
   name = "glu-9.0.0";
@@ -12,7 +12,7 @@ stdenv.mkDerivation rec {
   '';
 
   buildInputs = [ pkgconfig ];
-  propagatedBuildInputs = [ mesa_noglu ];
+  propagatedBuildInputs = [ libGL ];
 
   outputs = [ "out" "dev" ];
 
