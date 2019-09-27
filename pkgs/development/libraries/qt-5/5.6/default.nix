@@ -63,7 +63,7 @@ let
     in {
 
       qtbase = callPackage ./qtbase {
-        mesa = pkgs.mesa_noglu;
+        mesa = pkgs.libGL;
         harfbuzz = pkgs.harfbuzz-icu;
         cups = if stdenv.isLinux then pkgs.cups else null;
         bison = pkgs.bison2; # error: too few arguments to function 'int yylex(...

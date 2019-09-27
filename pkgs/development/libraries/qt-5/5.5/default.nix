@@ -62,7 +62,7 @@ let
     in {
 
       qtbase = callPackage ./qtbase {
-        mesa = pkgs.mesa_noglu;
+        mesa = pkgs.libGL;
         harfbuzz = pkgs.harfbuzz-icu;
         cups = if stdenv.isLinux then pkgs.cups else null;
         # GNOME dependencies are not used unless gtkStyle == true
