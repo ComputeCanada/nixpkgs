@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, xlibsWrapper, mesa_noglu }:
+{ stdenv, fetchurl, xlibsWrapper, libGL }:
 
 let version = "8.3.0"; in
 
