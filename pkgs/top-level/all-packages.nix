@@ -8920,38 +8920,54 @@ in
 
   menu-cache = callPackage ../development/libraries/menu-cache { };
 
+  ## libGL/libGLU/Mesa stuff
+
+  # Default libGL implementation, should provide headers and libGL.so/libEGL.so/... to link agains them
+  libGL = libGLDarwinOr mesa_noglu.stubs;
   mesaSupported = lib.elem system lib.platforms.mesaPlatforms;
 
-  mesaDarwinOr = alternative: if stdenv.isDarwin
-    then callPackage ../development/libraries/mesa-darwin {
-      inherit (darwin.apple_sdk.frameworks) OpenGL;
-      inherit (darwin.apple_sdk.libs) Xplugin;
-      inherit (darwin) apple_sdk;
-    }
-    else alternative;
-  mesa_noglu = mesaDarwinOr (callPackage ../development/libraries/mesa {
+  # Default libGLU
+  libGLU = libGLDarwinOr mesa_glu;
+
+  # Combined derivation, contains both libGL and libGLU
+  # Please, avoid using this attribute.  It was meant as transitional hack
+  # for packages that assume that libGLU and libGL live in the same prefix.
+  # libGLU_combined propagates both libGL and libGLU
+  libGLU_combined = libGLDarwinOr (buildEnv {
+    name = "libGLU-combined";
+    paths = [ libGL libGLU ];
+    extraOutputsToInstall = [ "dev" ];
+  });
+
+  # Default derivation with libGL.so.1 to link into /run/opengl-drivers (if need)
+  libGL_driver = libGLDarwinOr mesa_drivers;
+
+  libGLSupported = lib.elem system lib.platforms.mesaPlatforms;
+
+  libGLDarwin = callPackage ../development/libraries/mesa-darwin {
+    inherit (darwin.apple_sdk.frameworks) OpenGL;
+    inherit (darwin.apple_sdk.libs) Xplugin;
+    inherit (darwin) apple_sdk;
+  };
+
+  libGLDarwinOr = alternative: if stdenv.isDarwin then libGLDarwin else alternative;
+
+  mesa_noglu = callPackage ../development/libraries/mesa {
     # makes it slower, but during runtime we link against just mesa_drivers
     # through /run/opengl-driver*, which is overriden according to config.grsecurity
     grsecEnabled = true;
     llvmPackages = llvmPackages_39;
-  });
-  mesa_glu =  mesaDarwinOr (callPackage ../development/libraries/mesa-glu { });
-  mesa_drivers = mesaDarwinOr (
+  };
+
+  mesa_glu =  callPackage ../development/libraries/mesa-glu { };
+  mesa_drivers =
     let mo = mesa_noglu.override {
       grsecEnabled = config.grsecurity or false;
+      enableTextureFloats = true;
     };
-    in mo.drivers
-  );
+    in mo.drivers;
 
-  mesa = mesaDarwinOr (buildEnv {
-    name = "mesa-${mesa_noglu.version}";
-    # FIXME: this causes mesa to have a runtime dependency on
-    # mesa_noglu.dev.
-    paths = [ mesa_noglu.dev mesa_noglu.out mesa_glu mesa_glu.dev ];
-    meta = {
-      platforms = lib.platforms.unix;
-    };
-  });
+  ## End libGL/libGLU/Mesa stuff
 
   meterbridge = callPackage ../applications/audio/meterbridge { };
 
