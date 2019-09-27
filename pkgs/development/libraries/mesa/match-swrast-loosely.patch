@@ -1,14 +1,6 @@
-commit 062c8e255524cfa0cdc636eaa7e82b929c43a533
-Author: Tom Hughes <tom@compton.nu>
-Date:   Tue Jun 2 13:40:37 2015 +0100
-
-    Match swrast modes more loosely
-
-diff --git a/src/glx/dri_common.c b/src/glx/dri_common.c
-index 63c8de3..1a62ee2 100644
---- a/src/glx/dri_common.c
-+++ b/src/glx/dri_common.c
-@@ -266,6 +266,36 @@ scalarEqual(struct glx_config *mode, unsigned int attrib, unsigned int value)
+--- mesa-18.3.6/src/glx/dri_common.c.org	2019-04-05 10:53:23.000000000 +0000
++++ mesa-18.3.6/src/glx/dri_common.c	2019-09-26 15:59:09.563104452 +0000
+@@ -266,6 +266,36 @@
  }
  
  static int
@@ -45,7 +37,7 @@ index 63c8de3..1a62ee2 100644
  driConfigEqual(const __DRIcoreExtension *core,
                 struct glx_config *config, const __DRIconfig *driConfig)
  {
-@@ -313,10 +343,41 @@ driConfigEqual(const __DRIcoreExtension *core,
+@@ -313,7 +343,38 @@
           if (value & __DRI_ATTRIB_TEXTURE_RECTANGLE_BIT)
              glxValue |= GLX_TEXTURE_RECTANGLE_BIT_EXT;
           if (config->bindToTextureTargets != GLX_DONT_CARE &&
@@ -61,9 +53,9 @@ index 63c8de3..1a62ee2 100644
 +      case __DRI_ATTRIB_ACCUM_BLUE_SIZE:
 +      case __DRI_ATTRIB_ACCUM_ALPHA_SIZE:
 +         if (value != 0 && !scalarEqual(config, attrib, value))
-             return GL_FALSE;
-          break;
- 
++            return GL_FALSE;
++         break;
++
 +      case __DRI_ATTRIB_DOUBLE_BUFFER:
 +      case __DRI_ATTRIB_FRAMEBUFFER_SRGB_CAPABLE:
 +          if (value && !booleanSupported(config, attrib, value))
@@ -82,9 +74,6 @@ index 63c8de3..1a62ee2 100644
 +      case __DRI_ATTRIB_MAX_PBUFFER_HEIGHT:
 +      case __DRI_ATTRIB_MAX_PBUFFER_PIXELS:
 +         if (!scalarGreaterEqual(config, attrib, value))
-+            return GL_FALSE;
-+         break;
-+
-       default:
-          if (!scalarEqual(config, attrib, value))
              return GL_FALSE;
+          break;
+ 

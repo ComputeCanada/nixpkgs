@@ -1,12 +1,11 @@
 { stdenv, fetchurl, fetchpatch
 , pkgconfig, intltool, autoreconfHook, substituteAll
-, file, expat, libdrm, xorg, wayland
+, file, expat, libdrm, xorg, wayland, wayland-protocols
 , llvmPackages, libffi, libomxil-bellagio, libva
 , libelf, libvdpau, python
 , grsecEnabled ? false
 , enableTextureFloats ? false # Texture floats are patented, see docs/patents.txt
 }:
-
 
 /** Packaging design:
   - The basic mesa ($out) contains headers and libraries (GLU is in mesa_glu now).
@@ -26,9 +25,10 @@ if ! lists.elem stdenv.system platforms.mesaPlatforms then
 else
 
 let
-  version = "17.0.2";
+  version = "17.3.9";
   branch  = head (splitString "." version);
-  driverLink = "/run/opengl-driver" + optionalString stdenv.isi686 "-32";
+  driverLink = "/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09";
+  #driverLink = "/run/opengl-driver" + optionalString stdenv.isi686 "-32";
 in
 
 stdenv.mkDerivation {
@@ -39,9 +39,9 @@ stdenv.mkDerivation {
       "ftp://ftp.freedesktop.org/pub/mesa/mesa-${version}.tar.xz"
       "ftp://ftp.freedesktop.org/pub/mesa/${version}/mesa-${version}.tar.xz"
       "ftp://ftp.freedesktop.org/pub/mesa/older-versions/${branch}.x/${version}/mesa-${version}.tar.xz"
-      "https://launchpad.net/mesa/trunk/${version}/+download/mesa-${version}.tar.xz"
+      "https://mesa.freedesktop.org/archive/mesa-${version}.tar.xz"
     ];
-    sha256 = "f8f191f909e01e65de38d5bdea5fb057f21649a3aed20948be02348e77a689d4";
+    sha256 = "0yg4nvagg5y2fxyl3jjdgbi6gjqqw4z3j6pyzsac5q7h0pybbgn5";
   };
 
   prePatch = "patchShebangs .";
@@ -60,13 +60,13 @@ stdenv.mkDerivation {
 
   # TODO: Figure out how to enable opencl without having a runtime dependency on clang
   configureFlags = [
-    "--sysconfdir=/etc"
+    "--sysconfdir=${driverLink}/etc"
     "--localstatedir=/var"
     "--with-dri-driverdir=$(drivers)/lib/dri"
-    "--with-dri-searchpath=${driverLink}/lib/dri:$(drivers)/lib/dri"
-    "--with-egl-platforms=x11,wayland,drm"
+    "--with-dri-searchpath=${driverLink}/lib/dri"
+    "--with-platforms=x11,wayland,drm"
     (optionalString (stdenv.system != "armv7l-linux")
-      "--with-gallium-drivers=svga,i915,ilo,r300,r600,radeonsi,nouveau,swrast,swr")
+      "--with-gallium-drivers=svga,i915,r300,r600,radeonsi,nouveau,swrast,swr")
     (optionalString (stdenv.system != "armv7l-linux")
       "--with-dri-drivers=i915,i965,nouveau,radeon,r200,swrast")
 
@@ -91,7 +91,7 @@ stdenv.mkDerivation {
     "--enable-shared-glapi"
     "--enable-sysfs"
     "--enable-llvm-shared-libs"
-    "--enable-omx"
+    "--enable-omx-bellagio"
     "--enable-va"
     "--disable-opencl"
   ];
@@ -106,7 +106,7 @@ stdenv.mkDerivation {
     autoreconfHook intltool expat llvmPackages.llvm
     glproto dri2proto dri3proto presentproto
     libX11 libXext libxcb libXt libXfixes libxshmfence
-    libffi wayland libvdpau libelf libXvMC
+    libffi wayland wayland-protocols libvdpau libelf libXvMC
     libomxil-bellagio libva libpthreadstubs
     (python.withPackages (ps: [ ps.Mako ]))
   ];
@@ -116,7 +116,7 @@ stdenv.mkDerivation {
   doCheck = false;
 
   installFlags = [
-    "sysconfdir=\${out}/etc"
+    "sysconfdir=\${drivers}/etc"
     "localstatedir=\${TMPDIR}"
   ];
 
