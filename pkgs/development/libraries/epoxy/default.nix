@@ -18,11 +18,6 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [ autoreconfHook pkgconfig utilmacros python ];
   buildInputs = [ mesa libX11 ];
 
-  preAutoreconf = ''
-    substituteInPlace configure.ac --replace build_egl=yes build_egl=no
-    substituteInPlace src/dispatch_common.h --replace "PLATFORM_HAS_EGL 1" "PLATFORM_HAS_EGL 0"
-  '';
-
   preConfigure = stdenv.lib.optional stdenv.isDarwin ''
     substituteInPlace configure --replace build_glx=no build_glx=yes
     substituteInPlace src/dispatch_common.h --replace "PLATFORM_HAS_GLX 0" "PLATFORM_HAS_GLX 1"
