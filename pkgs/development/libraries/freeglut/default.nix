@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, libXi, libXrandr, libXxf86vm, mesa, xlibsWrapper, cmake }:
+{ stdenv, fetchurl, libXi, libXrandr, libXxf86vm, libGL, libGLU, xlibsWrapper, cmake }:
 
 let version = "3.0.0";
 in stdenv.mkDerivation {
@@ -9,14 +9,17 @@ in stdenv.mkDerivation {
     sha256 = "18knkyczzwbmyg8hr4zh8a1i5ga01np2jzd1rwmsh7mh2n2vwhra";
   };
 
-  buildInputs = [ libXi libXrandr libXxf86vm mesa xlibsWrapper cmake ];
+  buildInputs = [ libXi libXrandr libXxf86vm libGL libGLU xlibsWrapper cmake ];
 
   cmakeFlags = stdenv.lib.optionals stdenv.isDarwin [
-                 "-DOPENGL_INCLUDE_DIR=${mesa}/include"
-                 "-DOPENGL_gl_LIBRARY:FILEPATH=${mesa}/lib/libGL.dylib"
-                 "-DOPENGL_glu_LIBRARY:FILEPATH=${mesa}/lib/libGLU.dylib"
+                 "-DOPENGL_INCLUDE_DIR=${libGL}/include"
+                 "-DOPENGL_gl_LIBRARY:FILEPATH=${libGL}/lib/libGL.dylib"
+                 "-DOPENGL_glu_LIBRARY:FILEPATH=${libGL}/lib/libGLU.dylib"
                  "-DFREEGLUT_BUILD_DEMOS:BOOL=OFF"
                  "-DFREEGLUT_BUILD_STATIC:BOOL=OFF"
+               ] ++
+               stdenv.lib.optionals stdenv.isLinux [
+                 "-DOPENGL_gl_LIBRARY=${libGL}/lib/libGL.so"
                ];
 
   meta = with stdenv.lib; {

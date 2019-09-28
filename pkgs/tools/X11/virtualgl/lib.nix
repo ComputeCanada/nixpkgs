@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, cmake, mesa_glu, mesa_noglu, libX11, libXv, libjpeg_turbo, fltk }:
+{ stdenv, fetchurl, cmake, libGLU, libGL, libX11, libXv, libjpeg_turbo, fltk }:
 
 stdenv.mkDerivation rec {
   name = "virtualgl-lib-${version}";
@@ -9,13 +9,14 @@ stdenv.mkDerivation rec {
     sha256 = "0f1jp7r4vajiksbiq08hkxd5bjj0jxlw7dy5750s52djg1v3hhsg";
   };
 
-  cmakeFlags = [ "-DVGL_SYSTEMFLTK=1" "-DTJPEG_LIBRARY=${libjpeg_turbo.out}/lib/libturbojpeg.so" ];
+  cmakeFlags = [ "-DVGL_SYSTEMFLTK=1" "-DTJPEG_LIBRARY=${libjpeg_turbo.out}/lib/libturbojpeg.so"
+                 "-DOPENGL_gl_LIBRARY=${libGL}/lib/libGL.so" ];
 
   makeFlags = [ "PREFIX=$(out)" ];
 
   nativeBuildInputs = [ cmake ];
 
-  buildInputs = [ libjpeg_turbo mesa_glu mesa_noglu fltk libX11 libXv ];
+  buildInputs = [ libjpeg_turbo libGLU libGL fltk libX11 libXv ];
 
   enableParallelBuilding = true;
 
