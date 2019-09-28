@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, mesa_glu, xlibsWrapper, libXmu, libXi }:
+{ stdenv, fetchurl, libGLU, libGL, xlibsWrapper, libXmu, libXi }:
 
 with stdenv.lib;
 
@@ -13,7 +13,7 @@ stdenv.mkDerivation rec {
   outputs = [ "bin" "out" "dev" "doc" ];
 
   nativeBuildInputs = [ xlibsWrapper libXmu libXi ];
-  propagatedNativeBuildInputs = [ mesa_glu ]; # GL/glew.h includes GL/glu.h
+  propagatedNativeBuildInputs = [ libGLU libGL ]; # GL/glew.h includes GL/glu.h
 
   patchPhase = ''
     sed -i 's|lib64|lib|' config/Makefile.linux
@@ -22,7 +22,7 @@ stdenv.mkDerivation rec {
     ''}
   '';
 
-  buildFlags = [ "all" ];
+  buildFlags = [ "all LDFLAGS.EXTRA=-L${libGL}/lib" ];
   installFlags = [ "install.all" ];
 
   preInstall = ''
