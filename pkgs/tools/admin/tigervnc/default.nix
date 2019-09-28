@@ -1,7 +1,7 @@
 { stdenv, fetchgit, fetchpatch, xorg
 , autoconf, automake, cvs, libtool, nasm, pixman, xkeyboard_config
 , fontDirectories, libgcrypt, gnutls, pam, flex, bison, gettext
-, cmake, libjpeg_turbo, fltk, nettle, libiconv, libtasn1
+, cmake, libjpeg_turbo, fltk, nettle, libiconv, libtasn1, libGL
 }:
 
 with stdenv.lib;
@@ -43,6 +43,7 @@ stdenv.mkDerivation rec {
   postBuild = ''
     export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -Wno-error=int-to-pointer-cast"
     export CXXFLAGS="$CXXFLAGS -fpermissive"
+    export NIX_LDFLAGS="$NIX_LDFLAGS -L${libGL}/lib"
     # Build Xvnc
     tar xf ${xorg.xorgserver.src}
     cp -R xorg*/* unix/xserver
@@ -87,7 +88,7 @@ stdenv.mkDerivation rec {
   buildInputs =
     [ xorg.libX11 xorg.libXext gettext xorg.libICE xorg.libXtst xorg.libXi xorg.libSM xorg.libXft
       nasm libgcrypt gnutls pam pixman libjpeg_turbo fltk xorg.xineramaproto
-      xorg.libXinerama xorg.libXcursor nettle libiconv libtasn1
+      xorg.libXinerama xorg.libXcursor nettle libiconv libtasn1 libGL
     ];
 
   nativeBuildInputs =
