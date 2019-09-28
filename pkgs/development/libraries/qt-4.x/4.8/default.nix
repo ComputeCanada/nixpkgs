@@ -1,7 +1,7 @@
 { stdenv, fetchurl, fetchpatch, substituteAll
 , libXrender, libXinerama, libXcursor, libXmu, libXv, libXext
 , libXfixes, libXrandr, libSM, freetype, fontconfig, zlib, libjpeg, libpng
-, libmng, which, mesaSupported, mesa, mesa_glu, openssl, dbus, cups, pkgconfig
+, libmng, which, mesaSupported, mesa, mesa_glu, libglvnd, openssl, dbus, cups, pkgconfig
 , libtiff, glib, icu, mysql, postgresql, sqlite, perl, coreutils, libXi
 , buildMultimedia ? stdenv.isLinux, alsaLib, gstreamer, gst_plugins_base
 , buildWebkit ? stdenv.isLinux
@@ -65,7 +65,7 @@ stdenv.mkDerivation rec {
         icu = icu.out;
         libXfixes = libXfixes.out;
         glibc = stdenv.cc.libc.out;
-        openglDriver = if mesaSupported then mesa.driverLink else "/no-such-path";
+        openglDriver = if mesaSupported then libglvnd.driverLink else "/no-such-path";
       })
     ] ++ stdenv.lib.optional gtkStyle (substituteAll {
         src = ./dlopen-gtkstyle.diff;
@@ -88,6 +88,7 @@ stdenv.mkDerivation rec {
       })];
 
   preConfigure = ''
+    export NIX_LDFLAGS="$NIX_LDFLAGS -L${mesa}/lib"
     export LD_LIBRARY_PATH="`pwd`/lib:$LD_LIBRARY_PATH"
     configureFlags+="
       -docdir $out/share/doc/${name}

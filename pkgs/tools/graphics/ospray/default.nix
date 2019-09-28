@@ -6,7 +6,8 @@
 , embree
 , doxygen
 , tbb
-, mesa
+, libGL
+, libGLU
 , freeglut
 , readline
 , qt4
@@ -16,7 +17,7 @@ stdenv.mkDerivation rec {
 	name = "ospray-${version}";
 	version = "1.2.1";
 
-	buildInputs = [ pkgconfig embree tbb ispc mesa freeglut readline qt4 ];
+	buildInputs = [ pkgconfig embree tbb ispc libGL libGLU freeglut readline qt4 ];
 
 	nativeBuildInputs = [ doxygen cmake ];
 
@@ -31,6 +32,7 @@ stdenv.mkDerivation rec {
 	               "-DOSPRAY_ZIP_MODE=OFF"                   #disable bundle dependencies
 	               "-Dembree_DIR=${embree}"
 	               "-DTBB_ROOT=${tbb}"
+                 "-DOPENGL_gl_LIBRARY:FILEPATH=${libGL}/lib/libGL.so"
 	             ];
 
 	outputs = [ "out" "doc" ];

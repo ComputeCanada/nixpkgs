@@ -4,7 +4,8 @@
 , ispc
 , tbb
 , freeglut 
-, mesa
+, libGL
+, libGLU
 , libpng 
 , libXmu
 , libXi
@@ -25,7 +26,9 @@ stdenv.mkDerivation rec {
     
 
     buildInputs = [ cmake ispc tbb freeglut 
-                    mesa libpng libXmu libXi imagemagick ];
+                    libGL libGLU libpng libXmu libXi imagemagick ];
+
+    cmakeFlags = [ "-DOPENGL_gl_LIBRARY=${libGL}/lib/libGL.so" ];
 
     postInstall = "substituteInPlace $out/lib/cmake/embree-2.15.0/embree-config.cmake --replace $out/ ''";
 
