@@ -1,5 +1,5 @@
 { stdenv, composableDerivation, fetchurl, pkgconfig, xlibsWrapper, inputproto, libXi
-, freeglut, mesa, libjpeg, zlib, libXinerama, libXft, libpng
+, freeglut, libGL, libGLU, libjpeg, zlib, libXinerama, libXft, libpng
 , cfg ? {}
 , darwin, libtiff, freetype
 }:
@@ -14,6 +14,10 @@ composableDerivation.composableDerivation {} {
     url = "http://fltk.org/pub/fltk/${version}/fltk-${version}-source.tar.gz";
     sha256 = "15qd7lkz5d5ynz70xhxhigpz3wns39v9xcf7ggkl0792syc8sfgq";
   };
+
+  preConfigure = ''
+    export NIX_LDFLAGS="$NIX_LDFLAGS -L${libGL}/lib"
+  '';
 
   # http://www.fltk.org/str.php?L3156
   postPatch = ''
@@ -33,7 +37,7 @@ composableDerivation.composableDerivation {} {
     # this could be tidied up (?).. eg why does it require freeglut without glSupport?
     edf { name = "cygwin"; }  #         use the CygWin libraries default=no
     // edf { name = "debug"; }  #          turn on debugging default=no
-    // edf { name = "gl"; enable = { buildInputs = [ mesa ]; }; }  #             turn on OpenGL support default=yes
+    // edf { name = "gl"; enable = { buildInputs = [ libGL libGLU ]; }; }  #             turn on OpenGL support default=yes
     // edf { name = "shared"; }  #         turn on shared libraries default=no
     // edf { name = "threads"; }  #        enable multi-threading support
     // edf { name = "quartz"; enable = { buildInputs = "quartz"; }; }  # don't konw yet what quartz is #         use Quartz instead of Quickdraw (default=no)
