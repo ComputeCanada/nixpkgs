@@ -187,6 +187,8 @@ let self = stdenv.mkDerivation {
     mv $out/lib/dri/* $drivers/lib/dri # */
     rmdir "$out/lib/dri"
     mv $out/lib/lib*_mesa* $drivers/lib
+    # avoid indirect rendering via NVidia driver files
+    ln -s libGLX_mesa.so.0 $drivers/lib/libGLX_indirect.so.0
 
     # move libOSMesa to $osmesa, as it's relatively big
     mkdir -p {$osmesa,$drivers}/lib/
@@ -248,7 +250,7 @@ let self = stdenv.mkDerivation {
       buildCommand = ''
         ln -s ${libglvnd.out} $out
         mkdir -p $dev/{,lib/pkgconfig,nix-support}
-        echo "$out" > $dev/nix-support/propagated-build-inputs
+        echo "$out" > $dev/nix-support/propagated-native-build-inputs
         ln -s ${self.dev}/include $dev/include
 
         genPkgConfig() {
