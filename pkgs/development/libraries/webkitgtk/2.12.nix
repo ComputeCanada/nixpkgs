@@ -3,7 +3,7 @@
 , gtk2, gtk3, wayland, libwebp, enchant, xlibs, libxkbcommon, epoxy, at_spi2_core
 , libxml2, libsoup, libsecret, libxslt, harfbuzz, libpthreadstubs
 , enableGeoLocation ? true, geoclue2, sqlite
-, gst-plugins-base
+, gst-plugins-base, xorg, pcre
 }:
 
 assert enableGeoLocation -> geoclue2 != null;
@@ -46,6 +46,7 @@ stdenv.mkDerivation rec {
     gtk2 wayland libwebp enchant libnotify
     libxml2 libsecret libxslt harfbuzz libpthreadstubs
     gst-plugins-base libxkbcommon epoxy at_spi2_core
+    xorg.libXdamage pcre
   ] ++ optional enableGeoLocation geoclue2
     ++ (with xlibs; [ libXdmcp libXt libXtst ]);
 
