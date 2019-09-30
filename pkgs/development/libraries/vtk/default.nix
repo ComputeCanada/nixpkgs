@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, fetchpatch, cmake, mesa, libX11, xproto, libXt
+{ stdenv, fetchurl, fetchpatch, cmake, libGL, libGLU, libX11, xproto, libXt
 , qtLib ? null }:
 
 with stdenv.lib;
@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
     sha256 = "1hrjxkcvs3ap0bdhk90vymz5pgvxmg7q6sz8ab3wsyddbshr1abq";
   };
 
-  buildInputs = [ cmake mesa libX11 xproto libXt ]
+  buildInputs = [ cmake libGL libGLU libX11 xproto libXt ]
     ++ optional (qtLib != null) qtLib;
 
   preBuild = ''
