@@ -244,7 +244,7 @@ let self = stdenv.mkDerivation {
 
     stubs = stdenv.mkDerivation {
       name = "libGL-${libglvnd.version}";
-      outputs = [ "out" "dev" ];
+      outputs = [ "out" "dev" "drivers" "osmesa" ];
 
       # Use stub libraries from libglvnd and headers from Mesa.
       buildCommand = ''
@@ -252,6 +252,8 @@ let self = stdenv.mkDerivation {
         mkdir -p $dev/{,lib/pkgconfig,nix-support}
         echo "$out" > $dev/nix-support/propagated-native-build-inputs
         ln -s ${self.dev}/include $dev/include
+        ln -s ${self.drivers} $drivers
+        ln -s ${self.osmesa} $osmesa
 
         genPkgConfig() {
           local name="$1"
