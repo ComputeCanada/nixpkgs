@@ -1,5 +1,5 @@
 { stdenv, fetchurl, fetchpatch, pkgconfig, audiofile, libcap
-, openglSupport ? false, mesa_noglu, mesa_glu
+, openglSupport ? false, libGL, libGLU
 , alsaSupport ? true, alsaLib
 , x11Support ? true, libXext, libICE, libXrandr
 , pulseaudioSupport ? true, libpulseaudio

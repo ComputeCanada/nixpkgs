@@ -1,5 +1,5 @@
 { stdenv, lib, fetchurl, pkgconfig, audiofile
-, openglSupport ? false, mesa_noglu
+, openglSupport ? false, libGL
 , alsaSupport ? true, alsaLib
 , x11Support ? true, libICE, libXi, libXScrnSaver, libXcursor, libXinerama, libXext, libXxf86vm, libXrandr
 , dbusSupport ? false, dbus
