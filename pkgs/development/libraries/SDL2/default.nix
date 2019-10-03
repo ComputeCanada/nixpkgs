@@ -40,7 +40,7 @@ stdenv.mkDerivation rec {
     lib.optional pulseaudioSupport libpulseaudio;
 
   buildInputs = [ audiofile ] ++
-    lib.optional openglSupport mesa_noglu ++
+    lib.optional openglSupport libGL ++
     lib.optional alsaSupport alsaLib ++
     lib.optional dbusSupport dbus ++
     lib.optional udevSupport udev ++
