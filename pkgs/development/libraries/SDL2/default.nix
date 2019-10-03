@@ -13,7 +13,7 @@
 # PulseAudio.
 assert !stdenv.isDarwin -> alsaSupport || pulseaudioSupport;
 
-assert openglSupport -> (stdenv.isDarwin || mesa_noglu != null && x11Support);
+assert openglSupport -> (stdenv.isDarwin || libGL != null && x11Support);
 
 let
   configureFlagsFun = attrs: [

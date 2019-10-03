@@ -32,7 +32,7 @@ stdenv.mkDerivation rec {
     optionals x11Support [ libXext libICE libXrandr ] ++
     optional alsaSupport alsaLib ++
     optional stdenv.isLinux libcap ++
-    optionals openglSupport [ mesa_noglu mesa_glu ] ++
+    optionals openglSupport [ libGL libGLU ] ++
     optional pulseaudioSupport libpulseaudio ++
     optional stdenv.isDarwin Cocoa;
 
