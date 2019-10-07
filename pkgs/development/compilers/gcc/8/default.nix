@@ -345,6 +345,8 @@ stdenv.mkDerivation ({
     --without-included-gettext
     --with-system-zlib
     --enable-static
+    --enable-offload-targets=nvptx-none
+    --without-cuda-driver
     --enable-languages=${
       concatStrings (intersperse ","
         (  optional langC        "c"
