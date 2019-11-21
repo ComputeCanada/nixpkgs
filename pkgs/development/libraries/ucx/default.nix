@@ -2,14 +2,13 @@
   rdma-core, zlib, knem, doxygen, perl, texlive }:
 
 stdenv.mkDerivation rec {
-  version = "1.5.0";
+  version = "1.5.2";
   name = "ucx-${version}";
 
   src = fetchurl {
     url = "https://github.com/openucx/ucx/releases/download/v${version}/${name}.tar.gz";
-    sha256 = "0n3lgm5rxj4drp7hs4l3dz2mhvi00xf41fy8n6wypbs0azxf9xl4";
+    sha256 = "1b9zj63807y67rkjn3kr0fb20wcqrhf0g3cvlrmyhq4q0r9khcqs";
   };
-  patches = [./0001-UCT-IB-MLX5-Fasten-DC-support-check.patch];
 
   nativeBuildInputs = [ autoconf automake git libtool gettext pkgconfig ];
   buildInputs = [ numactl graphviz binutils libiberty rdma-core zlib knem
@@ -18,7 +17,7 @@ stdenv.mkDerivation rec {
   #preConfigure = "./autogen.sh";
   configureScript = "./contrib/configure-release";
   configureFlags = [ "--with-verbs=${rdma-core}" "--with-rdmacm=${rdma-core}" "--with-knem=${knem}"
-                     "--disable-optimizations" "--enable-mt"];
+                     "--disable-optimizations" "--enable-mt" "--without-cm"];
 
   hardeningDisable = [ "bindnow" ];
 
