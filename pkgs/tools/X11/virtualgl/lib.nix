@@ -9,6 +9,8 @@ stdenv.mkDerivation rec {
     sha256 = "0f1jp7r4vajiksbiq08hkxd5bjj0jxlw7dy5750s52djg1v3hhsg";
   };
 
+  patches = [ ./find-host-vgl-libraries.patch ];
+
   cmakeFlags = [ "-DVGL_SYSTEMFLTK=1" "-DTJPEG_LIBRARY=${libjpeg_turbo.out}/lib/libturbojpeg.so"
                  "-DOPENGL_gl_LIBRARY=${libGL}/lib/libGL.so" ];
 

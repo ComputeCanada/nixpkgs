@@ -1,0 +1,13 @@
+--- VirtualGL-2.5.2/server/vglrun.in.orig	2017-03-02 23:13:45.000000000 +0000
++++ VirtualGL-2.5.2/server/vglrun.in	2019-11-21 20:04:14.461692354 +0000
+@@ -224,6 +224,10 @@
+ if [ -x "$MYPATH/.vglrun.vars32" ]; then
+ 	. "$MYPATH/.vglrun.vars32"
+ fi
++# For running on RH/CentOS hosts such as gra-vdi
++if [ -x /usr/libexec/vglrun.vars64 ]; then
++	. /usr/libexec/vglrun.vars64
++fi
+ if [ ! -z "$VGL_LIBRARY_PATH" ]; then
+ 	LD_LIBRARY_PATH=$VGL_LIBRARY_PATH:$LD_LIBRARY_PATH
+ 	export LD_LIBRARY_PATH
