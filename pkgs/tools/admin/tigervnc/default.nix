@@ -7,14 +7,14 @@
 with stdenv.lib;
 
 stdenv.mkDerivation rec {
-  version = "1.8.0pre20170211";
+  version = "1.10.0";
   name = "tigervnc-${version}";
 
   src = fetchFromGitHub {
     owner = "TigerVNC";
     repo = "tigervnc";
-    sha256 = "10bs6394ya953gmak8g2d3n133vyfrryq9zq6dc27g8s6lw0mrbh";
-    rev = "b6c46a1a99a402d5d17b1afafc4784ce0958d6ec";
+    sha256 = "0l0x7cq65wv9n93r952qsikwzcls1sq3r32mx0c4wg19dha0x1m4";
+    rev = "v1.10.0";
   };
 
   inherit fontDirectories;
