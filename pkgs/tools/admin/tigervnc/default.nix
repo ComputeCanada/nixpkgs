@@ -19,12 +19,6 @@ stdenv.mkDerivation rec {
 
   inherit fontDirectories;
 
-  patches = [
-    ./fix-buffer-overflow-in-ModifiablePixelBuffer-fillRect.patch
-    ./prevent-invalid-PixelBuffer-accesses.patch
-    ./check-invalid-RRE-rects.patch
-  ];
-
   prePatch = ''
     sed -i -e 's,$(includedir)/pixman-1,${if stdenv ? cross then pixman.crossDrv else pixman}/include/pixman-1,' unix/xserver/hw/vnc/Makefile.am
     sed -i -e '/^$pidFile/a$ENV{XKB_BINDIR}="${if stdenv ? cross then xorg.xkbcomp.crossDrv else xorg.xkbcomp}/bin";' unix/vncserver
@@ -67,13 +61,13 @@ stdenv.mkDerivation rec {
         --with-xkb-path=${xkeyboard_config}/share/X11/xkb \
         --with-xkb-bin-directory=${xorg.xkbcomp}/bin \
         --with-xkb-output=$out/share/X11/xkb/compiled
-    make TIGERVNC_SRCDIR=`pwd`/../..
+    make TIGERVNC_SRC=$src TIGERVNC_BUILDDIR=`pwd`/../.. -j$NIX_BUILD_CORES -l$NIX_BUILD_CORES
     popd
   '';
 
   postInstall = ''
     pushd unix/xserver/hw/vnc
-    make TIGERVNC_SRCDIR=`pwd`/../.. install
+    make TIGERVNC_SRC=$src TIGERVNC_BUILDDIR=`pwd`/../../../.. install
     popd
     rm -f $out/lib/xorg/protocol.txt
   '';
