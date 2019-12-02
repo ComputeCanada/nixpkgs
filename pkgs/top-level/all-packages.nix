@@ -8939,6 +8939,8 @@ in
     extraOutputsToInstall = [ "dev" ];
   });
 
+  mesa = libGLU_combined;
+
   # Default derivation with libGL.so.1 to link into /run/opengl-drivers (if need)
   libGL_driver = libGLDarwinOr mesa_drivers;
 
