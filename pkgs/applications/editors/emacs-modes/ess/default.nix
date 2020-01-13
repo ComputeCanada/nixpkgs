@@ -1,14 +1,14 @@
-{ stdenv, fetchurl, emacs, texinfo }:
+{ stdenv, fetchurl, emacs, texinfo, perl }:
 
 stdenv.mkDerivation rec {
-  name = "ess-14.09";
+  name = "ess-18.10.2";
 
   src = fetchurl {
     url = "http://ess.r-project.org/downloads/ess/${name}.tgz";
-    sha256 = "0wa507jfmq3k7x0vigd2yzb4j2190ix4wnnpv7ql4bjy0vfvmwdn";
+    sha256 = "1mp90kxfw3s950qvk608y10353349b8wradwma8s13b97hl44yzp";
   };
 
-  buildInputs = [ emacs texinfo ];
+  buildInputs = [ emacs texinfo perl ];
 
   configurePhase = "makeFlags=PREFIX=$out";
 
