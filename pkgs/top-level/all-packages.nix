@@ -7557,6 +7557,8 @@ in
     linuxHeaders = linuxHeadersCross;
   });
 
+  glibcSymlinks = callPackage ../development/libraries/glibc-symlinks { };
+
   # We can choose:
   libcCrossChooser = name: if name == "glibc" then glibcCross
     else if name == "uclibc" then uclibcCross
