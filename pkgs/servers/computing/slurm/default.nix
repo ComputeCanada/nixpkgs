@@ -32,6 +32,7 @@ stdenv.mkDerivation rec {
   '';
 
   postInstall = ''
+    make -C contribs/pmi2 install
     rm -f $lib/lib/*.la $lib/lib/slurm/*.la
   '';
 
