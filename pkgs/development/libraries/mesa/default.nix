@@ -254,6 +254,7 @@ let self = stdenv.mkDerivation {
         ln -s ${self.dev}/include $dev/include
         ln -s ${self.drivers} $drivers
         ln -s ${self.osmesa} $osmesa
+        ln -s ${libglvnd.dev}/lib/pkgconfig/libglvnd.pc $dev/lib/pkgconfig
 
         genPkgConfig() {
           local name="$1"
