@@ -1,11 +1,11 @@
 { stdenv, fetchurl, pkgconfig, libpthreadstubs, libpciaccess, valgrind }:
 
 stdenv.mkDerivation rec {
-  name = "libdrm-2.4.91";
+  name = "libdrm-2.4.100";
 
   src = fetchurl {
     url = "http://dri.freedesktop.org/libdrm/${name}.tar.bz2";
-    sha256 = "0068dn47c478vm1lyyhy02gilrpsma0xmcblhvs0dzqyrk80wjk3";
+    sha256 = "0p8a1l3a3s40i81mawm8nhrbk7p97ss05qkawp1yx73c30lchz67";
   };
 
   outputs = [ "out" "dev" ];
