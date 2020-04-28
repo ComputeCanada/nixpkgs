@@ -25115,9 +25115,12 @@ in modules // {
 
     propagatedBuildInputs = with self; [ numpy ];
 
+    postBuild = ''
+      make rebind.so
+    '';
+
     postInstall = ''
       mkdir -p $out/lib/websockify
-      make rebind.so
       cp rebind.so $out/lib/websockify
     '';
 
