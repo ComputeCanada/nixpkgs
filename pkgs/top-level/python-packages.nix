@@ -25115,6 +25115,12 @@ in modules // {
 
     propagatedBuildInputs = with self; [ numpy ];
 
+    postInstall = ''
+      mkdir -p $out/lib/websockify
+      make rebind.so
+      cp rebind.so $out/lib/websockify
+    '';
+
     meta = {
       description = "WebSockets support for any application/server";
       homepage = https://github.com/kanaka/websockify;
