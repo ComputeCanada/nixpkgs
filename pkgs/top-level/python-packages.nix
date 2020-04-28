@@ -25109,8 +25109,8 @@ in modules // {
     name = "websockify-${version}";
 
     src = pkgs.fetchurl {
-      url = "mirror://pypi/w/websockify/websockify-${version}.tar.gz";
-      sha256 = "1nnalv0jkkj34hw6yb12lp6r6fj1ps9vkkyshjvx65y5xdwmnny3";
+      url = "https://github.com/novnc/websockify/archive/v${version}.tar.gz";
+      sha256 = "1bhkvrqzb6c66rbq9pzd3d859bq2gz13pzmm9xcfd2yp3mwyrgvf";
     };
 
     propagatedBuildInputs = with self; [ numpy ];
