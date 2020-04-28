@@ -25105,12 +25105,12 @@ in modules // {
 
 
   websockify = buildPythonPackage rec {
-    version = "0.7.0";
+    version = "0.9.0";
     name = "websockify-${version}";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/w/websockify/websockify-${version}.tar.gz";
-      sha256 = "1v6pmamjprv2x55fvbdaml26ppxdw8v6xz8p0sav3368ajwwgcqc";
+      sha256 = "1nnalv0jkkj34hw6yb12lp6r6fj1ps9vkkyshjvx65y5xdwmnny3";
     };
 
     propagatedBuildInputs = with self; [ numpy ];
