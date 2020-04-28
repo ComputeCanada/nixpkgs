@@ -25115,6 +25115,11 @@ in modules // {
 
     propagatedBuildInputs = with self; [ numpy ];
 
+    patchPhase = ''
+      substituteInPlace websockify/websocketproxy.py \
+        --replace "wsdir = " "wsdir = '/cvmfs/soft.computecanada.ca/nix/var/nix/profiles/16.09/bin' #"
+    '';
+
     postBuild = ''
       make rebind.so
     '';
