@@ -14,6 +14,7 @@ stdenv.mkDerivation rec {
     "--enable-pam"
     "--with-sys-screenrc=/etc/screenrc"
     "--enable-colors256"
+    "--with-socket-dir=/tmp"
   ];
 
   buildInputs = [ ncurses ] ++ stdenv.lib.optional stdenv.isLinux pam
