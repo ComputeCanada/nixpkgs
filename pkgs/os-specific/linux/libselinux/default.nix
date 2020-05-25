@@ -1,5 +1,5 @@
 { stdenv, fetchurl, fetchpatch, pkgconfig, libsepol, pcre
-, enablePython ? true, swig ? null, python ? null
+, enablePython ? false, swig ? null, python ? null
 }:
 
 assert enablePython -> swig != null && python != null;

@@ -1221,6 +1221,7 @@ in
 
   coreutils = callPackage ../tools/misc/coreutils {
     aclSupport = stdenv.isLinux;
+    selinuxSupport = stdenv.isLinux;
   };
 
   coreutils-prefixed = coreutils.override { withPrefix = true; };
