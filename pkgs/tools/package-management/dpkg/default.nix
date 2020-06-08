@@ -6,7 +6,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "mirror://debian/pool/main/d/dpkg/dpkg_${version}.tar.xz";
-    sha256 = "1ibdidmc8nfiigadfpl3xrccrxw6hvmqiqqizy1v265s87d28m82";
+    sha256 = "0009dp4p3d2j5vd956achqczf8qizfixha8hw5hzn3h31qmwqcxn";
   };
 
   postPatch = ''
