@@ -13798,10 +13798,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   TimeDate = buildPerlPackage {
-    name = "TimeDate-2.30";
+    name = "TimeDate-2.31";
     src = fetchurl {
-      url = mirror://cpan/authors/id/G/GB/GBARR/TimeDate-2.30.tar.gz;
-      sha256 = "11lf54akr9nbivqkjrhvkmfdgkbhw85sq0q4mak56n6bf542bgbm";
+      url = "mirror://cpan/authors/id/A/AT/ATOOMIC/TimeDate-2.31.tar.gz";
+      sha256 = "10ad6l4ii2iahdpw8h0xqwasc1jblan31h597q3js4j5nbnhywjw";
     };
     docheck = false;
   };
